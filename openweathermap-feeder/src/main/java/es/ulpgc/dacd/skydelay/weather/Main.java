@@ -1,17 +1,22 @@
 package es.ulpgc.dacd.skydelay.weather;
 
-
 public class Main {
     public static void main(String[] args) {
-        es.ulpgc.dacd.skydelay.weather.WeatherService service = new es.ulpgc.dacd.skydelay.weather.WeatherService();
+        WeatherService service = new WeatherService();
 
-        // Coordenadas del aeropuerto de Madrid
+        // Coordenadas de ejemplo aeropuerto Madrid-Barajas
         double lat = 40.4839;
         double lon = -3.5680;
 
-        String response = service.getCurrentWeather(lat, lon);
+        try {
+            String json = service.fetchRawJson(lat, lon);
 
-        System.out.println(response);
+            WeatherData data = WeatherParser.parseJson(json);
+
+            System.out.println(data);
+
+        } catch (Exception e) {
+            System.err.println("Ocurrió un error: " + e.getMessage());
+        }
     }
 }
-

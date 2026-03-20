@@ -7,27 +7,26 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class WeatherService {
+    private final String apiKey;
+    private final HttpClient client;
 
-    private final String apiKey = Dotenv.configure().directory("/").load().get("WEATHER_API_KEY");
+    public WeatherService() {
+        this.apiKey = Dotenv.configure().directory("/").load().get("WEATHER_API_KEY");
+        this.client = HttpClient.newHttpClient();
+    }
 
-    private final HttpClient client = HttpClient.newHttpClient();
-
-    public String getCurrentWeather(double lat, double lon) {
-
+    public String fetchRawJson(double lat, double lon) throws Exception {
         String url = String.format(
                 "https://api.openweathermap.org/data/2.5/weather?lat=%f&lon=%f&units=metric&lang=es&appid=%s",
                 lat, lon, apiKey
         );
 
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .build();
+        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            return response.body();
-        } catch (Exception e) {
-            return "Error: " + e.getMessage();
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Error: " + response.statusCode() + " - " + response.body());
         }
+        return response.body();
     }
 }
