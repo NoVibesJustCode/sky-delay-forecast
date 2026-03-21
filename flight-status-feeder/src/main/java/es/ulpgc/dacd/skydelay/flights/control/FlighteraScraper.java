@@ -1,21 +1,44 @@
 package es.ulpgc.dacd.skydelay.flights.control;
 
 import com.microsoft.playwright.*;
+import es.ulpgc.dacd.skydelay.flights.model.Flight;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class FlighteraScraper {
     public static void main(String[] args) {
+        List<Flight> collectedFlights = new ArrayList<>();
+        Random random = new Random();
+
         try (Playwright playwright = Playwright.create()) {
             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));
             Page page = browser.newPage();
-            String url = "https://www.flightera.net/en/flight_details/Vueling-Las+Palmas-Malaga/VY3067/GCLP/2026-03-20";
-            scrapFlight(url, page);
+
+            FlighteraCrawler crawler = new FlighteraCrawler();
+            Map<String, List<String>> allFlightLinks = crawler.getDomesticFlightLinks();
+            for (List<String> links : allFlightLinks.values()) {
+                for (String url : links) {
+                    try {
+                        Flight flight = scrapFlight(url, page);
+                        collectedFlights.add(flight);
+                        Thread.sleep(7000 + random.nextInt(3000));
+                    }
+                    catch (Exception e) {
+                    System.err.println("Error en link: " + url + " -> " + e.getMessage());
+                    }
+                }
+            }
             browser.close();
+            collectedFlights.forEach(System.out::println);
         }
     }
 
-    private static void scrapFlight(String flightURL, Page page){
+    private static Flight scrapFlight(String flightURL, Page page){
         page.navigate(flightURL);
         page.waitForSelector("h1[itemprop='flightNumber']");
         String flightId = page.locator("h1[itemprop='flightNumber']").innerText().trim();
@@ -25,10 +48,14 @@ public class FlighteraScraper {
         String depTimeUTC = extractTimeUTC(page.locator("#depTimeLiveHB + div").innerText());
         String arrTimeUTC = extractTimeUTC(page.locator("#arrTimeLiveHB + div").innerText());
         String status = page.locator("#liveStatusInd").innerText().trim();
-        String depDelay = cleanDelay(page.locator("#depDelHB").innerText());
-        String arrDelay = cleanDelay(page.locator("#arrDelHB").innerText());
-        String distance = cleanDistance(page.locator("[itemprop='distance']").first().innerText());
-        String aircraftModel = cleanAircraft(page.locator("[itemprop='model']").first().innerText());
+        int depDelay = Integer.parseInt(cleanDelay(page.locator("#depDelHB").innerText()));
+        int arrDelay = Integer.parseInt(cleanDelay(page.locator("#arrDelHB").innerText()));
+        int distance = Integer.parseInt(cleanDistance(page.locator("[itemprop='distance']").first().innerText()));
+        Locator aircraftLocator = page.locator("[itemprop='model']").first();
+        String aircraftModel = (aircraftLocator.count() > 0) ? cleanAircraft(aircraftLocator.innerText()) : "Unknown";
+
+        return new Flight(flightId, origin, destination, date, depTimeUTC,
+                arrTimeUTC, status, depDelay, arrDelay, distance, aircraftModel);
     }
 
     private static String cleanDelay(String text) {

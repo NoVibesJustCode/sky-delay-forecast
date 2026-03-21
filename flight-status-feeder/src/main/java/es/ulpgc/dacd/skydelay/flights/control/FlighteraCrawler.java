@@ -15,7 +15,7 @@ public class FlighteraCrawler {
             "LEGE", "LEGR", "LEAM", "LEMI", "LEJR", "LEZG", "LEBZ", "GEML"
     );
 
-    public static void main(String[] args) {
+    public Map<String, List<String>> getDomesticFlightLinks(){
         Map<String, List<String>> flightLinksByAirport = new HashMap<>();
         for (String code : ICAO_SPAIN_AIRPORTS) {
             String airportUrl = "https://www.flightera.net/en/airport/_/" + code + "/departure";
@@ -27,9 +27,8 @@ public class FlighteraCrawler {
                 Thread.currentThread().interrupt();
             }
         }
-        System.out.println("\n--- CRAWLING SUMMARY ---");
-        flightLinksByAirport.forEach((icao, links) ->
-                System.out.println(icao + ": " + links.size() + " domestic flights stored."));
+        System.out.println("Total flight links: " + flightLinksByAirport.size());
+        return flightLinksByAirport;
     }
 
     public static List<String> crawlAirport(String airportUrl){
