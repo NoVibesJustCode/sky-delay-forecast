@@ -10,24 +10,24 @@ import java.util.*;
 public class FlighteraCrawler {
     private static final List<String> ICAO_SPAIN_AIRPORTS = Arrays.asList(
             "LEMD", "LEBL", "LEPA", "LEMG", "LEAL", "LEVC", "LEZL",
-            "GCLP", "GCXO", "GCTS", "GCFV", "GCRR", "GCLA", "GCGM", "GCHI",
-            "LEBB", "LEST", "LECO", "LEVX", "LEAS", "LEXJ", "LEVT", "LEIB", "LEMH",
-            "LEGE", "LEGR", "LEAM", "LEMI", "LEJR", "LEZG", "LEBZ", "GEML"
+            "GCLP", "GCXO", "GCTS", "GCFV", "GCRR", "GCLA", "GCHI",
+            "LEBB", "LEST", "LECO", "LEVX", "LEAS", "LEXJ", "LEIB",
+            "LEMH", "LEGE", "LEGR", "LEAM", "LEJR", "LEBZ", "GEML"
     );
 
     public Map<String, List<String>> getDomesticFlightLinks(){
         Map<String, List<String>> flightLinksByAirport = new HashMap<>();
+        Random rand = new Random();
         for (String code : ICAO_SPAIN_AIRPORTS) {
             String airportUrl = "https://www.flightera.net/en/airport/_/" + code + "/departure";
             List<String> links = crawlAirport(airportUrl);
             flightLinksByAirport.put(code, links);
             try {
-                Thread.sleep(5000);
+                Thread.sleep(10000 + rand.nextInt(8000));
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
         }
-        System.out.println("Total flight links: " + flightLinksByAirport.size());
         return flightLinksByAirport;
     }
 

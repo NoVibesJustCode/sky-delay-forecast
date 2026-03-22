@@ -40,6 +40,17 @@ public class FlighteraScraper {
 
     private static Flight scrapFlight(String flightURL, Page page){
         page.navigate(flightURL);
+
+        Locator rejectButton = page.locator("button[title='Rechazar todo']");
+        try {
+            rejectButton.waitFor(new Locator.WaitForOptions().setTimeout(3000));
+            if (rejectButton.isVisible()) {
+                rejectButton.click();
+                page.waitForCondition(() -> !rejectButton.isVisible());
+            }
+        } catch (Exception ignored) {
+        }
+
         page.waitForSelector("h1[itemprop='flightNumber']");
         String flightId = page.locator("h1[itemprop='flightNumber']").innerText().trim();
         String date = page.locator("[itemprop='departureTime']").first().innerText().trim();
@@ -59,8 +70,8 @@ public class FlighteraScraper {
     }
 
     private static String cleanDelay(String text) {
-        if (text == null) return "0";
-        return text.replace("+", "").replace("-", "").trim();
+        if (text == null || text.trim().isEmpty()) return "0";
+        return text.replace("+", "").trim();
     }
 
     private static String extractTimeUTC(String text) {

@@ -75,7 +75,7 @@ public class Flight {
 
     @Override
     public String toString() {
-        return String.format("Flight %s: %s -> %s | Total Delay: +%dm | Aircraft: %s",
+        return String.format("Flight %s: %s -> %s | Total Delay: %dm | Aircraft: %s",
                 flightId, origin, destination, departureDelay+arrivalDelay, aircraftModel);
     }
 }
