@@ -9,7 +9,10 @@ import java.util.*;
 
 public class FlighteraCrawler {
     private static final List<String> ICAO_SPAIN_AIRPORTS = Arrays.asList(
-            "GCLA", "GCHI"
+            "LEMD", "LEBL", "LEPA", "LEMG", "LEAL", "LEVC", "LEZL",
+            "GCLP", "GCXO", "GCTS", "GCFV", "GCRR", "GCLA", "GCHI",
+            "LEBB", "LEST", "LECO", "LEVX", "LEAS", "LEXJ", "LEIB",
+            "LEMH", "LEGE", "LEGR", "LEAM", "LEJR", "LEBZ", "GEML"
     );
 
     public Map<String, List<String>> getDomesticFlightLinks(){

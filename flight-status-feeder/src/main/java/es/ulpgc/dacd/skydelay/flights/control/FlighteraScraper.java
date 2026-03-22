@@ -17,7 +17,11 @@ public class FlighteraScraper {
 
         try (Playwright playwright = Playwright.create()) {
             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));
-            Page page = browser.newPage();
+            Browser.NewContextOptions contextOptions = new Browser.NewContextOptions()
+                    .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
+                    .setViewportSize(1920, 1080);
+            BrowserContext context = browser.newContext(contextOptions);
+            Page page = context.newPage();
 
             FlighteraCrawler crawler = new FlighteraCrawler();
             Map<String, List<String>> allFlightLinks = crawler.getDomesticFlightLinks();
