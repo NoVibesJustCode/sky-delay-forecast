@@ -41,14 +41,19 @@ public class FlighteraScraper {
     private static Flight scrapFlight(String flightURL, Page page){
         page.navigate(flightURL);
 
-        Locator rejectButton = page.locator("button[title='Rechazar todo']");
+        FrameLocator cookieFrame = page.frameLocator("iframe[id^='sp_message_iframe']");
+        Locator rejectButton = cookieFrame.locator("button[title='Rechazar todo']");
+
         try {
             rejectButton.waitFor(new Locator.WaitForOptions().setTimeout(3000));
+
             if (rejectButton.isVisible()) {
                 rejectButton.click();
                 page.waitForCondition(() -> !rejectButton.isVisible());
             }
         } catch (Exception ignored) {
+            Locator fallback = page.locator("button:has-text('Rechazar todo')").first();
+            if (fallback.isVisible()) fallback.click();
         }
 
         page.waitForSelector("h1[itemprop='flightNumber']");
@@ -59,8 +64,10 @@ public class FlighteraScraper {
         String depTimeUTC = extractTimeUTC(page.locator("#depTimeLiveHB + div").innerText());
         String arrTimeUTC = extractTimeUTC(page.locator("#arrTimeLiveHB + div").innerText());
         String status = page.locator("#liveStatusInd").innerText().trim();
-        int depDelay = Integer.parseInt(cleanDelay(page.locator("#depDelHB").innerText()));
-        int arrDelay = Integer.parseInt(cleanDelay(page.locator("#arrDelHB").innerText()));
+        Locator depDelayLoc = page.locator("#depDelHB");
+        int depDelay = (depDelayLoc.count() > 0) ? Integer.parseInt(cleanDelay(depDelayLoc.innerText())) : 0;
+        Locator arrDelayLoc = page.locator("#arrDelHB");
+        int arrDelay = (arrDelayLoc.count() > 0) ? Integer.parseInt(cleanDelay(arrDelayLoc.innerText())) : 0;
         int distance = Integer.parseInt(cleanDistance(page.locator("[itemprop='distance']").first().innerText()));
         Locator aircraftLocator = page.locator("[itemprop='model']").first();
         String aircraftModel = (aircraftLocator.count() > 0) ? cleanAircraft(aircraftLocator.innerText()) : "Unknown";

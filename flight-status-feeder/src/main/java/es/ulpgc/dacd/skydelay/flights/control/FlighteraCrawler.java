@@ -9,10 +9,7 @@ import java.util.*;
 
 public class FlighteraCrawler {
     private static final List<String> ICAO_SPAIN_AIRPORTS = Arrays.asList(
-            "LEMD", "LEBL", "LEPA", "LEMG", "LEAL", "LEVC", "LEZL",
-            "GCLP", "GCXO", "GCTS", "GCFV", "GCRR", "GCLA", "GCHI",
-            "LEBB", "LEST", "LECO", "LEVX", "LEAS", "LEXJ", "LEIB",
-            "LEMH", "LEGE", "LEGR", "LEAM", "LEJR", "LEBZ", "GEML"
+            "GCLA", "GCHI"
     );
 
     public Map<String, List<String>> getDomesticFlightLinks(){
@@ -42,7 +39,6 @@ public class FlighteraCrawler {
                 Element spainFlag = row.selectFirst("img[alt*='Spain']");
                 if (spainFlag != null) {
                     Element flightLink = row.select("td").get(1).selectFirst("a");
-                    String flightCode = flightLink.text();
                     String flightDetails = "https://www.flightera.net" + flightLink.attr("href");
                     collectedLinks.add(flightDetails);
                 }
