@@ -2,103 +2,82 @@ package es.ulpgc.dacd.skydelay.flights.control;
 
 import com.microsoft.playwright.*;
 import es.ulpgc.dacd.skydelay.flights.model.Flight;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class FlighteraScraper {
+    private static final int BATCH_SIZE = 10;
+
     public static void main(String[] args) {
-        List<Flight> collectedFlights = new ArrayList<>();
+        LinkManager linkManager = new LinkManager();
         Random random = new Random();
 
         try (Playwright playwright = Playwright.create()) {
             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));
-            Browser.NewContextOptions contextOptions = new Browser.NewContextOptions()
-                    .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
-                    .setViewportSize(1920, 1080);
-            BrowserContext context = browser.newContext(contextOptions);
-            Page page = context.newPage();
+            Page page = browser.newPage();
 
-            FlighteraCrawler crawler = new FlighteraCrawler();
-            Map<String, List<String>> allFlightLinks = crawler.getDomesticFlightLinks();
-            for (List<String> links : allFlightLinks.values()) {
-                for (String url : links) {
-                    try {
-                        Flight flight = scrapFlight(url, page);
-                        collectedFlights.add(flight);
-                        Thread.sleep(7000 + random.nextInt(3000));
-                    }
-                    catch (Exception e) {
-                    System.err.println("Error en link: " + url + " -> " + e.getMessage());
-                    }
+            List<String> pending = linkManager.getPendingLinks();
+            if (pending.isEmpty()) {
+                FlighteraCrawler crawler = new FlighteraCrawler();
+                List<String> allLinks = crawler.getDomesticFlightLinks().values().stream()
+                        .flatMap(List::stream).distinct().collect(Collectors.toList());
+                linkManager.saveLinks(allLinks);
+                pending = allLinks;
+            }
+
+            List<String> currentBatch = pending.stream().limit(BATCH_SIZE).toList();
+            List<String> processed = new ArrayList<>();
+
+            for (String url : currentBatch) {
+                try {
+                    Flight flight = scrapFlight(url, page);
+                    System.out.println("Scrapeado: " + flight.getFlightId());
+                    processed.add(url);
+                    Thread.sleep(7000 + random.nextInt(3000));
+                } catch (Exception e) {
+                    System.err.println("Error en " + url + ": " + e.getMessage());
                 }
             }
+
+            linkManager.removeProcessedLinks(processed);
             browser.close();
-            collectedFlights.forEach(System.out::println);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    private static Flight scrapFlight(String flightURL, Page page){
+    private static Flight scrapFlight(String flightURL, Page page) {
         page.navigate(flightURL);
+        handleCookies(page);
 
-        FrameLocator cookieFrame = page.frameLocator("iframe[id^='sp_message_iframe']");
-        Locator rejectButton = cookieFrame.locator("button[title='Rechazar todo']");
+        page.waitForSelector("h1[itemprop='flightNumber']");
 
+        return new Flight(
+                page.locator("h1[itemprop='flightNumber']").innerText().trim(),
+                page.locator("[itemprop='departureAirport'] [itemprop='iataCode']").innerText().trim(),
+                page.locator("[itemprop='arrivalAirport'] [itemprop='iataCode']").innerText().trim(),
+                page.locator("[itemprop='departureTime']").first().innerText().trim(),
+                FlightMapper.extractTimeUTC(page.locator("#depTimeLiveHB + div").innerText()),
+                FlightMapper.extractTimeUTC(page.locator("#arrTimeLiveHB + div").innerText()),
+                page.locator("#liveStatusInd").innerText().trim(),
+                FlightMapper.parseDelay(page.locator("#depDelHB").count() > 0 ? page.locator("#depDelHB").innerText() : "0"),
+                FlightMapper.parseDelay(page.locator("#arrDelHB").count() > 0 ? page.locator("#arrDelHB").innerText() : "0"),
+                FlightMapper.parseDistance(page.locator("[itemprop='distance']").first().innerText()),
+                FlightMapper.cleanAircraft(page.locator("[itemprop='model']").count() > 0 ? page.locator("[itemprop='model']").innerText() : "Unknown")
+        );
+    }
+
+    private static void handleCookies(Page page) {
         try {
-            rejectButton.waitFor(new Locator.WaitForOptions().setTimeout(3000));
-
-            if (rejectButton.isVisible()) {
-                rejectButton.click();
-                page.waitForCondition(() -> !rejectButton.isVisible());
+            FrameLocator cookieFrame = page.frameLocator("iframe[id^='sp_message_iframe']");
+            Locator btn = cookieFrame.locator("button[title='Rechazar todo']");
+            if (btn.isVisible()) {
+                btn.click();
+                page.waitForCondition(() -> !btn.isVisible());
             }
         } catch (Exception ignored) {
             Locator fallback = page.locator("button:has-text('Rechazar todo')").first();
             if (fallback.isVisible()) fallback.click();
         }
-
-        page.waitForSelector("h1[itemprop='flightNumber']");
-        String flightId = page.locator("h1[itemprop='flightNumber']").innerText().trim();
-        String date = page.locator("[itemprop='departureTime']").first().innerText().trim();
-        String origin = page.locator("[itemprop='departureAirport'] [itemprop='iataCode']").innerText().trim();
-        String destination = page.locator("[itemprop='arrivalAirport'] [itemprop='iataCode']").innerText().trim();
-        String depTimeUTC = extractTimeUTC(page.locator("#depTimeLiveHB + div").innerText());
-        String arrTimeUTC = extractTimeUTC(page.locator("#arrTimeLiveHB + div").innerText());
-        String status = page.locator("#liveStatusInd").innerText().trim();
-        Locator depDelayLoc = page.locator("#depDelHB");
-        int depDelay = (depDelayLoc.count() > 0) ? Integer.parseInt(cleanDelay(depDelayLoc.innerText())) : 0;
-        Locator arrDelayLoc = page.locator("#arrDelHB");
-        int arrDelay = (arrDelayLoc.count() > 0) ? Integer.parseInt(cleanDelay(arrDelayLoc.innerText())) : 0;
-        int distance = Integer.parseInt(cleanDistance(page.locator("[itemprop='distance']").first().innerText()));
-        Locator aircraftLocator = page.locator("[itemprop='model']").first();
-        String aircraftModel = (aircraftLocator.count() > 0) ? cleanAircraft(aircraftLocator.innerText()) : "Unknown";
-
-        return new Flight(flightId, origin, destination, date, depTimeUTC,
-                arrTimeUTC, status, depDelay, arrDelay, distance, aircraftModel);
-    }
-
-    private static String cleanDelay(String text) {
-        if (text == null || text.trim().isEmpty()) return "0";
-        return text.replace("+", "").trim();
-    }
-
-    private static String extractTimeUTC(String text) {
-        Pattern pattern = Pattern.compile("(\\d{2}:\\d{2})");
-        Matcher matcher = pattern.matcher(text);
-        return matcher.find() ? matcher.group(1) : "N/A";
-    }
-
-    private static String cleanDistance(String text) {
-        if (text == null || text.isEmpty()) return "N/A";
-        String firstPart = text.split("/")[0].trim();
-        return firstPart.replace("km", "").replace(",", "").trim();
-    }
-
-    private static String cleanAircraft(String text) {
-        if (text == null) return "Unknown";
-        return text.trim();
     }
 }
