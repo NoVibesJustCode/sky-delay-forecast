@@ -34,7 +34,7 @@ public class FlighteraScraper {
                     Flight flight = scrapFlight(url, page);
                     publisher.publish(flight);
                     System.out.println(flight);
-                    processed.add(url);
+                    if (flight.getStatus().equalsIgnoreCase("Landed")) processed.add(url);
                     Thread.sleep(7000 + random.nextInt(3000));
                 } catch (Exception e) {
                     System.err.println("Error en " + url + ": " + e.getMessage());
