@@ -10,6 +10,7 @@ public class FlighteraScraper {
 
     public static void main(String[] args) {
         LinkManager linkManager = new LinkManager();
+        FlightPublisher publisher = new FlightPublisher();
         Random random = new Random();
 
         try (Playwright playwright = Playwright.create()) {
@@ -31,7 +32,8 @@ public class FlighteraScraper {
             for (String url : currentBatch) {
                 try {
                     Flight flight = scrapFlight(url, page);
-                    System.out.println("Scrapeado: " + flight.getFlightId());
+                    publisher.publish(flight);
+                    System.out.println(flight);
                     processed.add(url);
                     Thread.sleep(7000 + random.nextInt(3000));
                 } catch (Exception e) {
