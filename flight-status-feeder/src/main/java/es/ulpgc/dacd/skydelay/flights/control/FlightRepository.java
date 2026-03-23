@@ -1,13 +1,22 @@
 package es.ulpgc.dacd.skydelay.flights.control;
 
 import es.ulpgc.dacd.skydelay.flights.model.Flight;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.*;
 
 public class FlightRepository {
     private final String url = "jdbc:sqlite:data/skydelay.db";
 
     public FlightRepository() {
-        initDatabase();
+        try {
+            Files.createDirectories(Paths.get("data"));
+            initDatabase();
+        } catch (IOException e) {
+            System.err.println("No se pudo crear la carpeta de datos: " + e.getMessage());
+        }
     }
 
     private void initDatabase() {
