@@ -8,56 +8,60 @@ import java.nio.file.Paths;
 import java.sql.*;
 
 public class FlightRepository {
-    private final String url = "jdbc:sqlite:data/skydelay.db";
+    private final String url = "jdbc:sqlite:storage/db/skydelay.db";
 
     public FlightRepository() {
         try {
-            Files.createDirectories(Paths.get("data"));
+            Files.createDirectories(Paths.get("storage/db"));
             initDatabase();
         } catch (IOException e) {
-            System.err.println("No se pudo crear la carpeta de datos: " + e.getMessage());
+            System.err.println("Could not create data directory: " + e.getMessage());
         }
     }
 
     private void initDatabase() {
         String sqlFlights = "CREATE TABLE IF NOT EXISTS flights (" +
-                "id TEXT PRIMARY KEY, " +
                 "flight_number TEXT, " +
+                "date TEXT, " +
                 "origin TEXT, " +
                 "destination TEXT, " +
-                "date TEXT, " +
+                "departure_time TEXT, " +
+                "arrival_time TEXT, " +
                 "dep_delay INTEGER, " +
                 "arr_delay INTEGER, " +
                 "status TEXT, " +
-                "aircraft TEXT" +
+                "aircraft TEXT, " +
+                "PRIMARY KEY (flight_number, date)" +
                 ");";
 
         try (Connection conn = DriverManager.getConnection(url);
              Statement stmt = conn.createStatement()) {
             stmt.execute(sqlFlights);
         } catch (SQLException e) {
-            System.err.println("Error inicializando DB: " + e.getMessage());
+            System.err.println("Database initialization error: " + e.getMessage());
         }
     }
 
     public void save(Flight f) {
-        String sql = "INSERT OR REPLACE INTO flights(id, flight_number, origin, destination, date, dep_delay, arr_delay, status, aircraft) " +
-                "VALUES(?,?,?,?,?,?,?,?,?)";
+        String sql = "INSERT OR REPLACE INTO flights(flight_number, date, origin, destination, " +
+                "departure_time, arrival_time, dep_delay, arr_delay, status, aircraft) " +
+                "VALUES(?,?,?,?,?,?,?,?,?,?)";
 
         try (Connection conn = DriverManager.getConnection(url);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, f.getFlightId());
-            pstmt.setString(2, f.getFlightId());
+            pstmt.setString(2, f.getDate());
             pstmt.setString(3, f.getOrigin());
             pstmt.setString(4, f.getDestination());
-            pstmt.setString(5, f.getDate());
-            pstmt.setInt(6, f.getDepartureDelay());
-            pstmt.setInt(7, f.getArrivalDelay());
-            pstmt.setString(8, f.getStatus());
-            pstmt.setString(9, f.getAircraftModel());
+            pstmt.setString(5, f.getDepartureTimeUTC());
+            pstmt.setString(6, f.getArrivalTimeUTC());
+            pstmt.setInt(7, f.getDepartureDelay());
+            pstmt.setInt(8, f.getArrivalDelay());
+            pstmt.setString(9, f.getStatus());
+            pstmt.setString(10, f.getAircraftModel());
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Error al insertar vuelo: " + e.getMessage());
+            System.err.println("Error inserting flight data: " + e.getMessage());
         }
     }
 }

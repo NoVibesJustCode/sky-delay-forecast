@@ -18,6 +18,8 @@ public class FlighteraCrawler {
     public Map<String, List<String>> getDomesticFlightLinks(){
         Map<String, List<String>> flightLinksByAirport = new HashMap<>();
         Random rand = new Random();
+        Collections.shuffle(ICAO_SPAIN_AIRPORTS);
+
         for (String code : ICAO_SPAIN_AIRPORTS) {
             String airportUrl = "https://www.flightera.net/en/airport/_/" + code + "/departure";
             List<String> links = crawlAirport(airportUrl);
