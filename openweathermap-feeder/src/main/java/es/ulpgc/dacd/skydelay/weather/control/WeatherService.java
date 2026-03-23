@@ -11,7 +11,7 @@ public class WeatherService {
     private final HttpClient client;
 
     public WeatherService() {
-        this.apiKey = Dotenv.configure().directory("/").load().get("WEATHER_API_KEY");
+        this.apiKey = Dotenv.load().get("WEATHER_API_KEY");
         this.client = HttpClient.newHttpClient();
     }
 

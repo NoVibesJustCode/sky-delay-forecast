@@ -21,8 +21,7 @@ public record WeatherData(
                         "Humedad: %d%%\n" +
                         "Visibilidad: %d metros\n" +
                         "Viento: %.2f m/s (Ráfagas: %.2f m/s)\n" +
-                        "Porcentaje de nubosidad: %d%%\n" +
-                        "------------------------------------",
+                        "Porcentaje de nubosidad: %d%%\n",
                 cityName, description, temp, feelsLike, humidity, visibility, windSpeed, windGust, cloudsPct
         );
     }

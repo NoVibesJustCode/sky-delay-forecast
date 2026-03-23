@@ -39,4 +39,9 @@ build/
 .DS_Store
 
 ### WEATHER_API_KEY ###
+openweathermap-feeder/.env
 .env
+
+
+### airports.csv ###
+storage/references/airports.csv
