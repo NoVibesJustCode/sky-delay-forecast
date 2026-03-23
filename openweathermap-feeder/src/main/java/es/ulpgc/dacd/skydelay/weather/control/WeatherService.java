@@ -1,4 +1,4 @@
-package es.ulpgc.dacd.skydelay.weather;
+package es.ulpgc.dacd.skydelay.weather.control;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import java.net.URI;

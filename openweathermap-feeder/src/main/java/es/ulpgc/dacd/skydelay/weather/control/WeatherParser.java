@@ -1,5 +1,6 @@
-package es.ulpgc.dacd.skydelay.weather;
+package es.ulpgc.dacd.skydelay.weather.control;
 
+import es.ulpgc.dacd.skydelay.weather.model.WeatherData;
 import org.json.JSONObject;
 
 public class WeatherParser {

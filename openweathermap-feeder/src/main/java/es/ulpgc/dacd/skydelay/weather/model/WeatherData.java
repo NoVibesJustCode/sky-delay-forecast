@@ -1,4 +1,4 @@
-package es.ulpgc.dacd.skydelay.weather;
+package es.ulpgc.dacd.skydelay.weather.model;
 
 public record WeatherData(
         String cityName,
