@@ -8,7 +8,7 @@ import java.nio.file.Paths;
 import java.sql.*;
 
 public class FlightRepository {
-    private final String url = "jdbc:sqlite:storage/db/skydelay.db";
+    private final String DATABASE_URL = "jdbc:sqlite:storage/db/skydelay.db";
 
     public FlightRepository() {
         try {
@@ -17,6 +17,7 @@ public class FlightRepository {
         } catch (IOException e) {
             System.err.println("Could not create data directory: " + e.getMessage());
         }
+
     }
 
     private void initDatabase() {
@@ -34,7 +35,7 @@ public class FlightRepository {
                 "PRIMARY KEY (flight_number, date)" +
                 ");";
 
-        try (Connection conn = DriverManager.getConnection(url);
+        try (Connection conn = DriverManager.getConnection(DATABASE_URL);
              Statement stmt = conn.createStatement()) {
             stmt.execute(sqlFlights);
         } catch (SQLException e) {
@@ -47,7 +48,7 @@ public class FlightRepository {
                 "departure_time, arrival_time, dep_delay, arr_delay, status, aircraft) " +
                 "VALUES(?,?,?,?,?,?,?,?,?,?)";
 
-        try (Connection conn = DriverManager.getConnection(url);
+        try (Connection conn = DriverManager.getConnection(DATABASE_URL);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, f.getFlightId());
             pstmt.setString(2, f.getDate());
