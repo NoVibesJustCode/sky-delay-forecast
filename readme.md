@@ -74,7 +74,7 @@ The following diagram illustrates the internal structure of the flight scraping 
 
 ```mermaid
 classDiagram
-    direction TB
+    direction LR
 
     class FlighteraScraper {
         -int BATCH_SIZE
