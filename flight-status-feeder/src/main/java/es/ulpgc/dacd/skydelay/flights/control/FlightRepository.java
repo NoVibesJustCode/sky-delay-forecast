@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class FlightRepository {
     private final String DATABASE_URL = "jdbc:sqlite:storage/db/skydelay.db";
@@ -22,6 +24,7 @@ public class FlightRepository {
 
     private void initDatabase() {
         String sqlFlights = "CREATE TABLE IF NOT EXISTS flights (" +
+                "captured_at TEXT, " +
                 "flight_number TEXT, " +
                 "date TEXT, " +
                 "origin TEXT, " +
@@ -32,7 +35,7 @@ public class FlightRepository {
                 "arr_delay INTEGER, " +
                 "status TEXT, " +
                 "aircraft TEXT, " +
-                "PRIMARY KEY (flight_number, date)" +
+                "PRIMARY KEY (captured_at, flight_number, date)" +
                 ");";
 
         try (Connection conn = DriverManager.getConnection(DATABASE_URL);
@@ -44,22 +47,25 @@ public class FlightRepository {
     }
 
     public void save(Flight f) {
-        String sql = "INSERT OR REPLACE INTO flights(flight_number, date, origin, destination, " +
+        String sql = "INSERT OR REPLACE INTO flights(captured_at, flight_number, date, origin, destination, " +
                 "departure_time, arrival_time, dep_delay, arr_delay, status, aircraft) " +
                 "VALUES(?,?,?,?,?,?,?,?,?,?)";
 
+        String now = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
         try (Connection conn = DriverManager.getConnection(DATABASE_URL);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, f.getFlightId());
-            pstmt.setString(2, f.getDate());
-            pstmt.setString(3, f.getOrigin());
-            pstmt.setString(4, f.getDestination());
-            pstmt.setString(5, f.getDepartureTimeUTC());
-            pstmt.setString(6, f.getArrivalTimeUTC());
-            pstmt.setInt(7, f.getDepartureDelay());
-            pstmt.setInt(8, f.getArrivalDelay());
-            pstmt.setString(9, f.getStatus());
-            pstmt.setString(10, f.getAircraftModel());
+            pstmt.setString(1, now);
+            pstmt.setString(2, f.getFlightId());
+            pstmt.setString(3, f.getDate());
+            pstmt.setString(4, f.getOrigin());
+            pstmt.setString(5, f.getDestination());
+            pstmt.setString(6, f.getDepartureTimeUTC());
+            pstmt.setString(7, f.getArrivalTimeUTC());
+            pstmt.setInt(8, f.getDepartureDelay());
+            pstmt.setInt(9, f.getArrivalDelay());
+            pstmt.setString(10, f.getStatus());
+            pstmt.setString(11, f.getAircraftModel());
             pstmt.executeUpdate();
         } catch (SQLException e) {
             System.err.println("Error inserting flight data: " + e.getMessage());
