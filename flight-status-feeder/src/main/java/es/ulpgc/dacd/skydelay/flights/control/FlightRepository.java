@@ -49,7 +49,7 @@ public class FlightRepository {
     public void save(Flight f) {
         String sql = "INSERT OR REPLACE INTO flights(captured_at, flight_number, date, origin, destination, " +
                 "departure_time, arrival_time, dep_delay, arr_delay, status, aircraft) " +
-                "VALUES(?,?,?,?,?,?,?,?,?,?)";
+                "VALUES(?,?,?,?,?,?,?,?,?,?,?)";
 
         String now = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
