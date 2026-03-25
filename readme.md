@@ -78,8 +78,9 @@ classDiagram
 
     class FlighteraScraper {
         -int BATCH_SIZE
-        +main(String[] args)
+        +startCapture()
         -scrapFlight(String flightUrl, Page page) Flight
+        -handleCookies(Page page)
     }
 
     class FlighteraCrawler {
