@@ -8,9 +8,8 @@ import java.util.stream.Collectors;
 public class FlighteraScraper {
     private static final int BATCH_SIZE = 10;
 
-    public static void startCapture() {
+    public static void startCapture(FlightPublisher publisher) {
         LinkManager linkManager = new LinkManager();
-        FlightPublisher publisher = new FlightPublisher();
         Random random = new Random();
 
         try (Playwright playwright = Playwright.create()) {

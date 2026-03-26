@@ -14,6 +14,12 @@ public class Main {
     private static final LinkManager linkManager = new LinkManager();
 
     public static void main(String[] args) throws IOException {
+        String dbPath = args.length > 0 ? args[0] : "storage/db/skydelay.db";
+
+        FlightRepository repository = new FlightRepository(dbPath);
+
+        FlightPublisher publisher = new FlightPublisher(repository);
+
         boolean running = true;
 
         while (running) {
@@ -22,7 +28,7 @@ public class Main {
 
             switch (choice) {
                 case "1" -> runCrawler();
-                case "2" -> runScraper();
+                case "2" -> runScraper(publisher);
                 case "0" -> {
                     System.out.println("Goodbye!");
                     running = false;
@@ -53,9 +59,9 @@ public class Main {
         System.out.println("Total flight links discovered: " + allLinks.size());
         }
 
-    private static void runScraper() {
+    private static void runScraper(FlightPublisher publisher) {
         System.out.println("\n[Action] Starting Scraper...\n");
-        FlighteraScraper.startCapture();
+        FlighteraScraper.startCapture(publisher);
         System.out.println("\nBatch processing finished.");
     }
 }

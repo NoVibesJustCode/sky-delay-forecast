@@ -4,22 +4,25 @@ import es.ulpgc.dacd.skydelay.flights.model.Flight;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class FlightRepository {
-    private final String DATABASE_URL = "jdbc:sqlite:storage/db/skydelay.db";
+    private final String databaseUrl;
 
-    public FlightRepository() {
+    public FlightRepository(String dbPath) {
+        this.databaseUrl = "jdbc:sqlite:" + dbPath;
+
         try {
-            Files.createDirectories(Paths.get("storage/db"));
+            java.nio.file.Path path = java.nio.file.Paths.get(dbPath);
+            if (path.getParent() != null) {
+                Files.createDirectories(path.getParent());
+            }
             initDatabase();
         } catch (IOException e) {
             System.err.println("Could not create data directory: " + e.getMessage());
         }
-
     }
 
     private void initDatabase() {
@@ -38,7 +41,7 @@ public class FlightRepository {
                 "PRIMARY KEY (captured_at, flight_number, date)" +
                 ");";
 
-        try (Connection conn = DriverManager.getConnection(DATABASE_URL);
+        try (Connection conn = DriverManager.getConnection(databaseUrl);
              Statement stmt = conn.createStatement()) {
             stmt.execute(sqlFlights);
         } catch (SQLException e) {
@@ -53,7 +56,7 @@ public class FlightRepository {
 
         String now = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
-        try (Connection conn = DriverManager.getConnection(DATABASE_URL);
+        try (Connection conn = DriverManager.getConnection(databaseUrl);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, now);
             pstmt.setString(2, f.getFlightId());
