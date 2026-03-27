@@ -1,7 +1,7 @@
 package es.ulpgc.dacd.skydelay.weather.model;
 
-public record WeatherData(
-        String cityName,
+public record Weather(
+        String airport,
         String description,
         double temp,
         double feelsLike,
@@ -22,7 +22,8 @@ public record WeatherData(
                         "Visibilidad: %d metros\n" +
                         "Viento: %.2f m/s (Ráfagas: %.2f m/s)\n" +
                         "Porcentaje de nubosidad: %d%%\n",
-                cityName, description, temp, feelsLike, humidity, visibility, windSpeed, windGust, cloudsPct
+                airport, description, temp, feelsLike, humidity, visibility, windSpeed, windGust, cloudsPct
         );
     }
 }
+

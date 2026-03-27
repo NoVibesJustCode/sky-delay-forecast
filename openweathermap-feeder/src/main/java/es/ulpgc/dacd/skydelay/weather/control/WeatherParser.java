@@ -1,17 +1,18 @@
 package es.ulpgc.dacd.skydelay.weather.control;
 
-import es.ulpgc.dacd.skydelay.weather.model.WeatherData;
+import es.ulpgc.dacd.skydelay.weather.model.Weather;
 import org.json.JSONObject;
 
 public class WeatherParser {
-    public static WeatherData parseJson(String jsonRaw) {
+
+    public Weather parse(String jsonRaw, String airportName) {
         JSONObject root = new JSONObject(jsonRaw);
         JSONObject main = root.getJSONObject("main");
         JSONObject wind = root.getJSONObject("wind");
         JSONObject clouds = root.getJSONObject("clouds");
 
-        return new WeatherData(
-                root.getString("name"),
+        return new Weather(
+                airportName,
                 root.getJSONArray("weather").getJSONObject(0).getString("description"),
                 main.getDouble("temp"),
                 main.getDouble("feels_like"),

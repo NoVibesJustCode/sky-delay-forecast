@@ -1,30 +1,30 @@
 package es.ulpgc.dacd.skydelay.weather;
 
-import es.ulpgc.dacd.skydelay.weather.control.AirportReader;
+import es.ulpgc.dacd.skydelay.weather.control.AirportsReader;
+import es.ulpgc.dacd.skydelay.weather.control.OpenWeatherMapFeeder;
 import es.ulpgc.dacd.skydelay.weather.control.WeatherParser;
-import es.ulpgc.dacd.skydelay.weather.control.WeatherService;
-import es.ulpgc.dacd.skydelay.weather.model.WeatherData;
+import es.ulpgc.dacd.skydelay.weather.model.Weather;
+
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
 
+        AirportsReader reader = new AirportsReader();
+        WeatherParser parser = new WeatherParser();
 
-        WeatherService service = new WeatherService();
+        OpenWeatherMapFeeder feeder = new OpenWeatherMapFeeder(reader, parser);
 
-        AirportReader airportReader = new AirportReader();
+        List<Weather> results = feeder.fetch();
 
-        double lat = airportReader.getCoorditates("LEMD")[0];
-        double lon = airportReader.getCoorditates("LEMD")[1];
+        if (results.isEmpty()) {
+            System.out.println("No se han podido obtener datos");
+        } else {
 
-        try {
-            String json = service.fetchRawJson(lat, lon);
-
-            WeatherData data = WeatherParser.parseJson(json);
-
-            System.out.println(data);
-
-        } catch (Exception e) {
-            System.err.println("Ocurrió un error: " + e.getMessage());
+            for (Weather w : results) {
+                System.out.println(w.toString());
+            }
         }
+
     }
 }
