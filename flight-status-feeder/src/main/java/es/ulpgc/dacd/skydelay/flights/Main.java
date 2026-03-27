@@ -29,9 +29,11 @@ public class Main {
             switch (choice) {
                 case "1" -> runCrawler();
                 case "2" -> runScraper(publisher);
+                case "3" -> runAutomatedScraper(publisher);
                 case "0" -> {
                     System.out.println("Goodbye!");
                     running = false;
+                    System.exit(0);
                 }
                 default -> System.out.println("Invalid option. Please try again.");
             }
@@ -44,6 +46,7 @@ public class Main {
         System.out.println("====================================");
         System.out.println("1. [Crawler]  Discover new flight links");
         System.out.println("2. [Scraper]  Process pending links");
+        System.out.println("3. [Automated Scraper] Processes links every 30 minutes");
         System.out.println("0. Exit");
         System.out.print("\nSelect an option: ");
     }
@@ -63,5 +66,14 @@ public class Main {
         System.out.println("\n[Action] Starting Scraper...\n");
         FlighteraScraper.startCapture(publisher);
         System.out.println("\nBatch processing finished.");
+    }
+
+    private static void runAutomatedScraper(FlightPublisher publisher) {
+        System.out.println("\n[Action] Activating Automated Scraper...\n");
+        ScrapingScheduler scheduler = new ScrapingScheduler(publisher);
+        scheduler.start();
+        System.out.println(">>> System is now running in the background.");
+        System.out.println(">>> Press Enter to return to menu (Scheduler will keep running).");
+        scanner.nextLine();
     }
 }
