@@ -4,6 +4,7 @@ import es.ulpgc.dacd.skydelay.weather.model.Weather;
 
 import java.util.List;
 
+
 public class Control {
     private final WeatherFeeder feeder;
     private final WeatherStore store;
@@ -18,5 +19,6 @@ public class Control {
         for (Weather weather : weathers) {
             store.save(weather);
         }
+        System.out.println("Proceso de guardado finalizado para " + weathers.size() + " registros.");
     }
 }
