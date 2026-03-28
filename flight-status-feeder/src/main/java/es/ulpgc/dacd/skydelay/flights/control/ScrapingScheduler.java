@@ -34,4 +34,17 @@ public class ScrapingScheduler {
         System.out.println("[Scheduler] Automated scraping service started (Every 30 min)");
         scheduler.scheduleAtFixedRate(scraperTask, 0, 30, TimeUnit.MINUTES);
     }
+
+    public void stop() {
+        System.out.println("[Scheduler] Stopping the scraping service...");
+        scheduler.shutdown();
+        try {
+            if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+                scheduler.shutdownNow();
+            }
+            System.out.println("[Scheduler] Service stopped correctly.");
+        } catch (InterruptedException e) {
+            scheduler.shutdownNow();
+        }
+    }
 }

@@ -20,6 +20,8 @@ public class Main {
 
         FlightPublisher publisher = new FlightPublisher(repository);
 
+        ScrapingScheduler scheduler = new ScrapingScheduler(publisher);
+
         boolean running = true;
 
         while (running) {
@@ -29,11 +31,11 @@ public class Main {
             switch (choice) {
                 case "1" -> runCrawler();
                 case "2" -> runScraper(publisher);
-                case "3" -> runAutomatedScraper(publisher);
+                case "3" -> runAutomatedScraper(scheduler);
                 case "0" -> {
                     System.out.println("Goodbye!");
                     running = false;
-                    System.exit(0);
+                    scheduler.stop();
                 }
                 default -> System.out.println("Invalid option. Please try again.");
             }
@@ -68,9 +70,8 @@ public class Main {
         System.out.println("\nBatch processing finished.");
     }
 
-    private static void runAutomatedScraper(FlightPublisher publisher) {
+    private static void runAutomatedScraper(ScrapingScheduler scheduler) {
         System.out.println("\n[Action] Activating Automated Scraper...\n");
-        ScrapingScheduler scheduler = new ScrapingScheduler(publisher);
         scheduler.start();
         System.out.println(">>> System is now running in the background.");
         System.out.println(">>> Press Enter to return to menu (Scheduler will keep running).");
