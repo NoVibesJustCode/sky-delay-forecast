@@ -19,7 +19,6 @@ The project follows an Event-Driven Architecture (EDA) divided into independent 
 ### Data Flow Diagram
 ```mermaid
 flowchart LR
-    %% Define styles
     classDef producer fill:#5cb85c,stroke:#4cae4c,color:white,stroke-width:1px
     classDef broker fill:#428bca,stroke:#357ebd,color:white,stroke-width:1px
     classDef queue fill:#5bc0de,stroke:#46b8da,color:white,stroke-width:1px,font-style:italic
@@ -28,13 +27,11 @@ flowchart LR
     classDef Predictor fill:#8754C9,stroke:#4C277C,color:white,stroke-width:1px
     classDef Datamart fill:#AA7E55,stroke:#110D09,color:white,stroke-width:1px
 
-    %% Producers
     subgraph Producers
         weather["OpenWeatherMap<br/>Feeder"]:::producer
         flights["Flight-Status<br/>Feeder"]:::producer
     end
     
-    %% Message Broker (ActiveMQ)
     subgraph ActiveMQ["Broker (ActiveMQ)"]
         temp["weather.Conditions"]:::queue
         forecast["weather.Forecast"]:::queue
@@ -42,19 +39,15 @@ flowchart LR
         f_delays["flights.Delays"]:::queue
     end
     
-    %% Subscriber
     subgraph Subscriber
         esBuilder["Event Store<br/>Builder"]:::subscriber
     end
     
-    %% Storage (SQLite / File System)
     eventStore[("Event Store<br/>(History DB)")]:::storage
     
-    %% Analytics
     delayPredictor["Delay<br/>Predictor"]:::Predictor
     dataMart[("Datamart<br/>(Final Stats)")]:::Datamart
     
-    %% Connections
     weather --> temp
     weather --> forecast
     flights --> f_status
@@ -70,9 +63,79 @@ flowchart LR
     
     delayPredictor <--> dataMart
     
-    %% New connection from ActiveMQ to Predictor (Real-time analysis)
     ActiveMQ --> delayPredictor
     
-    %% Link styling
     linkStyle default stroke:#666,stroke-width:2px;
+```
+## ⚙️ Technical Design
+
+### Class Diagram: `flight-status-feeder`
+The following diagram illustrates the internal structure of the flight scraping module, following a layered architecture for separation of concerns:
+
+```mermaid
+classDiagram
+    direction LR
+
+    class FlighteraScraper {
+        -int BATCH_SIZE
+        +startCapture()
+        -scrapFlight(String flightUrl, Page page) Flight
+        -handleCookies(Page page)
+    }
+
+    class FlighteraCrawler {
+        -List~String~ ICAO_SPAIN_AIRPORTS
+        +getDomesticFlightLinks() Map
+        +crawlAirport(String airportUrl) List~String~
+    }
+
+    class LinkManager {
+        -String FILE_PATH
+        +getPendingLinks() List~String~
+        +saveLinks(List~String~ links)
+        +removeProcessedLinks(List~String~ links)
+    }
+
+    class FlightMapper {
+        <<Utility>>
+        +parseDelay(String text) int
+        +parseDistance(String text) int
+        +extractTimeUTC(String text) String
+        +cleanAircraft(String text) String
+    }
+
+    class FlightPublisher {
+        +publish(Flight flight)
+    }
+
+    class Flight {
+        -String flightNumber
+        -String origin
+        -String destination
+        -String date
+        -String departureTimeUTC
+        -String arrivalTimeUTC
+        -String status
+        -int departureDelay
+        -int arrivalDelay
+        -int distanceKm
+        -String aircraftModel
+        +toString() String
+    }
+
+    class FlightRepository {
+        -String DATABASE_URL
+        +initDatabase()
+        +save(Flight flight)
+    }
+    
+    <<record>> Flight
+
+    FlighteraScraper --> FlighteraCrawler : uses
+    FlighteraScraper --> LinkManager : manages links
+    FlighteraScraper ..> FlightMapper : cleans data
+    FlighteraScraper --> Flight : creates
+    FlighteraScraper --> FlightPublisher : sends to
+    FlightPublisher --> FlightRepository : delegates
+    FlightRepository ..> Flight : persists
 ```
