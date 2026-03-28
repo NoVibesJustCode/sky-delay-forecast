@@ -43,7 +43,7 @@ public class Main {
                 case "3":
                     System.out.print("Introduzca el código ICAO del aeropuerto (ej. GCLP): ");
                     String icaoInput = scanner.nextLine().toUpperCase().trim();
-                    buscarPorIcao(feeder, icaoInput);
+                    searchForIcao(feeder, icaoInput);
                     break;
 
                 case "0":
@@ -58,7 +58,7 @@ public class Main {
         scanner.close();
     }
 
-    private static void buscarPorIcao(WeatherFeeder feeder, String icao) {
+    private static void searchForIcao(WeatherFeeder feeder, String icao) {
         List<Weather> weathers = feeder.fetch();
         weathers.stream()
                 .filter(w -> w.icao().equalsIgnoreCase(icao))
