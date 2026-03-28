@@ -16,6 +16,7 @@ public class SqliteWeatherStore implements WeatherStore {
     private void initTable() {
         String sql = "CREATE TABLE IF NOT EXISTS weather (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "icao TEXT," +
                 "airport TEXT," +
                 "description TEXT," +
                 "temp REAL," +
@@ -39,24 +40,25 @@ public class SqliteWeatherStore implements WeatherStore {
 
     @Override
     public void save(Weather w) {
-        String sql = "INSERT INTO weather(airport, description, temp, feels_like, humidity, " +
+        String sql = "INSERT INTO weather(icao, airport, description, temp, feels_like, humidity, " +
                 "visibility, wind_speed, wind_gust, clouds, timestamp, captured_at) " +
-                "VALUES(?,?,?,?,?,?,?,?,?,?,?)";
+                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)";
 
         try (Connection conn = DriverManager.getConnection(connectionUrl);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setString(1, w.airport());
-            pstmt.setString(2, w.description());
-            pstmt.setDouble(3, w.temp());
-            pstmt.setDouble(4, w.feelsLike());
-            pstmt.setInt(5, w.humidity());
-            pstmt.setInt(6, w.visibility());
-            pstmt.setDouble(7, w.windSpeed());
-            pstmt.setDouble(8, w.windGust());
-            pstmt.setInt(9, w.cloudsPct());
-            pstmt.setLong(10, w.timestamp());
-            pstmt.setString(11, LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            pstmt.setString(1, w.icao());
+            pstmt.setString(2, w.airport());
+            pstmt.setString(3, w.description());
+            pstmt.setDouble(4, w.temp());
+            pstmt.setDouble(5, w.feelsLike());
+            pstmt.setInt(6, w.humidity());
+            pstmt.setInt(7, w.visibility());
+            pstmt.setDouble(8, w.windSpeed());
+            pstmt.setDouble(9, w.windGust());
+            pstmt.setInt(10, w.cloudsPct());
+            pstmt.setLong(11, w.timestamp());
+            pstmt.setString(12, LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
 
             pstmt.executeUpdate();
         } catch (SQLException e) {

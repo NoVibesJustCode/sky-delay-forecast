@@ -5,13 +5,14 @@ import org.json.JSONObject;
 
 public class WeatherParser {
 
-    public Weather parse(String jsonRaw, String airportName) {
+    public Weather parse(String jsonRaw, String icao, String airportName) {
         JSONObject root = new JSONObject(jsonRaw);
         JSONObject main = root.getJSONObject("main");
         JSONObject wind = root.getJSONObject("wind");
         JSONObject clouds = root.getJSONObject("clouds");
 
         return new Weather(
+                icao,
                 airportName,
                 root.getJSONArray("weather").getJSONObject(0).getString("description"),
                 main.getDouble("temp"),

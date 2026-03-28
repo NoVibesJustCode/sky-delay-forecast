@@ -34,7 +34,7 @@ public class OpenWeatherMapFeeder implements WeatherFeeder {
         for (Airport airport : airports) {
             try {
                 String json = fetchRawJson(airport.lat(), airport.lon());
-                weatherList.add(parser.parse(json, airport.name()));
+                weatherList.add(parser.parse(json, airport.icao(), airport.name()));
             } catch (Exception e) {
                 System.err.println("Error en el aeropuerto " + airport.icao() + ": " + e.getMessage());
             }

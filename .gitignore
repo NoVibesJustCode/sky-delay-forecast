@@ -45,3 +45,7 @@ openweathermap-feeder/.env
 
 ### airports.csv ###
 storage/references/airports.csv
+
+
+### Weather Database ###
+storage/db/weather.db

@@ -1,6 +1,7 @@
 package es.ulpgc.dacd.skydelay.weather.model;
 
 public record Weather(
+        String icao,
         String airport,
         String description,
         double temp,
