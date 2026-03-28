@@ -5,6 +5,7 @@ import es.ulpgc.dacd.skydelay.weather.model.Weather;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
     public static void main(String[] args) {
@@ -13,6 +14,7 @@ public class Main {
         WeatherFeeder feeder = new OpenWeatherMapFeeder(reader, parser);
         WeatherStore store = new SqliteWeatherStore("storage/db/weather.db");
         Control control = new Control(feeder, store);
+        WeatherScheduler scheduler = new WeatherScheduler(control);
 
         Scanner scanner = new Scanner(System.in);
         boolean running = true;
@@ -24,6 +26,8 @@ public class Main {
             System.out.println("1. Obtener datos meteorológicos actuales de todos los aeropuertos españoles");
             System.out.println("2. Almacenar datos en la base de datos");
             System.out.println("3. Consultar información meteorológica de un aeropuerto específico");
+            System.out.println("4. Iniciar captura de datos periódica cada 6 horas");
+            System.out.println("5. Detener captura de datos periódica");
             System.out.println("0. Salir");
             System.out.print("> ");
 
@@ -46,9 +50,16 @@ public class Main {
                     searchForIcao(feeder, icaoInput);
                     break;
 
+                case "4":
+                    scheduler.start(6, TimeUnit.HOURS);
+                    break;
+                case "5":
+                    scheduler.stop();
+                    break;
+
                 case "0":
                     running = false;
-                    System.out.println("Cerrando aplicación...");
+                    System.out.println("Cerrando aplicación.");
                     break;
 
                 default:
