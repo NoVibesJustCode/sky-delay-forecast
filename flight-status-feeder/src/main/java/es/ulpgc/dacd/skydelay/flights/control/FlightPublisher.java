@@ -11,6 +11,6 @@ public class FlightPublisher {
 
     public void publish(Flight flight) {
         repository.save(flight);
-        System.out.println("[DB SAVED] " + flight.getFlightId() + " at " + java.time.LocalTime.now());
+        System.out.println("[DB SAVED] " + flight.flightId() + " at " + java.time.LocalTime.now());
     }
 }

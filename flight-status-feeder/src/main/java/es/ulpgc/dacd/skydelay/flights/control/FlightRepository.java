@@ -59,16 +59,16 @@ public class FlightRepository {
         try (Connection conn = DriverManager.getConnection(databaseUrl);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, now);
-            pstmt.setString(2, f.getFlightId());
-            pstmt.setString(3, f.getDate());
-            pstmt.setString(4, f.getOrigin());
-            pstmt.setString(5, f.getDestination());
-            pstmt.setString(6, f.getDepartureTimeUTC());
-            pstmt.setString(7, f.getArrivalTimeUTC());
-            pstmt.setInt(8, f.getDepartureDelay());
-            pstmt.setInt(9, f.getArrivalDelay());
-            pstmt.setString(10, f.getStatus());
-            pstmt.setString(11, f.getAircraftModel());
+            pstmt.setString(2, f.flightId());
+            pstmt.setString(3, f.date());
+            pstmt.setString(4, f.origin());
+            pstmt.setString(5, f.destination());
+            pstmt.setString(6, f.departureTimeUTC());
+            pstmt.setString(7, f.arrivalTimeUTC());
+            pstmt.setInt(8, f.departureDelay());
+            pstmt.setInt(9, f.arrivalDelay());
+            pstmt.setString(10, f.status());
+            pstmt.setString(11, f.aircraftModel());
             pstmt.executeUpdate();
         } catch (SQLException e) {
             System.err.println("Error inserting flight data: " + e.getMessage());
