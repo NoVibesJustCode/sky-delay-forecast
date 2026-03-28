@@ -109,7 +109,6 @@ classDiagram
     }
 
     class Flight {
-        <<POJO>>
         -String flightNumber
         -String origin
         -String destination
@@ -121,9 +120,6 @@ classDiagram
         -int arrivalDelay
         -int distanceKm
         -String aircraftModel
-        +getFlightId() String
-        +getStatus() String
-        +getDelay() int
         +toString() String
     }
 
@@ -132,6 +128,8 @@ classDiagram
         +initDatabase()
         +save(Flight flight)
     }
+    
+    <<record>> Flight
 
     FlighteraScraper --> FlighteraCrawler : uses
     FlighteraScraper --> LinkManager : manages links
