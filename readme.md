@@ -90,84 +90,97 @@ config:
 classDiagram
 direction LR
     class Airport {
-	    +String icao
-	    +String name
-	    +double lat
-	    +double lon
+        +String icao
+        +String name
+        +double lat
+        +double lon
     }
 
     class Weather {
-	    +String icao
-	    +String airport
-	    +String description
-	    +double temp
-	    +double feelsLike
-	    +int humidity
-	    +int visibility
-	    +double windSpeed
-	    +double windGust
-	    +int cloudsPct
-	    +long timestamp
+        +String icao
+        +String airport
+        +String description
+        +double temp
+        +double feelsLike
+        +int humidity
+        +int visibility
+        +double windSpeed
+        +double windGust
+        +int cloudsPct
+        +long timestamp
     }
 
     class WeatherFeeder {
-	    +fetch() List~Weather~
+        +fetch() List~Weather~
     }
 
     class WeatherStore {
-	    +save(Weather w) void
+        +save(Weather w) void
     }
 
     class OpenWeatherMapFeeder {
-	    -String apiKey
-	    -HttpClient client
-	    -AirportsReader airportsReader
-	    -WeatherParser parser
-	    -AirportsReader airportReader
-	    +fetch() List~Weather~
-	    -fetchRawJson(double lat, double lon) String
+        -String apiKey
+        -HttpClient client
+        -AirportsReader airportsReader
+        -WeatherParser parser
+        -AirportsReader airportReader
+        +fetch() List~Weather~
+        -fetchRawJson(double lat, double lon) String
     }
 
     class SqliteWeatherStore {
-	    -String connectionUrl
-	    +save(Weather w) void
-	    -initTable() void
+        -String connectionUrl
+        +save(Weather w) void
+        -initTable() void
     }
 
     class WeatherParser {
-	    +parse(String jsonRaw, String icao, String airportName) Weather
+        +parse(String jsonRaw, String icao, String airportName) Weather
     }
 
     class AirportsReader {
-	    -String csvPath
-	    +read() List~Airport~
+        -String csvPath
+        +read() List~Airport~
     }
 
     class Control {
-	    -WeatherFeeder feeder
-	    -WeatherStore store
-	    +execute() void
+        -WeatherFeeder feeder
+        -WeatherStore store
+        +execute() void
+    }
+
+    class WeatherScheduler {
+        -Control control
+        -ScheduledExecutorService scheduler
+        +start(long period, TimeUnit unit) void
+        +stop() void
     }
 
     class Main {
-	    +main(String[] args) static
-	    -searchForIcao(WeatherFeeder feeder, String icao) static
+        +main(String[] args) static
+        -searchForIcao(WeatherFeeder feeder, String icao) static
     }
 
-	<<record>> Airport
-	<<record>> Weather
-	<<interface>> WeatherFeeder
-	<<interface>> WeatherStore
+    <<record>> Airport
+    <<record>> Weather
+    <<interface>> WeatherFeeder
+    <<interface>> WeatherStore
 
     OpenWeatherMapFeeder ..|> WeatherFeeder : implements
     SqliteWeatherStore ..|> WeatherStore : implements
+    
     Control --> WeatherFeeder : uses
     Control --> WeatherStore : uses
+    WeatherScheduler --> Control : uses
+    
     OpenWeatherMapFeeder --> AirportsReader : uses
     OpenWeatherMapFeeder --> WeatherParser : uses
+    
     AirportsReader ..> Airport : creates
     WeatherParser ..> Weather : creates
+    
     Main ..> Control : orchestrates
+    Main ..> WeatherScheduler : uses
     Main ..> OpenWeatherMapFeeder : uses
 ````
 
