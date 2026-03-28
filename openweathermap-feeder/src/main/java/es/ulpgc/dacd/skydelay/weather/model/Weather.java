@@ -16,7 +16,7 @@ public record Weather(
     @Override
     public String toString() {
         return String.format(
-                "Meteorología en %s \n" +
+                "Meteorología en el aeropuerto de %s \n" +
                         "Estado: %s\n" +
                         "Temperatura: %.2f°C (Sensación: %.2f°C)\n" +
                         "Humedad: %d%%\n" +
