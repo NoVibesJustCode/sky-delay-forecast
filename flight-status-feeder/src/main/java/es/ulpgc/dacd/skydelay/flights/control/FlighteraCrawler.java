@@ -7,7 +7,7 @@ import org.jsoup.select.Elements;
 
 import java.util.*;
 
-public class FlighteraCrawler {
+public class FlighteraCrawler implements FlightCrawler {
     private static final List<String> ICAO_SPAIN_AIRPORTS = Arrays.asList(
             "LEMD", "LEBL", "LEPA", "LEMG", "LEAL", "LEVC", "LEZL",
             "GCLP", "GCXO", "GCTS", "GCFV", "GCRR", "GCLA", "GCHI",
@@ -15,6 +15,7 @@ public class FlighteraCrawler {
             "LEMH", "LEGE", "LEGR", "LEAM", "LEJR", "LEBZ", "GEML"
     );
 
+    @Override
     public Map<String, List<String>> getDomesticFlightLinks(){
         Map<String, List<String>> flightLinksByAirport = new HashMap<>();
         Random rand = new Random();
