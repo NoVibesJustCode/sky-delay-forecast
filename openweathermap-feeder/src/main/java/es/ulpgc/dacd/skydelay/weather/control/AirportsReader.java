@@ -9,11 +9,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AirportsReader {
-    private final String csvPath = "storage/references/airports.csv";
+    private final String csvPath;
     private final int COL_ICAO = 0;
     private final int COL_NAME = 2;
     private final int COL_LAT = 4;
     private final int COL_LON = 5;
+
+    public AirportsReader(String csvPath) {
+        this.csvPath = csvPath;
+    }
 
     public List<Airport> read() {
         List<Airport> airports = new ArrayList<>();

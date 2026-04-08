@@ -10,15 +10,15 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
     public static void main(String[] args) {
-        AirportsReader reader = new AirportsReader();
+        AirportsReader reader = new AirportsReader(args[0]);
         List<Airport> airports = reader.read();
         WeatherParser parser = new WeatherParser();
         WeatherFeeder feeder = new OpenWeatherMapFeeder(parser);
-        WeatherStore store = new SqliteWeatherStore("storage/db/weather.db");
+        WeatherStore store = new SqliteWeatherStore(args[1]);
         Control control = new Control(feeder, store, airports);
 
         System.out.println("Iniciando proceso de persistencia...");
-        control.execute();
+        control.start();
     }
 
 }

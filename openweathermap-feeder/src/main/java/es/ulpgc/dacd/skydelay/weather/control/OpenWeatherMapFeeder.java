@@ -16,7 +16,6 @@ public class OpenWeatherMapFeeder implements WeatherFeeder {
     private final String apiKey;
     private final HttpClient client;
     private final WeatherParser parser;
-    private AirportsReader airportReader;
 
     public OpenWeatherMapFeeder(WeatherParser parser) {
         this.apiKey = Dotenv.load().get("WEATHER_API_KEY");
