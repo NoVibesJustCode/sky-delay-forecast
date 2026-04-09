@@ -183,9 +183,7 @@ direction LR
     class OpenWeatherMapFeeder {
         -String apiKey
         -HttpClient client
-        -AirportsReader airportsReader
         -WeatherParser parser
-        -AirportsReader airportReader
         +fetch() List~Weather~
         -fetchRawJson(double lat, double lon) String
     }
@@ -211,16 +209,9 @@ direction LR
         +execute() void
     }
 
-    class WeatherScheduler {
-        -Control control
-        -ScheduledExecutorService scheduler
-        +start(long period, TimeUnit unit) void
-        +stop() void
-    }
 
     class Main {
         +main(String[] args) static
-        -searchForIcao(WeatherFeeder feeder, String icao) static
     }
 
     <<record>> Airport
@@ -233,7 +224,6 @@ direction LR
     
     Control --> WeatherFeeder : uses
     Control --> WeatherStore : uses
-    WeatherScheduler --> Control : uses
     
     OpenWeatherMapFeeder --> AirportsReader : uses
     OpenWeatherMapFeeder --> WeatherParser : uses
@@ -242,6 +232,5 @@ direction LR
     WeatherParser ..> Weather : creates
     
     Main ..> Control : orchestrates
-    Main ..> WeatherScheduler : uses
     Main ..> OpenWeatherMapFeeder : uses
 ````
