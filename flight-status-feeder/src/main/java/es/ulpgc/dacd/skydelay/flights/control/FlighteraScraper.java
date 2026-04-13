@@ -5,10 +5,11 @@ import es.ulpgc.dacd.skydelay.flights.model.Flight;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class FlighteraScraper {
+public class FlighteraScraper implements FlightScraper {
     private static final int BATCH_SIZE = 10;
 
-    public static void startCapture(FlightPublisher publisher) {
+    @Override
+    public void startCapture(FlightPublisher publisher) {
         LinkManager linkManager = new LinkManager();
         Random random = new Random();
 
@@ -47,7 +48,7 @@ public class FlighteraScraper {
         }
     }
 
-    private static Flight scrapFlight(String flightURL, Page page) {
+    private Flight scrapFlight(String flightURL, Page page) {
         page.navigate(flightURL);
         handleCookies(page);
 

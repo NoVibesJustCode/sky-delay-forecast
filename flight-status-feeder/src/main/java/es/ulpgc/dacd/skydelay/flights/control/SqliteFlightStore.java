@@ -8,10 +8,10 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class FlightRepository {
+public class SqliteFlightStore implements FlightStore {
     private final String databaseUrl;
 
-    public FlightRepository(String dbPath) {
+    public SqliteFlightStore(String dbPath) {
         this.databaseUrl = "jdbc:sqlite:" + dbPath;
 
         try {
@@ -49,6 +49,7 @@ public class FlightRepository {
         }
     }
 
+    @Override
     public void save(Flight f) {
         String sql = "INSERT OR REPLACE INTO flights(captured_at, flight_number, date, origin, destination, " +
                 "departure_time, arrival_time, dep_delay, arr_delay, status, aircraft) " +
