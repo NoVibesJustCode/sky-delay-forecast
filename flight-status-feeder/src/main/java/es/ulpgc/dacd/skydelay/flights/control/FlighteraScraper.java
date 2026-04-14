@@ -2,6 +2,8 @@ package es.ulpgc.dacd.skydelay.flights.control;
 
 import com.microsoft.playwright.*;
 import es.ulpgc.dacd.skydelay.flights.model.Flight;
+
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -9,8 +11,8 @@ public class FlighteraScraper implements FlightScraper {
     private static final int BATCH_SIZE = 10;
 
     @Override
-    public void startCapture(FlightPublisher publisher) {
-        LinkManager linkManager = new LinkManager();
+    public void startCapture(FlightStore store, String textFilePath) {
+        LinkManager linkManager = new LinkManager(textFilePath);
         Random random = new Random();
 
         try (Playwright playwright = Playwright.create()) {
@@ -32,7 +34,7 @@ public class FlighteraScraper implements FlightScraper {
             for (String url : currentBatch) {
                 try {
                     Flight flight = scrapFlight(url, page);
-                    publisher.publish(flight);
+                    store.save(flight);
                     System.out.println(flight);
                     if (flight.status().equalsIgnoreCase("Landed")) processed.add(url);
                     Thread.sleep(7000 + random.nextInt(3000));

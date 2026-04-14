@@ -2,7 +2,6 @@ package es.ulpgc.dacd.skydelay.flights.control;
 import java.util.regex.*;
 
 public class FlightMapper {
-
     public static int parseDelay(String text) {
         if (text == null || text.trim().isEmpty()) return 0;
         String clean = text.replace("+", "").trim().replaceAll("[^0-9-]", "");

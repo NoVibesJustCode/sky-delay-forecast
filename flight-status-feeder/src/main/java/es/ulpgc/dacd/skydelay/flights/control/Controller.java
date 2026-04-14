@@ -1,35 +1,46 @@
 package es.ulpgc.dacd.skydelay.flights.control;
 
-import java.util.List;
-import java.util.Map;
+import es.ulpgc.dacd.skydelay.flights.model.Flight;
+
+import java.util.*;
 
 public class Controller {
     private final FlightCrawler crawler;
     private final FlightScraper scraper;
     private final FlightStore store;
+    private final String path;
 
-    public Controller(FlightCrawler crawler, FlightScraper scraper, FlightStore store) {
+    public Controller(FlightCrawler crawler, FlightScraper scraper, FlightStore store, String path) {
         this.crawler = crawler;
         this.scraper = scraper;
         this.store = store;
+        this.path = path;
     }
 
-    public void execute() {
-        System.out.println("Starting Flight Discovery...");
-        Map<String, List<String>> domesticLinks = crawler.getDomesticFlightLinks();
+    public void start() {
+        Timer timer = new Timer("Flight-Timer");
+        long period = 6 * 60 * 60 * 1000L;
 
-        List<String> allLinks = domesticLinks.values().stream()
-                .flatMap(List::stream)
-                .distinct()
-                .toList();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    execute();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }, 0, period);
+    }
 
-        System.out.println("Found " + allLinks.size() + " domestic links. Starting scraping...");
+    public void execute() throws InterruptedException {
+        System.out.println("--- Starting Flight Discovery Cycle ---");
 
-        for (String url : allLinks) {
-            // Aquí llamarías a tu lógica de Playwright a través de la interfaz
-            // Nota: Si mantienes el parámetro Page, el Controller debería gestionarlo o el Scraper internamente
-            // Optional<Flight> flight = scraper.scrapFlight(url, page);
-            // flight.ifPresent(publisher::publish);
+        for (int i = 0; i < 20; i++){
+            scraper.startCapture(store, path);
+            Thread.sleep(5000 + new Random().nextInt(3000));
         }
+
+        System.out.println("--- Cycle Completed ---");
     }
 }
