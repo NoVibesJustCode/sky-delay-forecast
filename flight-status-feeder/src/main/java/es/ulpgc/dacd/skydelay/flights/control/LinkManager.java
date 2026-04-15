@@ -20,6 +20,12 @@ public class LinkManager {
         Files.write(filePath, links, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
+    public void addUniqueLinks(List<String> newLinks) throws IOException {
+        Set<String> allLinks = new HashSet<>(getPendingLinks());
+        allLinks.addAll(newLinks);
+        saveLinks(new ArrayList<>(allLinks));
+    }
+
     public void removeProcessedLinks(List<String> processed) throws IOException {
         List<String> current = getPendingLinks();
         current.removeAll(processed);

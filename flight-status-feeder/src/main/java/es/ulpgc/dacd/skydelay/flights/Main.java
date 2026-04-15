@@ -7,8 +7,7 @@ public class Main {
         FlightCrawler crawler = new FlighteraCrawler();
         FlightScraper scraper = new FlighteraScraper();
         FlightStore store = new SqliteFlightStore(args[0]);
-        String path = args[1];
-        Controller controller = new Controller(crawler, scraper, store, path);
+        Controller controller = new Controller(crawler, scraper, store, args[1]);
         controller.execute();
     }
 }

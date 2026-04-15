@@ -20,14 +20,6 @@ public class FlighteraScraper implements FlightScraper {
             Page page = browser.newPage();
 
             List<String> pending = linkManager.getPendingLinks();
-            if (pending.isEmpty()) {
-                FlighteraCrawler crawler = new FlighteraCrawler();
-                List<String> allLinks = crawler.getDomesticFlightLinks().values().stream()
-                        .flatMap(List::stream).distinct().collect(Collectors.toList());
-                linkManager.saveLinks(allLinks);
-                pending = allLinks;
-            }
-
             List<String> currentBatch = pending.stream().limit(BATCH_SIZE).toList();
             List<String> processed = new ArrayList<>();
 
@@ -37,7 +29,7 @@ public class FlighteraScraper implements FlightScraper {
                     store.save(flight);
                     System.out.println(flight);
                     if (flight.status().equalsIgnoreCase("Landed")) processed.add(url);
-                    Thread.sleep(7000 + random.nextInt(3000));
+                    Thread.sleep(15000 + random.nextInt(10000));
                 } catch (Exception e) {
                     System.err.println("Error en " + url + ": " + e.getMessage());
                 }
