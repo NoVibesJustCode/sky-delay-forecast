@@ -3,13 +3,13 @@ package es.ulpgc.dacd.skydelay.flights.control;
 import com.microsoft.playwright.*;
 import es.ulpgc.dacd.skydelay.flights.model.Flight;
 import java.util.*;
-import java.util.stream.Collectors;
 
-public class FlighteraScraper {
+public class FlighteraScraper implements FlightScraper {
     private static final int BATCH_SIZE = 10;
 
-    public static void startCapture(FlightPublisher publisher) {
-        LinkManager linkManager = new LinkManager();
+    @Override
+    public void startCapture(FlightStore store, String textFilePath) {
+        LinkManager linkManager = new LinkManager(textFilePath);
         Random random = new Random();
 
         try (Playwright playwright = Playwright.create()) {
@@ -17,24 +17,16 @@ public class FlighteraScraper {
             Page page = browser.newPage();
 
             List<String> pending = linkManager.getPendingLinks();
-            if (pending.isEmpty()) {
-                FlighteraCrawler crawler = new FlighteraCrawler();
-                List<String> allLinks = crawler.getDomesticFlightLinks().values().stream()
-                        .flatMap(List::stream).distinct().collect(Collectors.toList());
-                linkManager.saveLinks(allLinks);
-                pending = allLinks;
-            }
-
             List<String> currentBatch = pending.stream().limit(BATCH_SIZE).toList();
             List<String> processed = new ArrayList<>();
 
             for (String url : currentBatch) {
                 try {
                     Flight flight = scrapFlight(url, page);
-                    publisher.publish(flight);
+                    store.save(flight);
                     System.out.println(flight);
                     if (flight.status().equalsIgnoreCase("Landed")) processed.add(url);
-                    Thread.sleep(7000 + random.nextInt(3000));
+                    Thread.sleep(15000 + random.nextInt(10000));
                 } catch (Exception e) {
                     System.err.println("Error en " + url + ": " + e.getMessage());
                 }
@@ -47,7 +39,7 @@ public class FlighteraScraper {
         }
     }
 
-    private static Flight scrapFlight(String flightURL, Page page) {
+    private Flight scrapFlight(String flightURL, Page page) {
         page.navigate(flightURL);
         handleCookies(page);
 
