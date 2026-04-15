@@ -16,19 +16,22 @@ public class LinkManager {
         return Files.readAllLines(filePath);
     }
 
-    public void saveLinks(List<String> links) throws IOException {
-        Files.write(filePath, links, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-    }
-
-    public void addUniqueLinks(List<String> newLinks) throws IOException {
+    public void saveUniqueLinks(List<String> newLinks) throws IOException {
         Set<String> allLinks = new HashSet<>(getPendingLinks());
         allLinks.addAll(newLinks);
-        saveLinks(new ArrayList<>(allLinks));
+        overwrite(new ArrayList<>(allLinks));
     }
 
     public void removeProcessedLinks(List<String> processed) throws IOException {
         List<String> current = getPendingLinks();
         current.removeAll(processed);
-        saveLinks(current);
+        overwrite(current);
+    }
+
+    private void overwrite(List<String> links) throws IOException {
+        if (filePath.getParent() != null) {
+            Files.createDirectories(filePath.getParent());
+        }
+        Files.write(filePath, links, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 }

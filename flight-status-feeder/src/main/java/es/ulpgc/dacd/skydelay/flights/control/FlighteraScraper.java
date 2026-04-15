@@ -2,10 +2,7 @@ package es.ulpgc.dacd.skydelay.flights.control;
 
 import com.microsoft.playwright.*;
 import es.ulpgc.dacd.skydelay.flights.model.Flight;
-
-import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class FlighteraScraper implements FlightScraper {
     private static final int BATCH_SIZE = 10;

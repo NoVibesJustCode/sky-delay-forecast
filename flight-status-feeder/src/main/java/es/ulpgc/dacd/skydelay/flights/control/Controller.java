@@ -35,7 +35,7 @@ public class Controller {
 
                 try {
                     LinkManager linkManager = new LinkManager(linksPath);
-                    linkManager.addUniqueLinks(newLinks);
+                    linkManager.saveUniqueLinks(newLinks);
                     System.out.println("[CRAWLER] ✅ Links in queue: " + linkManager.getPendingLinks().size());
                 } catch (IOException e) {
                     System.err.println("[CRAWLER] ❌ Error: " + e.getMessage());
