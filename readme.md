@@ -75,13 +75,19 @@ The following diagram illustrates the internal structure of the flight scraping 
 
 ```mermaid
 classDiagram
-    direction LR
+    direction TB
 
-    class FlighteraScraper {
-        -int BATCH_SIZE
-        +startCapture()
-        -scrapFlight(String flightUrl, Page page) Flight
-        -handleCookies(Page page)
+    class Controller {
+        -FlightCrawler crawler
+        -FlightScraper scraper
+        -FlightStore store
+        -String linksPath
+        +execute()
+    }
+
+    class FlightCrawler {
+        <<interface>>
+        +getDomesticFlightLinks() Map
     }
 
     class FlighteraCrawler {
@@ -90,55 +96,81 @@ classDiagram
         +crawlAirport(String airportUrl) List~String~
     }
 
+    class FlightScraper {
+        <<interface>>
+        +startCapture(FlightStore store, String path)
+    }
+
+    class FlighteraScraper {
+        -int BATCH_SIZE
+        +startCapture(FlightStore store, String path)
+        -scrapFlight(String url, Page page) Flight
+        -handleCookies(Page page)
+    }
+
+    class FlightStore {
+        <<interface>>
+        +save(Flight flight)
+    }
+
+    class SqliteFlightStore {
+        -String dbPath
+        -initDatabase()
+        +save(Flight flight)
+    }
+
     class LinkManager {
-        -String FILE_PATH
+        -Path path
         +getPendingLinks() List~String~
-        +saveLinks(List~String~ links)
-        +removeProcessedLinks(List~String~ links)
+        +saveUniqueLinks(List~String~ links)
+        +removeProcessedLinks(List~String~ processed)
+        -overwrite(List~String~ links)
     }
 
     class FlightMapper {
-        <<Utility>>
+        <<utility>>
         +parseDelay(String text) int
         +parseDistance(String text) int
         +extractTimeUTC(String text) String
         +cleanAircraft(String text) String
     }
 
-    class FlightPublisher {
-        +publish(Flight flight)
-    }
-
     class Flight {
-        -String flightNumber
-        -String origin
-        -String destination
-        -String date
-        -String departureTimeUTC
-        -String arrivalTimeUTC
-        -String status
-        -int departureDelay
-        -int arrivalDelay
-        -int distanceKm
-        -String aircraftModel
-        +toString() String
+        <<record>>
+        +String flightId
+        +String origin
+        +String destination
+        +String date
+        +String departureTimeUTC
+        +String arrivalTimeUTC
+        +String status
+        +int departureDelay
+        +int arrivalDelay
+        +int distanceKm
+        +String aircraftModel
+        -toString() String
     }
 
-    class FlightRepository {
-        -String DATABASE_URL
-        +initDatabase()
-        +save(Flight flight)
+    class Main {
+        +main(args: String[])
     }
+
+    FlightCrawler <|.. FlighteraCrawler
+    FlightScraper <|.. FlighteraScraper
+    FlightStore <|.. SqliteFlightStore
+
+    Controller --> FlightCrawler : coordinates
+    Controller --> FlightScraper : coordinates
+    Controller --> FlightStore : coordinates
+    Controller ..> LinkManager : uses to sync files
     
-    <<record>> Flight
+    FlighteraScraper ..> Flight : creates
+    FlighteraScraper ..> FlightMapper : uses
+    FlighteraScraper ..> FlightStore : persists via
+    
+    SqliteFlightStore ..> Flight : stores
 
-    FlighteraScraper --> FlighteraCrawler : uses
-    FlighteraScraper --> LinkManager : manages links
-    FlighteraScraper ..> FlightMapper : cleans data
-    FlighteraScraper --> Flight : creates
-    FlighteraScraper --> FlightPublisher : sends to
-    FlightPublisher --> FlightRepository : delegates
-    FlightRepository ..> Flight : persists
+    Main ..> Controller : starts
 ```
 
 ### Class Diagram: `openweathermap-feeder`
