@@ -2,6 +2,7 @@ package es.ulpgc.dacd.skydelay.weather.control;
 
 import es.ulpgc.dacd.skydelay.weather.model.Airport;
 import es.ulpgc.dacd.skydelay.weather.model.Weather;
+import es.ulpgc.dacd.skydelay.weather.model.WeatherEvent;
 
 import java.util.List;
 import java.util.Timer;
@@ -33,7 +34,7 @@ public class Control {
             }
         }, delay, period);
 
-        System.out.println("Control programado: ejecutando cada 6 horas.");
+        System.out.println("Control programado: enviando información cada 6 horas.");
     }
 
     public void execute() {
@@ -44,7 +45,8 @@ public class Control {
 
             if (weathers != null) {
                 for (Weather weather : weathers) {
-                    store.save(weather);
+                    WeatherEvent event = new WeatherEvent(weather);
+                    store.save(event);
                 }
                 totalSaved += weathers.size();
             }
