@@ -3,6 +3,8 @@ package es.ulpgc.dacd.skydelay.weather.control;
 import es.ulpgc.dacd.skydelay.weather.model.Weather;
 import org.json.JSONObject;
 
+import java.time.Instant;
+
 public class WeatherParser {
 
     public Weather parse(String jsonRaw, String icao, String airportName) {
@@ -12,6 +14,8 @@ public class WeatherParser {
         JSONObject clouds = root.getJSONObject("clouds");
 
         return new Weather(
+                Instant.now(),
+                "weather-feeder",
                 icao,
                 airportName,
                 root.getJSONArray("weather").getJSONObject(0).getString("description"),
@@ -21,8 +25,7 @@ public class WeatherParser {
                 root.optInt("visibility"),
                 wind.getDouble("speed"),
                 wind.optDouble("gust", 0.0),
-                clouds.getInt("all"),
-                root.getLong("dt")
+                clouds.getInt("all")
         );
     }
 }

@@ -1,11 +1,13 @@
 package es.ulpgc.dacd.skydelay.weather.control;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializer;
 import es.ulpgc.dacd.skydelay.weather.model.Weather;
-import java.sql.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+
+import java.time.Instant;
+
 import com.google.gson.Gson;
-import es.ulpgc.dacd.skydelay.weather.model.WeatherEvent;
 import org.apache.activemq.ActiveMQConnectionFactory;
 
 import javax.jms.*;
@@ -20,7 +22,10 @@ public class WeatherPublisher implements WeatherStore {
 
 
     public WeatherPublisher(String brokerUrl, String topicName) throws JMSException {
-        this.gson = new Gson();
+
+        this.gson = new GsonBuilder().registerTypeAdapter(Instant.class, (JsonSerializer<Instant>) (src, typeOfSrc, context) ->
+                        new JsonPrimitive(src.toString()))
+        .create();
 
         ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(brokerUrl);
 
@@ -35,9 +40,11 @@ public class WeatherPublisher implements WeatherStore {
     }
 
     @Override
-    public void save(WeatherEvent event) {
+    public void save(Weather weather) {
         try {
-            String jsonEvent = gson.toJson(event);
+            String jsonEvent = gson.toJson(weather);
+
+            System.out.println(jsonEvent);
 
             TextMessage message = session.createTextMessage(jsonEvent);
             producer.send(message);

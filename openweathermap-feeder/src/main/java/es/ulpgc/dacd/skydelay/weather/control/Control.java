@@ -45,8 +45,7 @@ public class Control {
 
             if (weathers != null) {
                 for (Weather weather : weathers) {
-                    WeatherEvent event = new WeatherEvent(weather);
-                    store.save(event);
+                    store.save(weather);
                 }
                 totalSaved += weathers.size();
             }
