@@ -15,31 +15,28 @@ import java.util.List;
 public class OpenWeatherMapFeeder implements WeatherFeeder {
     private final String apiKey;
     private final HttpClient client;
-    private final AirportsReader airportsReader;
     private final WeatherParser parser;
-    private AirportsReader airportReader;
 
-    public OpenWeatherMapFeeder(AirportsReader airportsReader, WeatherParser parser) {
+    public OpenWeatherMapFeeder(WeatherParser parser) {
         this.apiKey = Dotenv.load().get("WEATHER_API_KEY");
         this.client = HttpClient.newHttpClient();
-        this.airportsReader = airportsReader;
         this.parser = parser;
     }
 
-    @Override
-    public List<Weather> fetch() {
-        List<Weather> weatherList = new ArrayList<>();
-        List<Airport> airports = airportsReader.read();
 
-        for (Airport airport : airports) {
-            try {
-                String json = fetchRawJson(airport.lat(), airport.lon());
-                weatherList.add(parser.parse(json, airport.icao(), airport.name()));
-            } catch (Exception e) {
-                System.err.println("Error en el aeropuerto " + airport.icao() + ": " + e.getMessage());
-            }
+    @Override
+    public List<Weather> fetch(Airport airport) {
+        try {
+            String json = fetchRawJson(airport.lat(), airport.lon());
+
+            Weather weather = parser.parse(json, airport.icao(), airport.name());
+
+            return List.of(weather);
+
+        } catch (Exception e) {
+            System.err.println("Error en el aeropuerto " + airport.icao() + ": " + e.getMessage());
+            return null;
         }
-        return weatherList;
     }
 
     private String fetchRawJson(double lat, double lon) throws Exception {
