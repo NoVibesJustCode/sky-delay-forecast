@@ -75,4 +75,11 @@ public class SqliteFlightStore implements FlightStore {
             System.err.println("Error inserting flight data: " + e.getMessage());
         }
     }
+
+    @Override
+    public void close() {
+        // In this implementation, connections are opened and closed per request,
+        // so there are no persistent resources to release here.
+        System.out.println("SqliteFlightStore: No persistent connections to close.");
+    }
 }

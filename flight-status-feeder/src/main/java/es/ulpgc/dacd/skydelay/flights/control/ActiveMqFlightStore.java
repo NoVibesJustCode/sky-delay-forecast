@@ -49,6 +49,7 @@ public class ActiveMqFlightStore implements FlightStore {
         }
     }
 
+    @Override
     public void close() {
         try {
             if (producer != null) producer.close();
