@@ -1,6 +1,10 @@
 package es.ulpgc.dacd.skydelay.flights.model;
 
+import java.time.Instant;
+
 public record Flight (
+    Instant ts,
+    String ss,
     String flightId,
     String origin,
     String destination,

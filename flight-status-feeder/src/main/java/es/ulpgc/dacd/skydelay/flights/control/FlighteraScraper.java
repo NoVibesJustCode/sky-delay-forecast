@@ -2,6 +2,8 @@ package es.ulpgc.dacd.skydelay.flights.control;
 
 import com.microsoft.playwright.*;
 import es.ulpgc.dacd.skydelay.flights.model.Flight;
+
+import java.time.Instant;
 import java.util.*;
 
 public class FlighteraScraper implements FlightScraper {
@@ -46,6 +48,8 @@ public class FlighteraScraper implements FlightScraper {
         page.waitForSelector("h1[itemprop='flightNumber']");
 
         return new Flight(
+                Instant.now(),
+                "flight-feeder",
                 page.locator("h1[itemprop='flightNumber']").innerText().trim(),
                 page.locator("[itemprop='departureAirport'] [itemprop='iataCode']").innerText().trim(),
                 page.locator("[itemprop='arrivalAirport'] [itemprop='iataCode']").innerText().trim(),
