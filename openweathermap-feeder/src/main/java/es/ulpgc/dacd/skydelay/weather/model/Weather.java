@@ -1,6 +1,10 @@
 package es.ulpgc.dacd.skydelay.weather.model;
 
+import java.time.Instant;
+
 public record Weather(
+        Instant ts,
+        String ss,
         String icao,
         String airport,
         String description,
@@ -10,8 +14,7 @@ public record Weather(
         int visibility,
         double windSpeed,
         double windGust,
-        int cloudsPct,
-        long timestamp
+        int cloudsPct
 ) {
     @Override
     public String toString() {
