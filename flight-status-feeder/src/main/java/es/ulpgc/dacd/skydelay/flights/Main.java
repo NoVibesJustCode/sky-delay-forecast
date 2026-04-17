@@ -16,7 +16,7 @@ public class Main {
             store.close();
         }));
 
-        Controller controller = new Controller(crawler, scraper, store, args[2] + LocalDate.now().toString() + ".txt");
+        Controller controller = new Controller(crawler, scraper, store, args[2]);
         controller.execute();
     }
 }
