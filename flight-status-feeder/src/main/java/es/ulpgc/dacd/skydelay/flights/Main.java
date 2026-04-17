@@ -3,6 +3,8 @@ package es.ulpgc.dacd.skydelay.flights;
 import es.ulpgc.dacd.skydelay.flights.control.*;
 import jakarta.jms.JMSException;
 
+import java.time.LocalDate;
+
 public class Main {
     public static void main(String[] args) throws JMSException {
         FlightCrawler crawler = new FlighteraCrawler();
@@ -14,7 +16,7 @@ public class Main {
             store.close();
         }));
 
-        Controller controller = new Controller(crawler, scraper, store, args[2]);
+        Controller controller = new Controller(crawler, scraper, store, args[2] + LocalDate.now().toString() + ".txt");
         controller.execute();
     }
 }
