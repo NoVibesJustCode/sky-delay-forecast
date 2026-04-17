@@ -48,4 +48,15 @@ public class ActiveMqFlightStore implements FlightStore {
             System.err.println("JMS error: " + e.getMessage());
         }
     }
+
+    public void close() {
+        try {
+            if (producer != null) producer.close();
+            if (session != null) session.close();
+            if (connection != null) connection.close();
+            System.out.println("ActiveMQ connection closed safely.");
+        } catch (JMSException e) {
+            System.err.println("Error closing ActiveMQ connection: " + e.getMessage());
+        }
+    }
 }
