@@ -1,18 +1,16 @@
 package es.ulpgc.dacd.skydelay.eventstore;
 
-import es.ulpgc.dacd.skydelay.eventstore.control.ActiveMQEventSubscriber;
-import es.ulpgc.dacd.skydelay.eventstore.control.FileEventStore;
+import es.ulpgc.dacd.skydelay.eventstore.control.Controller;
 
 public class Main {
     public static void main(String[] args) {
+        if (args.length < 1) {
+            System.err.println("Error: Missing Broker URL. Usage: java -jar ... <broker_url>");
+            System.exit(1);
+        }
+
         String brokerUrl = args[0];
-        FileEventStore store = new FileEventStore("eventstore");
-
-        ActiveMQEventSubscriber subscriber = new ActiveMQEventSubscriber(brokerUrl, "EventStoreBuilder", store);
-
-        subscriber.subscribe("weather");
-        subscriber.subscribe("flight");
-
-        System.out.println("Event Store Builder is running. Press Ctrl+C to stop.");
+        Controller controller = new Controller(brokerUrl, "eventstore");
+        controller.execute();
     }
 }
