@@ -2,7 +2,6 @@ package es.ulpgc.dacd.skydelay.weather.control;
 
 import es.ulpgc.dacd.skydelay.weather.model.Airport;
 import es.ulpgc.dacd.skydelay.weather.model.Weather;
-import es.ulpgc.dacd.skydelay.weather.model.WeatherEvent;
 
 import java.util.List;
 import java.util.Timer;
