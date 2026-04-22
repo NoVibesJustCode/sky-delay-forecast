@@ -2,12 +2,10 @@ package es.ulpgc.dacd.skydelay.weather;
 
 import es.ulpgc.dacd.skydelay.weather.control.*;
 import es.ulpgc.dacd.skydelay.weather.model.Airport;
-import es.ulpgc.dacd.skydelay.weather.model.Weather;
 
 import jakarta.jms.JMSException;
 import java.util.List;
-import java.util.Scanner;
-import java.util.concurrent.TimeUnit;
+
 
 public class Main {
     public static void main(String[] args) throws JMSException {
