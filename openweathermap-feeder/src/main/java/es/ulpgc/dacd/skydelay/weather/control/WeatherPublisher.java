@@ -10,8 +10,8 @@ import java.time.Instant;
 import com.google.gson.Gson;
 import org.apache.activemq.ActiveMQConnectionFactory;
 
-import javax.jms.*;
-import javax.jms.Connection;
+import jakarta.jms.*;
+import jakarta.jms.Connection;
 
 public class WeatherPublisher implements WeatherStore {
 
