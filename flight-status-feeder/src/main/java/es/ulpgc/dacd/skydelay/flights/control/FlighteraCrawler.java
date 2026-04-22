@@ -44,7 +44,7 @@ public class FlighteraCrawler implements FlightCrawler {
             for (Element row : rows) {
                 Element spainFlag = row.selectFirst("img[alt*='Spain']");
                 if (spainFlag != null) {
-                    Element flightLink = row.select("td").get(1).selectFirst("a");
+                    Element flightLink = row.select("td").last().selectFirst("a");
                     String flightDetails = "https://www.flightera.net" + flightLink.attr("href");
                     collectedLinks.add(flightDetails);
                 }

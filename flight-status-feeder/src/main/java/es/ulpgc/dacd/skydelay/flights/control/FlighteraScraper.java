@@ -3,6 +3,7 @@ package es.ulpgc.dacd.skydelay.flights.control;
 import com.microsoft.playwright.*;
 import es.ulpgc.dacd.skydelay.flights.model.Flight;
 
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.*;
 
@@ -15,8 +16,17 @@ public class FlighteraScraper implements FlightScraper {
         Random random = new Random();
 
         try (Playwright playwright = Playwright.create()) {
-            Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));
-            Page page = browser.newPage();
+            BrowserType.LaunchPersistentContextOptions options = new BrowserType.LaunchPersistentContextOptions()
+                    .setHeadless(false)
+                    .setExecutablePath(Paths.get("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"))
+                    .setArgs(List.of("--disable-blink-features=AutomationControlled"));
+
+            BrowserContext context = playwright.chromium().launchPersistentContext(
+                    Paths.get("user-data-dir"),
+                    options
+            );
+
+            Page page = context.newPage();
 
             List<String> pending = linkManager.getPendingLinks();
             List<String> currentBatch = pending.stream().limit(BATCH_SIZE).toList();
@@ -35,7 +45,7 @@ public class FlighteraScraper implements FlightScraper {
             }
 
             linkManager.removeProcessedLinks(processed);
-            browser.close();
+            context.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
