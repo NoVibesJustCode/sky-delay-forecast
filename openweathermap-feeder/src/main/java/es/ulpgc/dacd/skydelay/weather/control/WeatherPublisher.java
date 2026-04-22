@@ -15,7 +15,7 @@ import jakarta.jms.Connection;
 
 public class WeatherPublisher implements WeatherStore {
 
-    private Connection connection;
+    private final Connection connection;
     private final Session session;
     private final MessageProducer producer;
     private final Gson gson;
