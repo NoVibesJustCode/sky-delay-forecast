@@ -4,8 +4,10 @@ import es.ulpgc.dacd.skydelay.weather.model.Airport;
 import es.ulpgc.dacd.skydelay.weather.model.Weather;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.stream.Collectors;
 
 
 public class Control {
@@ -39,17 +41,12 @@ public class Control {
     public void execute() {
         int totalSaved = 0;
 
-        for (Airport airport : airports) {
-            List<Weather> weathers = feeder.fetch(airport);
-
-            if (weathers != null) {
-                for (Weather weather : weathers) {
-                    store.save(weather);
-                }
-                totalSaved += weathers.size();
-            }
-        }
-
+        totalSaved += airports.stream()
+                .map(feeder::fetch)
+                .filter(Objects::nonNull)
+                .peek(weathers -> weathers.forEach(store::save))
+                .mapToInt(List::size)
+                .sum();
         System.out.println("Proceso de guardado finalizado para " + totalSaved + " registros.");
     }
 }
