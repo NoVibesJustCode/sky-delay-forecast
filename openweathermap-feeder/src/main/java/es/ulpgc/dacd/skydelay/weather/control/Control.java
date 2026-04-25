@@ -1,14 +1,11 @@
 package es.ulpgc.dacd.skydelay.weather.control;
 
 import es.ulpgc.dacd.skydelay.weather.model.Airport;
-import es.ulpgc.dacd.skydelay.weather.model.Weather;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.stream.Collectors;
-
 
 public class Control {
     private final WeatherFeeder feeder;
