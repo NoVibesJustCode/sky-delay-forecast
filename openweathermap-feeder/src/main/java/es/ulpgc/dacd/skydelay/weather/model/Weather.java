@@ -19,13 +19,15 @@ public record Weather(
     @Override
     public String toString() {
         return String.format(
-                "Meteorología en el aeropuerto de %s \n" +
-                        "Estado: %s\n" +
-                        "Temperatura: %.2f°C (Sensación: %.2f°C)\n" +
-                        "Humedad: %d%%\n" +
-                        "Visibilidad: %d metros\n" +
-                        "Viento: %.2f m/s (Ráfagas: %.2f m/s)\n" +
-                        "Porcentaje de nubosidad: %d%%\n",
+                """
+                        Meteorología en el aeropuerto de %s\s
+                        Estado: %s
+                        Temperatura: %.2f°C (Sensación: %.2f°C)
+                        Humedad: %d%%
+                        Visibilidad: %d metros
+                        Viento: %.2f m/s (Ráfagas: %.2f m/s)
+                        Porcentaje de nubosidad: %d%%
+                        """,
                 airport, description, temp, feelsLike, humidity, visibility, windSpeed, windGust, cloudsPct
         );
     }

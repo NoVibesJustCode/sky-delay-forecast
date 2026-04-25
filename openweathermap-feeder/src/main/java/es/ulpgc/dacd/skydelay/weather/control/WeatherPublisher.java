@@ -12,20 +12,23 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 
 import jakarta.jms.*;
 import jakarta.jms.Connection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WeatherPublisher implements WeatherStore {
-
     private final Connection connection;
     private final Session session;
     private final MessageProducer producer;
     private final Gson gson;
+    private static final Logger logger = LoggerFactory.getLogger(WeatherPublisher.class);
 
 
     public WeatherPublisher(String brokerUrl, String topicName) throws JMSException {
 
-        this.gson = new GsonBuilder().registerTypeAdapter(Instant.class, (JsonSerializer<Instant>) (src, typeOfSrc, context) ->
-                        new JsonPrimitive(src.toString()))
-        .create();
+        this.gson = new GsonBuilder().registerTypeAdapter(Instant.class,
+                (JsonSerializer<Instant>) (src, typeOfSrc,
+                                           context) ->
+                        new JsonPrimitive(src.toString())).create();
 
         ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(brokerUrl);
 
@@ -52,8 +55,7 @@ public class WeatherPublisher implements WeatherStore {
             System.out.println("Evento publicado en ActiveMQ: " + jsonEvent);
 
         } catch (JMSException e) {
-            System.err.println("Error al publicar el evento: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Failed to publish event to the broker: {}", e.getMessage(), e);
         }
     }
 

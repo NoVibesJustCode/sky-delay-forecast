@@ -3,6 +3,8 @@ package es.ulpgc.dacd.skydelay.flights.control;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -14,6 +16,8 @@ public class FlighteraCrawler implements FlightCrawler {
             "LEMH", "LEGE", "LEGR", "LEAM", "LEJR", "LEBZ", "GEML"
     );
 
+    private static final Logger logger = LoggerFactory.getLogger(FlighteraCrawler.class);
+
     @Override
     public Map<String, List<String>> getDomesticFlightLinks(){
         Map<String, List<String>> flightLinksByAirport = new HashMap<>();
@@ -23,10 +27,12 @@ public class FlighteraCrawler implements FlightCrawler {
         for (String code : ICAO_SPAIN_AIRPORTS) {
             String airportUrl = "https://www.flightera.net/en/airport/_/" + code + "/departure";
             List<String> links = crawlAirport(airportUrl);
+            logger.info("Crawling airport: {}", code);
             flightLinksByAirport.put(code, links);
             try {
                 Thread.sleep(10000 + rand.nextInt(8000));
             } catch (InterruptedException e) {
+                logger.error("Thread interrupted while waiting between requests", e);
                 Thread.currentThread().interrupt();
             }
         }
@@ -45,7 +51,7 @@ public class FlighteraCrawler implements FlightCrawler {
                     .filter(Objects::nonNull)
                     .toList();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to crawl airport at URL: {}", airportUrl, e);
         }
         return List.of();
     }
@@ -55,7 +61,7 @@ public class FlighteraCrawler implements FlightCrawler {
     }
 
     private static String extractFlightUrl(Element row) {
-        Element flightLink = row.select("td").last().selectFirst("a");
+        Element flightLink = Objects.requireNonNull(row.select("td").last()).selectFirst("a");
         return flightLink != null ? "https://www.flightera.net" + flightLink.attr("href") : null;
     }
 }
