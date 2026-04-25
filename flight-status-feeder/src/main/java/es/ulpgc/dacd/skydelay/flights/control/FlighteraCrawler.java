@@ -34,25 +34,30 @@ public class FlighteraCrawler implements FlightCrawler {
         return flightLinksByAirport;
     }
 
-    public static List<String> crawlAirport(String airportUrl){
-        List<String> collectedLinks = new ArrayList<>();
+    public static List<String> crawlAirport(String airportUrl) {
         try {
             Document doc = Jsoup.connect(airportUrl).userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
                     .timeout(15000)
                     .get();
-            Elements rows = doc.select("table tbody tr");
-            for (Element row : rows) {
-                Element spainFlag = row.selectFirst("img[alt*='Spain']");
-                if (spainFlag != null) {
-                    Element flightLink = row.select("td").last().selectFirst("a");
-                    String flightDetails = "https://www.flightera.net" + flightLink.attr("href");
-                    collectedLinks.add(flightDetails);
-                }
-            }
+
+            return doc.select("table tbody tr").stream()
+                    .filter(FlighteraCrawler::isSpainFlight)
+                    .map(FlighteraCrawler::extractFlightUrl)
+                    .filter(Objects::nonNull)
+                    .toList();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return collectedLinks;
+        return List.of();
+    }
+
+    private static boolean isSpainFlight(Element row) {
+        return row.selectFirst("img[alt*='Spain']") != null;
+    }
+
+    private static String extractFlightUrl(Element row) {
+        Element flightLink = row.select("td").last().selectFirst("a");
+        return flightLink != null ? "https://www.flightera.net" + flightLink.attr("href") : null;
     }
 }
 
