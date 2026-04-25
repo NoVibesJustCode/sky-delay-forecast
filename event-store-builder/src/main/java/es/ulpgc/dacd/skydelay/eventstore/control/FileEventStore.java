@@ -20,14 +20,12 @@ public class FileEventStore implements EventStore{
         this.root = Paths.get(rootPath);
     }
 
-    public void save(String topic, String json) {
+    public void save(String topic, JsonObject event) {
         try {
-            JsonObject event = JsonParser.parseString(json).getAsJsonObject();
-
             Path filePath = generatePath(topic, event);
 
             Files.createDirectories(filePath.getParent());
-            Files.writeString(filePath, json + "\n",
+            Files.writeString(filePath, event.toString() + "\n",
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND);
 
             logger.debug("Event successfully stored in: {}", filePath);

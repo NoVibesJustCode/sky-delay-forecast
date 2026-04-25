@@ -1,42 +1,38 @@
 package es.ulpgc.dacd.skydelay.eventstore.control;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import jakarta.jms.*;
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.function.BiConsumer;
+
 public class ActiveMQEventSubscriber {
     private static final Logger logger = LoggerFactory.getLogger(ActiveMQEventSubscriber.class);
-    private final String brokerUrl;
-    private final String clientID;
-    private final FileEventStore store;
+    private final Connection connection;
 
-    public ActiveMQEventSubscriber(String brokerUrl, String clientID, FileEventStore store) {
-        this.brokerUrl = brokerUrl;
-        this.clientID = clientID;
-        this.store = store;
+    public ActiveMQEventSubscriber(Connection connection) {
+        this.connection = connection;
     }
 
-    public void subscribe(String topicName) {
+    public void subscribe(String topicName, BiConsumer<String, JsonObject> eventConsumer) {
         try {
-            ConnectionFactory factory = new ActiveMQConnectionFactory(brokerUrl);
-            Connection connection = factory.createConnection();
-            
-            connection.setClientID(clientID + "-" + topicName);
-            connection.start();
-
             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
             Topic topic = session.createTopic(topicName);
-            
-            MessageConsumer consumer = session.createDurableSubscriber(topic, "EventStore-Subscription");
+
+            String subscriptionName = "EventStore-Subscription-" + topicName;
+            MessageConsumer consumer = session.createDurableSubscriber(topic, subscriptionName);
 
             consumer.setMessageListener(message -> {
-                if (message instanceof TextMessage) {
+                if (message instanceof TextMessage textMessage) {
                     try {
-                        String text = ((TextMessage) message).getText();
-                        store.save(topicName, text);
+                        String json = textMessage.getText();
+                        JsonObject event = JsonParser.parseString(json).getAsJsonObject();
+                        eventConsumer.accept(topicName, event);
+
                     } catch (JMSException e) {
-                        logger.error("Error reading message: {}", e.getMessage());
+                        logger.error("Error parsing message from {}: {}", topicName, e.getMessage());
                     }
                 }
             });
