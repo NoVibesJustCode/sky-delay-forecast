@@ -52,7 +52,7 @@ public class WeatherPublisher implements WeatherStore {
             TextMessage message = session.createTextMessage(jsonEvent);
             producer.send(message);
 
-            System.out.println("Evento publicado en ActiveMQ: " + jsonEvent);
+            System.out.println("Event published to ActiveMQ: " + jsonEvent);
 
         } catch (JMSException e) {
             logger.error("Failed to publish event to the broker: {}", e.getMessage(), e);
@@ -65,7 +65,7 @@ public class WeatherPublisher implements WeatherStore {
             if (session != null) session.close();
             if (connection != null) connection.close();
         } catch (JMSException e) {
-            System.err.println("Error cerrando conexión JMS: " + e.getMessage());
+            System.err.println("Error closing JMS connection: " + e.getMessage());
         }
 
     }

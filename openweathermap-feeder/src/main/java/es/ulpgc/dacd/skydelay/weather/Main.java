@@ -16,7 +16,7 @@ public class Main {
         WeatherStore store = new WeatherPublisher(args[1], "weather");
         Control control = new Control(feeder, store, airports);
 
-        System.out.println("Iniciando envío de datos periódico...");
+        System.out.println("Starting periodic data transmission...");
         control.start();
     }
 

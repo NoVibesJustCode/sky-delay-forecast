@@ -34,7 +34,7 @@ public class SqliteWeatherStore implements WeatherStore {
              Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
         } catch (SQLException e) {
-            System.err.println("Error al inicializar la tabla: " + e.getMessage());
+            System.err.println("Error initializing table: " + e.getMessage());
         }
     }
 
@@ -62,7 +62,7 @@ public class SqliteWeatherStore implements WeatherStore {
 
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Error al insertar datos: " + e.getMessage());
+            System.err.println("Failed to persist data: " + e.getMessage());
         }
     }
 }

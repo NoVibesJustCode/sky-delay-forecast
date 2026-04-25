@@ -33,7 +33,7 @@ public class OpenWeatherMapFeeder implements WeatherFeeder {
             return List.of(weather);
 
         } catch (Exception e) {
-            System.err.println("Error en el aeropuerto " + airport.icao() + ": " + e.getMessage());
+            System.err.println("Failed to process airport " + airport.icao() + ": " + e.getMessage());
             return null;
         }
     }

@@ -27,7 +27,7 @@ public class AirportsReader {
                     .flatMap(Optional::stream)
                     .toList();
         } catch (IOException e) {
-            System.err.println("Error de lectura: " + e.getMessage());
+            System.err.println("Read error: " + e.getMessage());
             return List.of();
         }
     }

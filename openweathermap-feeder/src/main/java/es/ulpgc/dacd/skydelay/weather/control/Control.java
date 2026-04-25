@@ -32,7 +32,7 @@ public class Control {
             }
         }, delay, period);
 
-        System.out.println("Control programado: enviando información cada 6 horas.");
+        System.out.println("Scheduled control: sending information every 6 hours.");
     }
 
     public void execute() {
@@ -44,6 +44,6 @@ public class Control {
                 .peek(weathers -> weathers.forEach(store::save))
                 .mapToInt(List::size)
                 .sum();
-        System.out.println("Proceso de guardado finalizado para " + totalSaved + " registros.");
+        System.out.println("Saving process completed for " + totalSaved + " records.");
     }
 }
