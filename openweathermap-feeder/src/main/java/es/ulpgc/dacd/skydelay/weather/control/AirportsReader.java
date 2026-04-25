@@ -2,45 +2,49 @@ package es.ulpgc.dacd.skydelay.weather.control;
 
 import es.ulpgc.dacd.skydelay.weather.model.Airport;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 public class AirportsReader {
     private final String csvPath;
-    private final int COL_ICAO = 0;
-    private final int COL_NAME = 2;
-    private final int COL_LAT = 4;
-    private final int COL_LON = 5;
+    private static final int COL_ICAO = 0;
+    private static final int COL_NAME = 2;
+    private static final int COL_LAT = 4;
+    private static final int COL_LON = 5;
 
     public AirportsReader(String csvPath) {
         this.csvPath = csvPath;
     }
 
     public List<Airport> read() {
-        List<Airport> airports = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(csvPath))) {
-            String line;
-
-            while ((line = br.readLine()) != null) {
-                String[] cols = line.split(",");
-                if (cols.length > Math.max(COL_LAT, COL_LON)) {
-                    try {
-                        String icao = cols[COL_ICAO].trim();
-                        String name = cols[COL_NAME].trim();
-                        double lat = Double.parseDouble(cols[COL_LAT].trim());
-                        double lon = Double.parseDouble(cols[COL_LON].trim());
-
-                        airports.add(new Airport(icao, name, lat, lon));
-                    } catch (NumberFormatException e) {
-                    }
-                }
-            }
+        try (Stream<String> lines = Files.lines(Paths.get(csvPath))) {
+            return lines
+                    .map(this::lineToAirport)
+                    .flatMap(Optional::stream)
+                    .toList();
         } catch (IOException e) {
             System.err.println("Error de lectura: " + e.getMessage());
+            return List.of();
         }
-        return airports;
+    }
+
+    private Optional<Airport> lineToAirport(String line) {
+        try {
+            String[] cols = line.split(",");
+            if (cols.length <= Math.max(COL_LAT, COL_LON)) return Optional.empty();
+
+            return Optional.of(new Airport(
+                    cols[COL_ICAO].trim(),
+                    cols[COL_NAME].trim(),
+                    Double.parseDouble(cols[COL_LAT].trim()),
+                    Double.parseDouble(cols[COL_LON].trim())
+            ));
+        } catch (NumberFormatException e) {
+            return Optional.empty();
+        }
     }
 }
