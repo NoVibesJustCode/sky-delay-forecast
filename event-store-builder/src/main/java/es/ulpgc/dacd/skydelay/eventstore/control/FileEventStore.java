@@ -9,7 +9,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
-public class FileEventStore {
+public class FileEventStore implements EventStore{
     private static final Logger logger = LoggerFactory.getLogger(FileEventStore.class);
     private final Path root;
     private static final DateTimeFormatter DATE_FORMATTER =
