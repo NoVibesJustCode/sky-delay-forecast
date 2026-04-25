@@ -15,15 +15,15 @@ import jakarta.jms.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WeatherPublisher implements WeatherStore {
+public class ActiveMQWeatherStore implements WeatherStore {
     private final Connection connection;
     private final Session session;
     private final MessageProducer producer;
     private final Gson gson;
-    private static final Logger logger = LoggerFactory.getLogger(WeatherPublisher.class);
+    private static final Logger logger = LoggerFactory.getLogger(ActiveMQWeatherStore.class);
 
 
-    public WeatherPublisher(String brokerUrl, String topicName) throws JMSException {
+    public ActiveMQWeatherStore(String brokerUrl, String topicName) throws JMSException {
 
         this.gson = new GsonBuilder().registerTypeAdapter(Instant.class,
                 (JsonSerializer<Instant>) (src, typeOfSrc,

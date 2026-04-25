@@ -7,12 +7,12 @@ import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class Control {
+public class Controller {
     private final WeatherFeeder feeder;
     private final WeatherStore store;
     private final List<Airport> airports;
 
-    public Control(WeatherFeeder feeder, WeatherStore store, List<Airport> airports) {
+    public Controller(WeatherFeeder feeder, WeatherStore store, List<Airport> airports) {
         this.feeder = feeder;
         this.store = store;
         this.airports = airports;
