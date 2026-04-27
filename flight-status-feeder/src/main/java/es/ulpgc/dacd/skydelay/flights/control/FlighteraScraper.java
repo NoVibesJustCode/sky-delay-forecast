@@ -2,6 +2,8 @@ package es.ulpgc.dacd.skydelay.flights.control;
 
 import com.microsoft.playwright.*;
 import es.ulpgc.dacd.skydelay.flights.model.Flight;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -9,6 +11,7 @@ import java.util.*;
 
 public class FlighteraScraper implements FlightScraper {
     private static final int BATCH_SIZE = 10;
+    private static final Logger logger = LoggerFactory.getLogger(FlighteraScraper.class);
 
     @Override
     public void startCapture(FlightStore store, String textFilePath) {
@@ -36,18 +39,18 @@ public class FlighteraScraper implements FlightScraper {
                 try {
                     Flight flight = scrapFlight(url, page);
                     store.save(flight);
-                    System.out.println(flight);
+                    logger.info("Successfully scraped and saved flight: {}", flight);
                     if (flight.status().equalsIgnoreCase("Landed")) processed.add(url);
                     Thread.sleep(15000 + random.nextInt(10000));
                 } catch (Exception e) {
-                    System.err.println("Error en " + url + ": " + e.getMessage());
+                    logger.error("Failed to process flight at URL {}: {}", url, e.getMessage());
                 }
             }
 
             linkManager.removeProcessedLinks(processed);
             context.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Critical error during Playwright execution", e);
         }
     }
 

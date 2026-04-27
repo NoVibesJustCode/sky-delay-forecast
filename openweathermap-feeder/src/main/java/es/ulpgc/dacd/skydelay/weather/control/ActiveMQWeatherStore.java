@@ -12,20 +12,23 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 
 import jakarta.jms.*;
 import jakarta.jms.Connection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class WeatherPublisher implements WeatherStore {
-
+public class ActiveMQWeatherStore implements WeatherStore {
     private final Connection connection;
     private final Session session;
     private final MessageProducer producer;
     private final Gson gson;
+    private static final Logger logger = LoggerFactory.getLogger(ActiveMQWeatherStore.class);
 
 
-    public WeatherPublisher(String brokerUrl, String topicName) throws JMSException {
+    public ActiveMQWeatherStore(String brokerUrl, String topicName) throws JMSException {
 
-        this.gson = new GsonBuilder().registerTypeAdapter(Instant.class, (JsonSerializer<Instant>) (src, typeOfSrc, context) ->
-                        new JsonPrimitive(src.toString()))
-        .create();
+        this.gson = new GsonBuilder().registerTypeAdapter(Instant.class,
+                (JsonSerializer<Instant>) (src, typeOfSrc,
+                                           context) ->
+                        new JsonPrimitive(src.toString())).create();
 
         ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(brokerUrl);
 
@@ -49,11 +52,10 @@ public class WeatherPublisher implements WeatherStore {
             TextMessage message = session.createTextMessage(jsonEvent);
             producer.send(message);
 
-            System.out.println("Evento publicado en ActiveMQ: " + jsonEvent);
+            System.out.println("Event published to ActiveMQ: " + jsonEvent);
 
         } catch (JMSException e) {
-            System.err.println("Error al publicar el evento: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Failed to publish event to the broker: {}", e.getMessage(), e);
         }
     }
 
@@ -63,7 +65,7 @@ public class WeatherPublisher implements WeatherStore {
             if (session != null) session.close();
             if (connection != null) connection.close();
         } catch (JMSException e) {
-            System.err.println("Error cerrando conexión JMS: " + e.getMessage());
+            System.err.println("Error closing JMS connection: " + e.getMessage());
         }
 
     }
