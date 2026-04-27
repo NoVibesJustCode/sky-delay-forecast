@@ -54,5 +54,10 @@ storage/db/weather.db
 ### Flights Database ###
 storage/db/skydelay.db
 
+### EventStore ###
+eventstore/flight/flight-feeder/*.events
+eventstore/weather/weather-feeder/*.events
+
 ### Others ###
+user-data-dir/
 .idea/db-forest-config.xml
