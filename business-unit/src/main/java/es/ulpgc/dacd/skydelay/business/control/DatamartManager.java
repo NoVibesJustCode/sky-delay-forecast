@@ -75,6 +75,12 @@ public class DatamartManager {
                 """;
             stmt.execute(createFeaturesTable);
 
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_flights_origin ON flights(origin_icao);");
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_flights_destination ON flights(destination_icao);");
+
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_features_origin ON flight_features(origin_icao);");
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_features_destination ON flight_features(destination_icao);");
+
             logger.info("Datamart initialized with multi-target prediction support.");
 
         } catch (SQLException e) {
