@@ -2,10 +2,9 @@ package es.ulpgc.dacd.skydelay.business.control;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import es.ulpgc.dacd.skydelay.weather.model.Weather;
+import es.ulpgc.dacd.skydelay.flights.model.Flight;
 
 public class DatamartManager {
     private static final Logger logger = LoggerFactory.getLogger(DatamartManager.class);
@@ -19,7 +18,6 @@ public class DatamartManager {
         try (Connection conn = DriverManager.getConnection(dbUrl);
              Statement stmt = conn.createStatement()) {
 
-            // 1. Clima actual: Base para predicciones en tiempo real
             String createWeatherTable = """
                 CREATE TABLE IF NOT EXISTS current_weather (
                     airport_icao TEXT PRIMARY KEY,
@@ -86,5 +84,107 @@ public class DatamartManager {
         } catch (SQLException e) {
             logger.error("Failed to initialize Datamart tables: {}", e.getMessage(), e);
         }
+    }
+
+    public void saveWeather(Weather w) {
+        String sql = """
+        INSERT OR REPLACE INTO current_weather 
+        (airport_icao, description, temperature, feels_like, humidity, visibility, wind_speed, wind_gust, cloudiness, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        """;
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, w.icao());
+            pstmt.setString(2, w.description());
+            pstmt.setDouble(3, w.temp());
+            pstmt.setDouble(4, w.feelsLike());
+            pstmt.setInt(5, w.humidity());
+            pstmt.setInt(6, w.visibility());
+            pstmt.setDouble(7, w.windSpeed());
+            pstmt.setDouble(8, w.windGust());
+            pstmt.setInt(9, w.cloudsPct());
+            pstmt.setString(10, w.ts().toString());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("Error saving weather: {}", e.getMessage());
+        }
+    }
+
+    public void saveFlightAndFeatures(Flight f) {
+        String sqlFlight = """
+        INSERT OR REPLACE INTO flights 
+        (flight_id, origin_icao, destination_icao, status, departure_delay, arrival_delay, distance_km, scheduled_departure_time, scheduled_arrival_time, aircraft_model, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        """;
+
+        try (Connection conn = DriverManager.getConnection(dbUrl)) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlFlight)) {
+                pstmt.setString(1, f.flightId());
+                pstmt.setString(2, f.origin());
+                pstmt.setString(3, f.destination());
+                pstmt.setString(4, f.status());
+                pstmt.setInt(5, f.departureDelay());
+                pstmt.setInt(6, f.arrivalDelay());
+                pstmt.setInt(7, f.distanceKm());
+                pstmt.setString(8, f.departureTimeUTC());
+                pstmt.setString(9, f.arrivalTimeUTC());
+                pstmt.setString(10, f.aircraftModel());
+                pstmt.setString(11, f.ts().toString());
+                pstmt.executeUpdate();
+            }
+
+            processFlightFeatures(conn, f);
+            conn.commit();
+        } catch (SQLException e) {
+            logger.error("Error in flight transaction: {}", e.getMessage());
+        }
+    }
+
+    private void processFlightFeatures(Connection conn, Flight f) throws SQLException {
+        String selectWeatherSql = "SELECT * FROM current_weather WHERE airport_icao = ?";
+
+        Double temp = null, windSpeed = null, windGust = null;
+        Integer visibility = null, clouds = null;
+
+        try (PreparedStatement pstmtWeather = conn.prepareStatement(selectWeatherSql)) {
+            pstmtWeather.setString(1, f.destination());
+            try (ResultSet rs = pstmtWeather.executeQuery()) {
+                if (rs.next()) {
+                    temp = rs.getDouble("temperature");
+                    visibility = rs.getInt("visibility");
+                    windSpeed = rs.getDouble("wind_speed");
+                    windGust = rs.getDouble("wind_gust");
+                    clouds = rs.getInt("cloudiness");
+                }
+            }
+        }
+
+        String insertFeaturesSql = """
+        INSERT INTO flight_features (
+            flight_id, origin_icao, destination_icao, distance_km, 
+            departure_delay, arrival_delay, dep_delay_category, arr_delay_category,
+            weather_temp, weather_visibility, weather_wind_speed, weather_wind_gust, weather_clouds
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        """;
+
+        try (PreparedStatement pstmtFeat = conn.prepareStatement(insertFeaturesSql)) {
+            pstmtFeat.setString(1, f.flightId());
+            pstmtFeat.setString(2, f.origin());
+            pstmtFeat.setString(3, f.destination());
+            pstmtFeat.setInt(4, f.distanceKm());
+            pstmtFeat.setInt(5, f.departureDelay());
+            pstmtFeat.setInt(6, f.arrivalDelay());
+            pstmtFeat.setString(7, f.departureDelay() > 15 ? "DELAYED" : "ON_TIME");
+            pstmtFeat.setString(8, f.arrivalDelay() > 15 ? "DELAYED" : "ON_TIME");
+            if (temp != null) pstmtFeat.setDouble(9, temp); else pstmtFeat.setNull(9, Types.REAL);
+            if (visibility != null) pstmtFeat.setInt(10, visibility); else pstmtFeat.setNull(10, Types.INTEGER);
+            if (windSpeed != null) pstmtFeat.setDouble(11, windSpeed); else pstmtFeat.setNull(11, Types.REAL);
+            if (windGust != null) pstmtFeat.setDouble(12, windGust); else pstmtFeat.setNull(12, Types.REAL);
+            if (clouds != null) pstmtFeat.setInt(13, clouds); else pstmtFeat.setNull(13, Types.INTEGER);
+            pstmtFeat.executeUpdate();
+        }
+
+        logger.debug("Features processed for flight {} towards {}", f.flightId(), f.destination());
     }
 }
