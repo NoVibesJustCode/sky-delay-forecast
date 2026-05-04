@@ -54,6 +54,9 @@ storage/db/weather.db
 ### Flights Database ###
 storage/db/skydelay.db
 
+### Datamart ###
+storage/db/datamart.db
+
 ### EventStore ###
 eventstore/flight/flight-feeder/*.events
 eventstore/weather/weather-feeder/*.events
