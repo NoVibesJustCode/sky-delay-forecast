@@ -73,11 +73,11 @@ public class DatamartManager {
                     arrival_delay INTEGER,
                     dep_delay_category TEXT, 
                     arr_delay_category TEXT,
-                    weather_temp REAL,
-                    weather_visibility INTEGER,
-                    weather_wind_speed REAL,
-                    weather_wind_gust REAL,
-                    weather_clouds INTEGER,
+                    temp REAL,
+                    visibility INTEGER,
+                    wind_speed REAL,
+                    wind_gust REAL,
+                    clouds INTEGER,
                     recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 );
                 """;
@@ -153,14 +153,14 @@ public class DatamartManager {
     }
 
     private void processFlightFeatures(Connection conn, Flight f) throws SQLException {
+        String scheduledDeparture = formatToIso(f.date(), f.departureTimeUTC());
 
-        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("dd. MMM yyyy", Locale.ENGLISH);
-        String isoDate = LocalDate.parse(f.date(), inputFormatter).toString();
-
-        String scheduledDeparture = isoDate + " " + f.departureTimeUTC();
-
-        String selectWeatherSql = "SELECT * FROM current_weather WHERE airport_icao = ? AND timestamp BETWEEN datetime(?, '-1 hour') AND datetime(?, '+1 hour') ORDER BY abs(strftime('%s', timestamp) - strftime('%s', ?)) ASC LIMIT 1";
-
+        String selectWeatherSql = """
+        SELECT * FROM current_weather 
+        WHERE airport_icao = ? 
+        ORDER BY abs(julianday(timestamp) - julianday(?)) ASC 
+        LIMIT 1
+        """;
         Double temp = null, windSpeed = null, windGust = null;
         Integer visibility = null, clouds = null;
 
@@ -169,8 +169,7 @@ public class DatamartManager {
 
             pstmtWeather.setString(1, originIcao);
             pstmtWeather.setString(2, scheduledDeparture);
-            pstmtWeather.setString(3, scheduledDeparture);
-            pstmtWeather.setString(4, scheduledDeparture);
+
 
             try (ResultSet rs = pstmtWeather.executeQuery()) {
                 if (rs.next()) {
@@ -181,7 +180,7 @@ public class DatamartManager {
                     clouds = rs.getInt("cloudiness");
                     logger.debug("Clima encontrado para {} a las {}: {}°C", originIcao, scheduledDeparture, temp);
                 } else {
-                    logger.warn("No hay datos de clima en el rango de ±1h para {} a las {}", originIcao, scheduledDeparture);
+                    logger.warn("No existe ningún dato meteorológico para el aeropuerto {} a las {}", originIcao, scheduledDeparture);
                 }
             }
         }
@@ -190,7 +189,7 @@ public class DatamartManager {
         INSERT INTO flight_features (
             flight_id, origin_icao, destination_icao, distance_km, 
             departure_delay, arrival_delay, dep_delay_category, arr_delay_category,
-            weather_temp, weather_visibility, weather_wind_speed, weather_wind_gust, weather_clouds
+            temp, visibility, wind_speed, wind_gust, clouds
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         """;
 
@@ -215,9 +214,11 @@ public class DatamartManager {
         logger.debug("Features processed for flight {} towards {}", f.flightId(), f.destination());
     }
 
-    public String translateDate(String rawDate) {
+    private String formatToIso(String rawDate, String rawTime) {
         DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("dd. MMM yyyy", Locale.ENGLISH);
-        LocalDate date = LocalDate.parse(rawDate, inputFormatter);
-        return date.toString();
+        String datePart = LocalDate.parse(rawDate, inputFormatter).toString();
+
+        return datePart + "T" + rawTime + ":00Z";
     }
+
 }
