@@ -22,6 +22,7 @@ public class FlighteraScraper implements FlightScraper {
             BrowserType.LaunchPersistentContextOptions options = new BrowserType.LaunchPersistentContextOptions()
                     .setHeadless(false)
                     .setExecutablePath(Paths.get("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"))
+                    .setLocale("en-US")
                     .setArgs(List.of("--disable-blink-features=AutomationControlled"));
 
             BrowserContext context = playwright.chromium().launchPersistentContext(
@@ -70,8 +71,8 @@ public class FlighteraScraper implements FlightScraper {
                 FlightMapper.extractTimeUTC(page.locator("#depTimeLiveHB + div").innerText()),
                 FlightMapper.extractTimeUTC(page.locator("#arrTimeLiveHB + div").innerText()),
                 page.locator("#liveStatusInd").innerText().trim(),
-                FlightMapper.parseDelay(page.locator("#depDelHB").count() > 0 ? page.locator("#depDelHB").innerText() : "0"),
-                FlightMapper.parseDelay(page.locator("#arrDelHB").count() > 0 ? page.locator("#arrDelHB").innerText() : "0"),
+                FlightMapper.parseDelay(page.locator("#depDelOuterHB").count() > 0 ? page.locator("#depDelOuterHB").innerText() : "0"),
+                FlightMapper.parseDelay(page.locator("#arrDelOuterHB").count() > 0 ? page.locator("#arrDelOuterHB").innerText() : "0"),
                 FlightMapper.parseDistance(page.locator("[itemprop='distance']").first().innerText()),
                 FlightMapper.cleanAircraft(page.locator("[itemprop='model']").count() > 0 ? page.locator("[itemprop='model']").innerText() : "Unknown")
         );

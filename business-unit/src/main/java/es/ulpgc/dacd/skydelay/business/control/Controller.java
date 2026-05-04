@@ -11,15 +11,17 @@ public class Controller {
     private static final Logger logger = LoggerFactory.getLogger(Controller.class);
     private final String brokerUrl;
     private final String dbPath;
+    private final String csvPath;
 
-    public Controller(String brokerUrl, String dbPath) {
+    public Controller(String brokerUrl, String dbPath, String csvPath) {
         this.brokerUrl = brokerUrl;
         this.dbPath = dbPath;
+        this.csvPath = csvPath;
     }
 
     public void execute() {
         try {
-            DatamartManager datamartManager = new DatamartManager(dbPath);
+            DatamartManager datamartManager = new DatamartManager(dbPath, csvPath);
             datamartManager.initializeDatabase();
 
             ConnectionFactory factory = new ActiveMQConnectionFactory(brokerUrl);

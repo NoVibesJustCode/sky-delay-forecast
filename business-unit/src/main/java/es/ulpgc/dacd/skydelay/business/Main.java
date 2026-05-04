@@ -4,15 +4,16 @@ import es.ulpgc.dacd.skydelay.business.control.Controller;
 
 public class Main {
     public static void main(String[] args) {
-        if (args.length < 2) {
+        if (args.length < 3) {
             System.err.println("Error: Missing Broker URL. Usage: java -jar ... <broker_url>");
             System.exit(1);
         }
 
         String brokerUrl = args[0];
         String dbPath = args[1];
+        String csvPath = args[2];
 
-        Controller controller = new Controller(brokerUrl, dbPath);
+        Controller controller = new Controller(brokerUrl, dbPath, csvPath);
         controller.execute();
     }
 }

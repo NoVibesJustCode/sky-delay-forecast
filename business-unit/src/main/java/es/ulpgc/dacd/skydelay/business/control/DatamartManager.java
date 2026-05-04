@@ -9,9 +9,11 @@ import es.ulpgc.dacd.skydelay.flights.model.Flight;
 public class DatamartManager {
     private static final Logger logger = LoggerFactory.getLogger(DatamartManager.class);
     private final String dbUrl;
+    private final AirportCodeTranslator translator;
 
-    public DatamartManager(String dbPath) {
+    public DatamartManager(String dbPath, String csvPath) {
         this.dbUrl = "jdbc:sqlite:" + dbPath;
+        this.translator = new AirportCodeTranslator(csvPath);
     }
 
     public void initializeDatabase() {
@@ -113,7 +115,7 @@ public class DatamartManager {
     public void saveFlightAndFeatures(Flight f) {
         String sqlFlight = """
         INSERT OR REPLACE INTO flights 
-        (flight_id, origin_icao, destination_icao, status, departure_delay, arrival_delay, distance_km, scheduled_departure_time, scheduled_arrival_time, aircraft_model, timestamp)
+        (flight_id, origin_icao, destination_icao, date, status, departure_delay, arrival_delay, distance_km, scheduled_departure_time, scheduled_arrival_time, aircraft_model, timestamp)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         """;
 
@@ -123,14 +125,15 @@ public class DatamartManager {
                 pstmt.setString(1, f.flightId());
                 pstmt.setString(2, f.origin());
                 pstmt.setString(3, f.destination());
-                pstmt.setString(4, f.status());
-                pstmt.setInt(5, f.departureDelay());
-                pstmt.setInt(6, f.arrivalDelay());
-                pstmt.setInt(7, f.distanceKm());
-                pstmt.setString(8, f.departureTimeUTC());
-                pstmt.setString(9, f.arrivalTimeUTC());
-                pstmt.setString(10, f.aircraftModel());
-                pstmt.setString(11, f.ts().toString());
+                pstmt.setString(4, f.date());
+                pstmt.setString(5, f.status());
+                pstmt.setInt(6, f.departureDelay());
+                pstmt.setInt(7, f.arrivalDelay());
+                pstmt.setInt(8, f.distanceKm());
+                pstmt.setString(9, f.departureTimeUTC());
+                pstmt.setString(10, f.arrivalTimeUTC());
+                pstmt.setString(11, f.aircraftModel());
+                pstmt.setString(12, f.ts().toString());
                 pstmt.executeUpdate();
             }
 
@@ -148,7 +151,7 @@ public class DatamartManager {
         Integer visibility = null, clouds = null;
 
         try (PreparedStatement pstmtWeather = conn.prepareStatement(selectWeatherSql)) {
-            pstmtWeather.setString(1, f.destination());
+            pstmtWeather.setString(1, translator.toIcao(f.origin()));
             try (ResultSet rs = pstmtWeather.executeQuery()) {
                 if (rs.next()) {
                     temp = rs.getDouble("temperature");
@@ -170,8 +173,8 @@ public class DatamartManager {
 
         try (PreparedStatement pstmtFeat = conn.prepareStatement(insertFeaturesSql)) {
             pstmtFeat.setString(1, f.flightId());
-            pstmtFeat.setString(2, f.origin());
-            pstmtFeat.setString(3, f.destination());
+            pstmtFeat.setString(2, translator.toIcao(f.origin()));
+            pstmtFeat.setString(3, translator.toIcao(f.destination()));
             pstmtFeat.setInt(4, f.distanceKm());
             pstmtFeat.setInt(5, f.departureDelay());
             pstmtFeat.setInt(6, f.arrivalDelay());
