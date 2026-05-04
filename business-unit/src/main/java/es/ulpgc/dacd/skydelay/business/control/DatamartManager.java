@@ -3,14 +3,13 @@ package es.ulpgc.dacd.skydelay.business.control;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.sql.*;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import es.ulpgc.dacd.skydelay.weather.model.Weather;
 import es.ulpgc.dacd.skydelay.flights.model.Flight;
-
-import static java.lang.Math.abs;
 
 public class DatamartManager {
     private static final Logger logger = LoggerFactory.getLogger(DatamartManager.class);
@@ -63,23 +62,22 @@ public class DatamartManager {
             stmt.execute(createFlightsTable);
 
             String createFeaturesTable = """
+            
                 CREATE TABLE IF NOT EXISTS flight_features (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     flight_id TEXT,
                     origin_icao TEXT,
-                    destination_icao TEXT,
+                    dest_icao TEXT,
+                    dep_temp REAL, dep_feels_like REAL, dep_humidity INTEGER,
+                    dep_visibility INTEGER, dep_wind_speed REAL, dep_wind_gust REAL, dep_clouds INTEGER,
+                    arr_temp REAL, arr_feels_like REAL, arr_humidity INTEGER,
+                    arr_visibility INTEGER, arr_wind_speed REAL, arr_wind_gust REAL, arr_clouds INTEGER,
                     distance_km INTEGER,
                     departure_delay INTEGER,
                     arrival_delay INTEGER,
-                    dep_delay_category TEXT, 
-                    arr_delay_category TEXT,
-                    temp REAL,
-                    visibility INTEGER,
-                    wind_speed REAL,
-                    wind_gust REAL,
-                    clouds INTEGER,
+                    delay_category TEXT,
                     recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                );
+                            );
                 """;
             stmt.execute(createFeaturesTable);
 
@@ -87,7 +85,7 @@ public class DatamartManager {
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_flights_destination ON flights(destination_icao);");
 
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_features_origin ON flight_features(origin_icao);");
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_features_destination ON flight_features(destination_icao);");
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_features_destination ON flight_features(dest_icao);");
 
             logger.info("Datamart initialized with multi-target prediction support.");
 
@@ -153,65 +151,86 @@ public class DatamartManager {
     }
 
     private void processFlightFeatures(Connection conn, Flight f) throws SQLException {
-        String scheduledDeparture = formatToIso(f.date(), f.departureTimeUTC());
+        String schedDep = formatToIso(f.date(), f.departureTimeUTC());
+        String schedArr = formatToIso(f.date(), f.arrivalTimeUTC());
 
-        String selectWeatherSql = """
-        SELECT * FROM current_weather 
-        WHERE airport_icao = ? 
-        ORDER BY abs(julianday(timestamp) - julianday(?)) ASC 
-        LIMIT 1
+        Weather depW = fetchClosestWeather(conn, translator.toIcao(f.origin()), schedDep);
+        Weather arrW = fetchClosestWeather(conn, translator.toIcao(f.destination()), schedArr);
+
+        String insertFeaturesSql = """
+            INSERT INTO flight_features (
+                flight_id, origin_icao, dest_icao,
+                dep_temp, dep_feels_like, dep_humidity, dep_visibility, dep_wind_speed, dep_wind_gust, dep_clouds,
+                arr_temp, arr_feels_like, arr_humidity, arr_visibility, arr_wind_speed, arr_wind_gust, arr_clouds,
+                distance_km, departure_delay, arrival_delay, delay_category
+                ) VALUES (?,?,?, ?,?,?,?,?,?,?, ?,?,?,?,?,?,?, ?,?,?,?)
         """;
-        Double temp = null, windSpeed = null, windGust = null;
-        Integer visibility = null, clouds = null;
 
-        try (PreparedStatement pstmtWeather = conn.prepareStatement(selectWeatherSql)) {
-            String originIcao = translator.toIcao(f.origin());
+        try (PreparedStatement pstmt = conn.prepareStatement(insertFeaturesSql)) {
+            pstmt.setString(1, f.flightId());
+            pstmt.setString(2, translator.toIcao(f.origin()));
+            pstmt.setString(3, translator.toIcao(f.destination()));
 
-            pstmtWeather.setString(1, originIcao);
-            pstmtWeather.setString(2, scheduledDeparture);
+            mapWeatherRecordToPstmt(pstmt, depW, 4);
+            mapWeatherRecordToPstmt(pstmt, arrW, 11);
 
+            pstmt.setInt(18, f.distanceKm());
+            pstmt.setInt(19, f.departureDelay());
+            pstmt.setInt(20, f.arrivalDelay());
+            pstmt.setString(21, categorize(f.arrivalDelay()));
 
-            try (ResultSet rs = pstmtWeather.executeQuery()) {
+            pstmt.executeUpdate();
+        }
+    }
+
+    private Weather fetchClosestWeather(Connection conn, String icao, String isoTime) throws SQLException {
+        String sql = "SELECT * FROM current_weather WHERE airport_icao = ? " +
+                "ORDER BY abs(julianday(timestamp) - julianday(?)) ASC LIMIT 1";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, icao);
+            pstmt.setString(2, isoTime);
+            try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    temp = rs.getDouble("temperature");
-                    visibility = rs.getInt("visibility");
-                    windSpeed = rs.getDouble("wind_speed");
-                    windGust = rs.getDouble("wind_gust");
-                    clouds = rs.getInt("cloudiness");
-                    logger.debug("Clima encontrado para {} a las {}: {}°C", originIcao, scheduledDeparture, temp);
-                } else {
-                    logger.warn("No existe ningún dato meteorológico para el aeropuerto {} a las {}", originIcao, scheduledDeparture);
+                    return new Weather(
+                            Instant.parse(rs.getString("timestamp")),
+                            "datamart-source", // ss (sensor source)
+                            rs.getString("airport_icao"),
+                            "",
+                            rs.getString("description"),
+                            rs.getDouble("temperature"),
+                            rs.getDouble("feels_like"),
+                            rs.getInt("humidity"),
+                            rs.getInt("visibility"),
+                            rs.getDouble("wind_speed"),
+                            rs.getDouble("wind_gust"),
+                            rs.getInt("cloudiness")
+                    );
                 }
             }
         }
+        return null;
+    }
 
-        String insertFeaturesSql = """
-        INSERT INTO flight_features (
-            flight_id, origin_icao, destination_icao, distance_km, 
-            departure_delay, arrival_delay, dep_delay_category, arr_delay_category,
-            temp, visibility, wind_speed, wind_gust, clouds
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-        """;
-
-        try (PreparedStatement pstmtFeat = conn.prepareStatement(insertFeaturesSql)) {
-            pstmtFeat.setString(1, f.flightId());
-            pstmtFeat.setString(2, translator.toIcao(f.origin()));
-            pstmtFeat.setString(3, translator.toIcao(f.destination()));
-            pstmtFeat.setInt(4, f.distanceKm());
-            pstmtFeat.setInt(5, f.departureDelay());
-            pstmtFeat.setInt(6, f.arrivalDelay());
-            pstmtFeat.setString(7, f.departureDelay() > 15 ? "DELAYED" : "ON_TIME");
-            pstmtFeat.setString(8, f.arrivalDelay() > 15 ? "DELAYED" : "ON_TIME");
-
-            if (temp != null) pstmtFeat.setDouble(9, temp); else pstmtFeat.setNull(9, Types.REAL);
-            if (visibility != null) pstmtFeat.setInt(10, visibility); else pstmtFeat.setNull(10, Types.INTEGER);
-            if (windSpeed != null) pstmtFeat.setDouble(11, windSpeed); else pstmtFeat.setNull(11, Types.REAL);
-            if (windGust != null) pstmtFeat.setDouble(12, windGust); else pstmtFeat.setNull(12, Types.REAL);
-            if (clouds != null) pstmtFeat.setInt(13, clouds); else pstmtFeat.setNull(13, Types.INTEGER);
-            pstmtFeat.executeUpdate();
+    private void mapWeatherRecordToPstmt(PreparedStatement pstmt, Weather w, int start) throws SQLException {
+        if (w != null) {
+            pstmt.setDouble(start, w.temp());
+            pstmt.setDouble(start + 1, w.feelsLike());
+            pstmt.setInt(start + 2, w.humidity());
+            pstmt.setInt(start + 3, w.visibility());
+            pstmt.setDouble(start + 4, w.windSpeed());
+            pstmt.setDouble(start + 5, w.windGust());
+            pstmt.setInt(start + 6, w.cloudsPct());
+        } else {
+            for (int i = 0; i < 7; i++) pstmt.setNull(start + i, Types.REAL);
         }
+    }
 
-        logger.debug("Features processed for flight {} towards {}", f.flightId(), f.destination());
+    private String categorize(int mins) {
+        if (mins <= 15) return "no";
+        if (mins <= 30) return "leve";
+        if (mins <= 60) return "moderada";
+        return "severa";
     }
 
     private String formatToIso(String rawDate, String rawTime) {
