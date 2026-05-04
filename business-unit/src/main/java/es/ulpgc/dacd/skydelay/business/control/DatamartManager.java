@@ -3,8 +3,14 @@ package es.ulpgc.dacd.skydelay.business.control;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
 import es.ulpgc.dacd.skydelay.weather.model.Weather;
 import es.ulpgc.dacd.skydelay.flights.model.Flight;
+
+import static java.lang.Math.abs;
 
 public class DatamartManager {
     private static final Logger logger = LoggerFactory.getLogger(DatamartManager.class);
@@ -15,6 +21,8 @@ public class DatamartManager {
         this.dbUrl = "jdbc:sqlite:" + dbPath;
         this.translator = new AirportCodeTranslator(csvPath);
     }
+
+
 
     public void initializeDatabase() {
         try (Connection conn = DriverManager.getConnection(dbUrl);
@@ -116,7 +124,7 @@ public class DatamartManager {
         String sqlFlight = """
         INSERT OR REPLACE INTO flights 
         (flight_id, origin_icao, destination_icao, date, status, departure_delay, arrival_delay, distance_km, scheduled_departure_time, scheduled_arrival_time, aircraft_model, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         """;
 
         try (Connection conn = DriverManager.getConnection(dbUrl)) {
@@ -145,13 +153,25 @@ public class DatamartManager {
     }
 
     private void processFlightFeatures(Connection conn, Flight f) throws SQLException {
-        String selectWeatherSql = "SELECT * FROM current_weather WHERE airport_icao = ?";
+
+        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("dd. MMM yyyy", Locale.ENGLISH);
+        String isoDate = LocalDate.parse(f.date(), inputFormatter).toString();
+
+        String scheduledDeparture = isoDate + " " + f.departureTimeUTC();
+
+        String selectWeatherSql = "SELECT * FROM current_weather WHERE airport_icao = ? AND timestamp BETWEEN datetime(?, '-1 hour') AND datetime(?, '+1 hour') ORDER BY abs(strftime('%s', timestamp) - strftime('%s', ?)) ASC LIMIT 1";
 
         Double temp = null, windSpeed = null, windGust = null;
         Integer visibility = null, clouds = null;
 
         try (PreparedStatement pstmtWeather = conn.prepareStatement(selectWeatherSql)) {
-            pstmtWeather.setString(1, translator.toIcao(f.origin()));
+            String originIcao = translator.toIcao(f.origin());
+
+            pstmtWeather.setString(1, originIcao);
+            pstmtWeather.setString(2, scheduledDeparture);
+            pstmtWeather.setString(3, scheduledDeparture);
+            pstmtWeather.setString(4, scheduledDeparture);
+
             try (ResultSet rs = pstmtWeather.executeQuery()) {
                 if (rs.next()) {
                     temp = rs.getDouble("temperature");
@@ -159,6 +179,9 @@ public class DatamartManager {
                     windSpeed = rs.getDouble("wind_speed");
                     windGust = rs.getDouble("wind_gust");
                     clouds = rs.getInt("cloudiness");
+                    logger.debug("Clima encontrado para {} a las {}: {}°C", originIcao, scheduledDeparture, temp);
+                } else {
+                    logger.warn("No hay datos de clima en el rango de ±1h para {} a las {}", originIcao, scheduledDeparture);
                 }
             }
         }
@@ -180,6 +203,7 @@ public class DatamartManager {
             pstmtFeat.setInt(6, f.arrivalDelay());
             pstmtFeat.setString(7, f.departureDelay() > 15 ? "DELAYED" : "ON_TIME");
             pstmtFeat.setString(8, f.arrivalDelay() > 15 ? "DELAYED" : "ON_TIME");
+
             if (temp != null) pstmtFeat.setDouble(9, temp); else pstmtFeat.setNull(9, Types.REAL);
             if (visibility != null) pstmtFeat.setInt(10, visibility); else pstmtFeat.setNull(10, Types.INTEGER);
             if (windSpeed != null) pstmtFeat.setDouble(11, windSpeed); else pstmtFeat.setNull(11, Types.REAL);
@@ -189,5 +213,11 @@ public class DatamartManager {
         }
 
         logger.debug("Features processed for flight {} towards {}", f.flightId(), f.destination());
+    }
+
+    public String translateDate(String rawDate) {
+        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("dd. MMM yyyy", Locale.ENGLISH);
+        LocalDate date = LocalDate.parse(rawDate, inputFormatter);
+        return date.toString();
     }
 }
