@@ -3,9 +3,11 @@ import java.util.regex.*;
 
 public class FlightMapper {
     public static int parseDelay(String text) {
-        if (text == null || text.trim().isEmpty()) return 0;
-        String clean = text.replace("+", "").trim().replaceAll("[^0-9-]", "");
-        return (clean.isEmpty() || clean.equals("-")) ? 0 : Integer.parseInt(clean);
+        if (text == null || text.isBlank() || text.toLowerCase().contains("on time")) return 0;
+        String digits = text.replaceAll("[^0-9]", "");
+        if (digits.isEmpty()) return 0;
+        int val = Integer.parseInt(digits);
+        return text.toLowerCase().contains("early") ? -val : val;
     }
 
     public static int parseDistance(String text) {
