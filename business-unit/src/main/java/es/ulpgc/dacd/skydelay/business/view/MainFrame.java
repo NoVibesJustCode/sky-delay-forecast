@@ -16,9 +16,6 @@ public class MainFrame extends Application {
         StackPane root = new StackPane();
         root.getChildren().add(label);
 
-
-
-        // Dimensiones de la ventana
         Scene scene = new Scene(root, 1000, 700);
 
         primaryStage.setTitle("SkyDelay Forecast System");
