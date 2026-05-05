@@ -21,8 +21,6 @@ public class DatamartManager {
         this.translator = new AirportCodeTranslator(csvPath);
     }
 
-
-
     public void initializeDatabase() {
         try (Connection conn = DriverManager.getConnection(dbUrl);
              Statement stmt = conn.createStatement()) {
@@ -158,7 +156,7 @@ public class DatamartManager {
         Weather arrW = fetchClosestWeather(conn, translator.toIcao(f.destination()), schedArr);
 
         String insertFeaturesSql = """
-            INSERT INTO flight_features (
+            INSERT OR IGNORE INTO flight_features (
                 flight_id, origin_icao, dest_icao,
                 dep_temp, dep_feels_like, dep_humidity, dep_visibility, dep_wind_speed, dep_wind_gust, dep_clouds,
                 arr_temp, arr_feels_like, arr_humidity, arr_visibility, arr_wind_speed, arr_wind_gust, arr_clouds,
@@ -227,10 +225,10 @@ public class DatamartManager {
     }
 
     private String categorize(int mins) {
-        if (mins <= 15) return "no";
-        if (mins <= 30) return "leve";
-        if (mins <= 60) return "moderada";
-        return "severa";
+        if (mins <= 15) return "none";
+        if (mins <= 30) return "low";
+        if (mins <= 60) return "moderate";
+        return "severe";
     }
 
     private String formatToIso(String rawDate, String rawTime) {
