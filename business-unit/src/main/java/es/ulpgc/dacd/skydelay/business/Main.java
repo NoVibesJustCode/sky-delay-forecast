@@ -1,6 +1,8 @@
 package es.ulpgc.dacd.skydelay.business;
 
 import es.ulpgc.dacd.skydelay.business.control.Controller;
+import es.ulpgc.dacd.skydelay.business.view.MainFrame;
+import javafx.application.Application;
 
 public class Main {
     public static void main(String[] args) {
@@ -9,11 +11,11 @@ public class Main {
             System.exit(1);
         }
 
-        String brokerUrl = args[0];
-        String dbPath = args[1];
-        String csvPath = args[2];
+        new Thread(() -> {
+            Controller controller = new Controller(args[0], args[1], args[2]);
+            controller.execute();
+        }).start();
 
-        Controller controller = new Controller(brokerUrl, dbPath, csvPath);
-        controller.execute();
+        Application.launch(MainFrame.class, args);
     }
 }
