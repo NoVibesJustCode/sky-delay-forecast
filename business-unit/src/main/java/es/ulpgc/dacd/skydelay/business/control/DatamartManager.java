@@ -6,7 +6,7 @@ import java.sql.*;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
+import java.util.*;
 
 import es.ulpgc.dacd.skydelay.weather.model.Weather;
 import es.ulpgc.dacd.skydelay.flights.model.Flight;
@@ -208,6 +208,29 @@ public class DatamartManager {
             }
         }
         return null;
+    }
+
+    public List<Map<String, Object>> getFlightAnalysis() {
+        List<Map<String, Object>> results = new ArrayList<>();
+        String sql = "SELECT flight_id, origin_icao, dest_icao, arrival_delay, delay_category FROM flight_features ORDER BY recorded_at DESC LIMIT 100";
+
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                Map<String, Object> row = new HashMap<>();
+                row.put("id", rs.getString("flight_id"));
+                row.put("origin", rs.getString("origin_icao"));
+                row.put("destination", rs.getString("dest_icao"));
+                row.put("delay", rs.getInt("arrival_delay"));
+                row.put("category", rs.getString("delay_category"));
+                results.add(row);
+            }
+        } catch (SQLException e) {
+            logger.error("Error querying analysis: {}", e.getMessage());
+        }
+        return results;
     }
 
     private void mapWeatherRecordToPstmt(PreparedStatement pstmt, Weather w, int start) throws SQLException {

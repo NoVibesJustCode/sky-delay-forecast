@@ -37,6 +37,9 @@ public class Controller {
             DatamartManager datamartManager = new DatamartManager(dbPath, csvPath);
             datamartManager.initializeDatabase();
 
+            RestInterface api = new RestInterface(datamartManager, 7070);
+            api.start();
+
             runHistoricalSweep(datamartManager);
 
             startRealTimeIngestion(datamartManager);
