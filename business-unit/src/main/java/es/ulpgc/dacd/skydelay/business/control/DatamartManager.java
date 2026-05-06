@@ -1,5 +1,6 @@
 package es.ulpgc.dacd.skydelay.business.control;
 
+import es.ulpgc.dacd.skydelay.business.model.FlightFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.sql.*;
@@ -131,6 +132,30 @@ public class DatamartManager {
         return null;
     }
 
+    // Añadir a DatamartManager
+    public List<FlightFeature> loadTrainingData() {
+        List<FlightFeature> data = new ArrayList<>();
+        String sql = "SELECT temp, wind, vis, distance_km, delay_category FROM flight_features";
+
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                data.add(new FlightFeature(
+                        rs.getDouble("temp"),
+                        rs.getDouble("wind"),
+                        rs.getDouble("vis"),
+                        rs.getInt("distance_km"),
+                        rs.getString("delay_category")
+                ));
+            }
+        } catch (SQLException e) {
+            logger.error("Error loading training data: {}", e.getMessage());
+        }
+        return data;
+    }
+
     public List<Map<String, Object>> getReadyToEatMenu() {
         List<Map<String, Object>> results = new ArrayList<>();
         String sql = "SELECT * FROM flight_predictions ORDER BY scheduled_time ASC";
@@ -154,4 +179,6 @@ public class DatamartManager {
         if (mins <= 60) return "moderate";
         return "severe";
     }
+
+
 }
