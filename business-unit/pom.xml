@@ -65,6 +65,11 @@
             <version>23</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-web</artifactId>
+            <version>23</version>
+        </dependency>
     </dependencies>
 
 </project>
