@@ -179,6 +179,4 @@ public class DatamartManager {
         if (mins <= 60) return "moderate";
         return "severe";
     }
-
-
 }
