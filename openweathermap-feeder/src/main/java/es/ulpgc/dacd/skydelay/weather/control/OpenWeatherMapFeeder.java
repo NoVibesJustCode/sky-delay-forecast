@@ -1,6 +1,9 @@
 package es.ulpgc.dacd.skydelay.weather.control;
 
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import es.ulpgc.dacd.skydelay.weather.model.Airport;
 import es.ulpgc.dacd.skydelay.weather.model.Weather;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -26,9 +29,14 @@ public class OpenWeatherMapFeeder implements WeatherFeeder {
     @Override
     public List<Weather> fetch(Airport airport) {
         try {
-            String json = fetchRawJson(airport.lat(), airport.lon());
+            String fullJson = fetchRawJson(airport.lat(), airport.lon());
 
-            Weather weather = parser.parse(json, airport.icao(), airport.name());
+            JsonObject root = JsonParser.parseString(fullJson).getAsJsonObject();
+            JsonArray list = root.getAsJsonArray("list");
+
+            String firstForecastJson = list.get(0).toString();
+
+            Weather weather = parser.parse(firstForecastJson, airport.icao(), airport.name());
 
             return List.of(weather);
 
@@ -40,7 +48,7 @@ public class OpenWeatherMapFeeder implements WeatherFeeder {
 
     private String fetchRawJson(double lat, double lon) throws Exception {
         String url = String.format(
-                "https://api.openweathermap.org/data/2.5/weather?lat=%f&lon=%f&units=metric&lang=es&appid=%s",
+                "https://api.openweathermap.org/data/2.5/forecast?lat=%f&lon=%f&units=metric&lang=es&appid=%s",
                 lat, lon, apiKey
         );
 
