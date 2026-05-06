@@ -12,9 +12,10 @@ public class MapPresenter {
     public MapPresenter() {
         this.mapView = new MapView();
 
-        MapPoint madrid = new MapPoint(40.4167, -3.7033);
-        mapView.setCenter(madrid);
-        mapView.setZoom(6);
+        mapView.setCenter(new MapPoint(48.0, 0.0));
+        mapView.setZoom(5);
+
+        mapView.addLayer(new AirportsLayer());
 
         VBox.setVgrow(mapView, Priority.ALWAYS);
     }
