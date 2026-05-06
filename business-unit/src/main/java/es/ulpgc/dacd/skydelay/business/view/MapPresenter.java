@@ -1,26 +1,25 @@
 package es.ulpgc.dacd.skydelay.business.view;
 
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
-import javafx.concurrent.Worker;
+import com.gluonhq.maps.MapPoint;
+import com.gluonhq.maps.MapView;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+
 
 public class MapPresenter {
-    private final WebView webView;
+    private final MapView mapView;
 
     public MapPresenter() {
-        this.webView = new WebView();
-        WebEngine engine = webView.getEngine();
+        this.mapView = new MapView();
 
-        engine.getLoadWorker().stateProperty().addListener((obs, old, state) -> {
-            if (state == Worker.State.SUCCEEDED) {
-                engine.executeScript("setTimeout(() => map.invalidateSize(), 400)");
-            }
-        });
+        MapPoint madrid = new MapPoint(40.4167, -3.7033);
+        mapView.setCenter(madrid);
+        mapView.setZoom(6);
 
-        engine.load(getClass().getResource("/map/index.html").toExternalForm());
+        VBox.setVgrow(mapView, Priority.ALWAYS);
     }
 
-    public WebView getView() {
-        return webView;
+    public MapView getView() {
+        return mapView;
     }
 }
