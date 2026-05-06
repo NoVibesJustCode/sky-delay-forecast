@@ -29,9 +29,10 @@ public class Controller {
             ActiveMQEventSubscriber subscriber = new ActiveMQEventSubscriber(connection);
 
             subscriber.subscribe("weather", store::save);
+            subscriber.subscribe("forecast", store::save);
             subscriber.subscribe("flight", store::save);
 
-            logger.info("Event Store Builder controller started. Monitoring topics: weather, flight.");
+            logger.info("Event Store Builder controller started. Monitoring topics: current-weather, forecast-weather, flight.");
             System.out.println("Event Store Builder is running (Shared Connection). Press Ctrl+C to stop.");
 
         } catch (JMSException e) {

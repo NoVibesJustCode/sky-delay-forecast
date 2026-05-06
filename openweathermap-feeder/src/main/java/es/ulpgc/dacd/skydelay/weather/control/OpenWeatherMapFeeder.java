@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import es.ulpgc.dacd.skydelay.weather.model.Airport;
 import es.ulpgc.dacd.skydelay.weather.model.Weather;
+import es.ulpgc.dacd.skydelay.weather.model.WeatherForecast;
 import io.github.cdimascio.dotenv.Dotenv;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -27,18 +28,18 @@ public class OpenWeatherMapFeeder implements WeatherFeeder {
 
 
     @Override
-    public List<Weather> fetch(Airport airport) {
+    public List<Object> fetch(Airport airport) {
         try {
             String fullJson = fetchRawJson(airport.lat(), airport.lon());
 
             JsonObject root = JsonParser.parseString(fullJson).getAsJsonObject();
             JsonArray list = root.getAsJsonArray("list");
 
-            String firstForecastJson = list.get(0).toString();
+            Weather current = parser.parse(list.get(0).toString(), airport.icao(), airport.name());
 
-            Weather weather = parser.parse(firstForecastJson, airport.icao(), airport.name());
+            WeatherForecast forecast = parser.parseForecast(list.get(1).toString(), airport.icao(), airport.icao());
 
-            return List.of(weather);
+            return List.of(current, forecast);
 
         } catch (Exception e) {
             System.err.println("Failed to process airport " + airport.icao() + ": " + e.getMessage());
