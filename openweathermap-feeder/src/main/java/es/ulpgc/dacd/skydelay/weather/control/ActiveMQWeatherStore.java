@@ -8,6 +8,7 @@ import es.ulpgc.dacd.skydelay.weather.model.Weather;
 import java.time.Instant;
 
 import com.google.gson.Gson;
+import es.ulpgc.dacd.skydelay.weather.model.WeatherForecast;
 import org.apache.activemq.ActiveMQConnectionFactory;
 
 import jakarta.jms.*;
@@ -19,43 +20,45 @@ public class ActiveMQWeatherStore implements WeatherStore {
     private final Connection connection;
     private final Session session;
     private final MessageProducer producer;
+    private final Destination currentTopic;
+    private final Destination forecastTopic;
     private final Gson gson;
     private static final Logger logger = LoggerFactory.getLogger(ActiveMQWeatherStore.class);
 
 
-    public ActiveMQWeatherStore(String brokerUrl, String topicName) throws JMSException {
+    public ActiveMQWeatherStore(String brokerUrl, String currentTopicName, String forecastTopicName) throws JMSException {
 
         this.gson = new GsonBuilder().registerTypeAdapter(Instant.class,
-                (JsonSerializer<Instant>) (src, typeOfSrc,
-                                           context) ->
-                        new JsonPrimitive(src.toString())).create();
+                (JsonSerializer<Instant>) (src, typeOfSrc, context) -> new JsonPrimitive(src.toString())).create();
 
         ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(brokerUrl);
-
         this.connection = factory.createConnection();
         this.connection.start();
 
         this.session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-        Destination destination = session.createTopic(topicName);
+        this.currentTopic = session.createTopic(currentTopicName);
+        this.forecastTopic = session.createTopic(forecastTopicName);
 
-        this.producer = session.createProducer(destination);
+        this.producer = session.createProducer(null);
     }
 
     @Override
-    public void save(Weather weather) {
+    public void save(Object event) {
         try {
-            String jsonEvent = gson.toJson(weather);
-
-            System.out.println(jsonEvent);
-
+            String jsonEvent = gson.toJson(event);
             TextMessage message = session.createTextMessage(jsonEvent);
-            producer.send(message);
 
-            System.out.println("Event published to ActiveMQ: " + jsonEvent);
+            if (event instanceof Weather) {
+                producer.send(currentTopic, message);
+                System.out.println("Published to CURRENT: " + ((Weather) event).icao());
+            } else if (event instanceof WeatherForecast) {
+                producer.send(forecastTopic, message);
+                System.out.println("Published to FORECAST: " + ((WeatherForecast) event).icao());
+            }
 
         } catch (JMSException e) {
-            logger.error("Failed to publish event to the broker: {}", e.getMessage(), e);
+            System.err.println("JMS Error: " + e.getMessage());
         }
     }
 

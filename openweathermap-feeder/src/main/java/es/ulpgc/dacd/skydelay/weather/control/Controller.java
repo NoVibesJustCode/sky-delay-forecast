@@ -23,7 +23,7 @@ public class Controller {
         Timer timer = new Timer("Weather-Timer");
 
         long delay = 0;
-        long period = 6 * 60 * 60 * 1000L;
+        long period = 3 * 60 * 60 * 1000L;
 
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -32,7 +32,7 @@ public class Controller {
             }
         }, delay, period);
 
-        System.out.println("Scheduled control: sending information every 6 hours.");
+        System.out.println("Scheduled control: sending information every 3 hours.");
     }
 
     public void execute() {
@@ -41,9 +41,10 @@ public class Controller {
         totalSaved += airports.stream()
                 .map(feeder::fetch)
                 .filter(Objects::nonNull)
-                .peek(weathers -> weathers.forEach(store::save))
+                .peek(events -> events.forEach(store::save))
                 .mapToInt(List::size)
                 .sum();
-        System.out.println("Saving process completed for " + totalSaved + " records.");
+
+        System.out.println("Process completed. Total events sent: " + totalSaved);
     }
 }
