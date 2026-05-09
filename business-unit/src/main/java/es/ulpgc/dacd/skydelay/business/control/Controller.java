@@ -20,6 +20,8 @@ public class Controller {
     private final String csvPath;
     private final String eventStorePath;
     private final Gson gson;
+    private PredictorService predictorService;
+    private DatamartManager datamartManager;
 
     public Controller(String brokerUrl, String dbPath, String csvPath, String eventStorePath) {
         this.brokerUrl = brokerUrl;
@@ -27,39 +29,39 @@ public class Controller {
         this.csvPath = csvPath;
         this.eventStorePath = eventStorePath;
         this.gson = new GsonBuilder()
-                .registerTypeAdapter(Instant.class, (JsonDeserializer<Instant>) (json, typeOfT, context) ->
-                        Instant.parse(json.getAsString()))
+                .registerTypeAdapter(Instant.class, (JsonDeserializer<Instant>) (json, typeOfT, context) -> Instant.parse(json.getAsString()))
                 .create();
     }
 
     public void execute() {
         try {
-            DatamartManager datamartManager = new DatamartManager(dbPath, csvPath);
-            datamartManager.initializeDatabase();
+            this.datamartManager = new DatamartManager(dbPath, csvPath);
+            this.datamartManager.initializeDatabase();
+            runHistoricalSweep(datamartManager);
+            this.predictorService = new PredictorService(datamartManager);
 
             RestInterface api = new RestInterface(datamartManager, 7070);
             api.start();
 
-            runHistoricalSweep(datamartManager);
+            startRealTimeIngestion();
 
-            startRealTimeIngestion(datamartManager);
         } catch (Exception e) {
-            logger.error("Unexpected error in Business Controller: {}", e.getMessage());
+            logger.error("Unexpected error in Business Controller: {}", e.getMessage(), e);
         }
     }
 
-    private void startRealTimeIngestion(DatamartManager datamartManager) throws JMSException {
+    private void startRealTimeIngestion() throws JMSException {
         ConnectionFactory factory = new ActiveMQConnectionFactory(brokerUrl);
         Connection connection = factory.createConnection();
 
         connection.setClientID("BusinessUnit-Global");
         connection.start();
 
-        BusinessEventSubscriber subscriber = new BusinessEventSubscriber(connection, datamartManager);
+        BusinessEventSubscriber subscriber = new BusinessEventSubscriber(connection, datamartManager, predictorService);
         subscriber.subscribeToTopics();
 
-        logger.info("Business Unit controller started. Database: {}", dbPath);
-        System.out.println("Business Unit is running. Press Ctrl+C to stop.");
+        logger.info("Business Unit ingestion started. Listening to ActiveMQ...");
+        System.out.println("Business Unit is running. Ready to serve predictions.");
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
@@ -72,12 +74,10 @@ public class Controller {
     }
 
     private void runHistoricalSweep(DatamartManager datamartManager) {
-        logger.info("Starting historical data ingestion...");
+        logger.info("Starting historical data ingestion (Training phase)...");
         EventStoreReader reader = new EventStoreReader(eventStorePath, this.gson);
-
         reader.processEvents("weather", Weather.class, datamartManager::saveWeather);
-        reader.processEvents("flight", Flight.class, datamartManager::saveFlightAndFeatures);
-
-        logger.info("Historical data loaded successfully.");
+        reader.processEvents("flight", Flight.class, datamartManager::saveHistoricalFlight);
+        logger.info("Historical data sweep completed. KNN model is now experienced.");
     }
 }

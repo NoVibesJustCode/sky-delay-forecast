@@ -15,11 +15,13 @@ public class BusinessEventSubscriber {
     private static final Logger logger = LoggerFactory.getLogger(BusinessEventSubscriber.class);
     private final Connection connection;
     private final DatamartManager datamart;
+    private final PredictorService predictor;
     private final Gson gson;
 
-    public BusinessEventSubscriber(Connection connection, DatamartManager datamart) {
+    public BusinessEventSubscriber(Connection connection, DatamartManager datamart, PredictorService predictor) {
         this.connection = connection;
         this.datamart = datamart;
+        this.predictor = predictor;
         this.gson = new GsonBuilder()
                 .registerTypeAdapter(Instant.class, (JsonDeserializer<Instant>) (json, typeOfT, context) ->
                         Instant.parse(json.getAsString()))
@@ -54,12 +56,10 @@ public class BusinessEventSubscriber {
 
                 if (weather != null) {
                     datamart.saveWeather(weather);
-                    logger.info("Weather ingested: {}", weather.icao());
+                    logger.info("Weather recorded for {}: {}°C", weather.icao(), weather.temp());
                 }
-            } catch (JMSException e) {
-                logger.error("JMS Error in weather listener: {}", e.getMessage());
             } catch (Exception e) {
-                logger.error("Parsing Error in weather listener: {}", e.getMessage());
+                logger.error("Error in weather listener: {}", e.getMessage());
             }
         }
     }
@@ -71,14 +71,23 @@ public class BusinessEventSubscriber {
                 Flight flight = gson.fromJson(json, Flight.class);
 
                 if (flight != null) {
-                    datamart.saveFlightAndFeatures(flight);
-                    logger.info("Flight and features processed: {}", flight.flightId());
+                    if (isHistorical(flight)) {
+                        datamart.saveHistoricalFlight(flight);
+                        predictor.refreshModel();
+                        logger.info("Historical data learned from flight: {}", flight.flightId());
+                    } else {
+                        predictor.processNewFlight(flight);
+                        logger.info("Future prediction ready for flight: {}", flight.flightId());
+                    }
                 }
-            } catch (JMSException e) {
-                logger.error("JMS Error in flight listener: {}", e.getMessage());
             } catch (Exception e) {
-                logger.error("Parsing Error in flight listener: {}", e.getMessage());
+                logger.error("Error in flight listener: {}", e.getMessage());
             }
         }
+    }
+
+    private boolean isHistorical(Flight f) {
+        return "LANDED".equalsIgnoreCase(f.status()) ||
+                "CANCELLED".equalsIgnoreCase(f.status());
     }
 }

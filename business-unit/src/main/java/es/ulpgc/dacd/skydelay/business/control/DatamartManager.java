@@ -132,7 +132,6 @@ public class DatamartManager {
         return null;
     }
 
-    // Añadir a DatamartManager
     public List<FlightFeature> loadTrainingData() {
         List<FlightFeature> data = new ArrayList<>();
         String sql = "SELECT temp, wind, vis, distance_km, delay_category FROM flight_features";
