@@ -13,31 +13,45 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.time.Instant;
 
+import es.ulpgc.dacd.skydelay.business.view.MainFrame;
+import javafx.application.Platform;
+import jakarta.jms.*;
+
+
 public class Controller {
     private static final Logger logger = LoggerFactory.getLogger(Controller.class);
+
     private final String brokerUrl;
     private final String dbPath;
     private final String csvPath;
     private final String eventStorePath;
+
     private final Gson gson;
+    private final MainFrame gui;
     private PredictorService predictorService;
     private DatamartManager datamartManager;
 
-    public Controller(String brokerUrl, String dbPath, String csvPath, String eventStorePath) {
+    public Controller(String brokerUrl, String dbPath, String csvPath, String eventStorePath, MainFrame gui) {
         this.brokerUrl = brokerUrl;
         this.dbPath = dbPath;
         this.csvPath = csvPath;
         this.eventStorePath = eventStorePath;
+        this.gui = gui;
+
         this.gson = new GsonBuilder()
-                .registerTypeAdapter(Instant.class, (JsonDeserializer<Instant>) (json, typeOfT, context) -> Instant.parse(json.getAsString()))
+                .registerTypeAdapter(Instant.class, (JsonDeserializer<Instant>) (json, typeOfT, context) ->
+                        Instant.parse(json.getAsString()))
                 .create();
     }
+
 
     public void execute() {
         try {
             this.datamartManager = new DatamartManager(dbPath, csvPath);
             this.datamartManager.initializeDatabase();
-            runHistoricalSweep(datamartManager);
+
+            runHistoricalSweep();
+
             this.predictorService = new PredictorService(datamartManager);
 
             RestInterface api = new RestInterface(datamartManager, 7070);
@@ -46,38 +60,51 @@ public class Controller {
             startRealTimeIngestion();
 
         } catch (Exception e) {
-            logger.error("Unexpected error in Business Controller: {}", e.getMessage(), e);
+            logger.error("Error crítico en el arranque del Controller: {}", e.getMessage(), e);
         }
+    }
+
+    private void runHistoricalSweep() {
+        logger.info("Iniciando barrido de datos históricos (Fase de entrenamiento)...");
+        EventStoreReader reader = new EventStoreReader(eventStorePath, this.gson);
+        reader.processEvents("weather", Weather.class, datamartManager::saveWeather);
+        reader.processEvents("flight", Flight.class, datamartManager::saveHistoricalFlight);
+        logger.info("Barrido completado. Modelo Predictor listo.");
     }
 
     private void startRealTimeIngestion() throws JMSException {
         ConnectionFactory factory = new ActiveMQConnectionFactory(brokerUrl);
         Connection connection = factory.createConnection();
-
         connection.setClientID("BusinessUnit-Global");
         connection.start();
 
         BusinessEventSubscriber subscriber = new BusinessEventSubscriber(connection, datamartManager, predictorService);
         subscriber.subscribeToTopics();
 
-        logger.info("Business Unit ingestion started. Listening to ActiveMQ...");
-        System.out.println("Business Unit is running. Ready to serve predictions.");
+        logger.info("Suscripciones ActiveMQ activadas.");
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 connection.close();
-                logger.info("JMS Connection closed safely.");
+                logger.info("Conexión JMS cerrada correctamente.");
             } catch (JMSException e) {
-                logger.error("Error closing JMS connection: {}", e.getMessage());
+                logger.error("Error al cerrar JMS: {}", e.getMessage());
             }
         }));
     }
 
-    private void runHistoricalSweep(DatamartManager datamartManager) {
-        logger.info("Starting historical data ingestion (Training phase)...");
-        EventStoreReader reader = new EventStoreReader(eventStorePath, this.gson);
-        reader.processEvents("weather", Weather.class, datamartManager::saveWeather);
-        reader.processEvents("flight", Flight.class, datamartManager::saveHistoricalFlight);
-        logger.info("Historical data sweep completed. KNN model is now experienced.");
+
+    public void executeMap() {
+        if (gui != null) {
+            System.out.println("[Control] Solicitando cambio a vista de MAPA...");
+            Platform.runLater(gui::showMapView);
+        }
+    }
+
+    public void executeDashboard() {
+        if (gui != null) {
+            System.out.println("[Control] Solicitando cambio a vista de DASHBOARD...");
+            Platform.runLater(gui::showDashboardView);
+        }
     }
 }

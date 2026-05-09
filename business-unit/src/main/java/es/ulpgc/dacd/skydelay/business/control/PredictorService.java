@@ -20,7 +20,7 @@ public class PredictorService {
         Weather forecast = datamart.fetchClosestWeather(f.origin(), f.departureTimeUTC());
 
         if (forecast != null) {
-            String category = knn.predict(forecast.temp(), forecast.windSpeed(), forecast.visibility());
+            String category = knn.predict(forecast.temp(), forecast.windSpeed(), forecast.windGust(), forecast.visibility());
             datamart.saveReadyToEatPrediction(f, category);
         }
     }

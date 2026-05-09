@@ -28,7 +28,7 @@ public class DatamartManager {
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS weather_records (
                     airport_icao TEXT,
-                    temperature REAL,
+                    temp REAL,
                     wind_speed REAL,
                     wind_gust REAL,  -- NUEVO
                     visibility INTEGER,
@@ -130,7 +130,7 @@ public class DatamartManager {
             if (rs.next()) {
                 return new Weather(
                         Instant.parse(rs.getString("timestamp")), "", rs.getString("airport_icao"), "", "",
-                        rs.getDouble("temperature"), 0, 0,
+                        rs.getDouble("temp"), 0, 0,
                         rs.getInt("visibility"),
                         rs.getDouble("wind_speed"),
                         rs.getDouble("wind_gust"), // NUEVO

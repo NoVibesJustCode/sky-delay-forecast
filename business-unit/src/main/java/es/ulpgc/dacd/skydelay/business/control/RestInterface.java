@@ -12,6 +12,7 @@ public class RestInterface {
     }
 
     public void start() {
+        /*
         Javalin app = Javalin.create(config -> {
             config.bundledPlugins.enableDevLogging();
         });
@@ -22,11 +23,11 @@ public class RestInterface {
             ctx.json(datamart.getFlightAnalysis());
         });
 
-        /*app.get("/api/weather", ctx -> {
+        app.get("/api/weather", ctx -> {
             ctx.json(datamart.getAllCurrentWeather());
         });
-        */
 
         app.start(port);
+        */
     }
 }

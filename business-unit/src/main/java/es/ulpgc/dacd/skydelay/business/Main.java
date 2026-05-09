@@ -3,27 +3,69 @@ package es.ulpgc.dacd.skydelay.business;
 import es.ulpgc.dacd.skydelay.business.control.Controller;
 import es.ulpgc.dacd.skydelay.business.view.MainFrame;
 import javafx.application.Application;
+import javafx.application.Platform;
 
 import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) throws InterruptedException {
-        new Thread(() -> Application.launch(MainFrame.class)).start();
+    public static void main(String[] args) {
+        System.setProperty("javafx.platform", "desktop");
+        System.setProperty("com.gluonhq.charm.down.common.storage.desktop", System.getProperty("user.home"));
+        System.setProperty("com.gluonhq.charm.down.common.storage.android", "false");
+        System.setProperty("com.gluonhq.charm.down.common.storage.ios", "false");
 
-        while (MainFrame.getInstance() == null) Thread.sleep(100);
+        Thread guiThread = new Thread(() -> Application.launch(MainFrame.class));
+        guiThread.setDaemon(true);
+        guiThread.start();
 
-        MainFrame gui = MainFrame.getInstance();
-        Controller controller = new Controller(args[0], gui);
+        new Thread(() -> {
+            try {
+                Thread.sleep(3000);
 
-        controller.startSubscribers(args[1], args[2]);
+                while (MainFrame.getInstance() == null) {
+                    Thread.sleep(200);
+                }
 
-        Scanner scanner = new Scanner(System.in);
-        while (true) {
-            System.out.print("Command (map/stats/exit): ");
-            String cmd = scanner.nextLine().toLowerCase();
-            if (cmd.equals("map")) controller.executeMap();
-            else if (cmd.equals("stats")) controller.executeDashboard();
-            else if (cmd.equals("exit")) System.exit(0);
-        }
+                if (args.length < 4) {
+                    System.err.println("Error: Faltan argumentos.");
+                    System.err.println("Uso: java Main <brokerUrl> <dbPath> <csvPath> <eventStorePath>");
+                    System.exit(1);
+                }
+
+                MainFrame gui = MainFrame.getInstance();
+
+                Controller controller = new Controller(args[0], args[1], args[2], args[3], gui);
+
+                controller.execute();
+
+                Scanner scanner = new Scanner(System.in);
+                System.out.println("\n" + "=".repeat(35));
+                System.out.println("   SKYDELAY SYSTEM COMMAND LINE");
+                System.out.println("=".repeat(35));
+                System.out.println("Comandos: 'map' | 'stats' | 'exit'");
+
+                while (true) {
+                    System.out.print("\n> ");
+                    if (scanner.hasNextLine()) {
+                        String cmd = scanner.nextLine().trim().toLowerCase();
+
+                        if (cmd.equals("exit")) {
+                            System.out.println("Saliendo del sistema...");
+                            Platform.exit();
+                            System.exit(0);
+                        }
+
+                        switch (cmd) {
+                            case "map" -> controller.executeMap();
+                            case "stats" -> controller.executeDashboard();
+                            default -> System.out.println("Comando desconocido. Use 'map', 'stats' o 'exit'.");
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error crítico en el hilo de ejecución: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }).start();
     }
 }
