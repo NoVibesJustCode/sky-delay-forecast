@@ -30,6 +30,7 @@ public class DatamartManager {
                     airport_icao TEXT,
                     temperature REAL,
                     wind_speed REAL,
+                    wind_gust REAL,  -- NUEVO
                     visibility INTEGER,
                     timestamp DATETIME,
                     PRIMARY KEY (airport_icao, timestamp)
@@ -39,9 +40,9 @@ public class DatamartManager {
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS flight_features (
                     flight_id TEXT PRIMARY KEY,
-                    temp REAL, wind REAL, vis REAL,
+                    temp REAL, wind REAL, gust REAL, vis REAL, -- NUEVO: gust
                     distance_km INTEGER,
-                    arrival_delay INTEGER,
+                    departure_delay INTEGER, 
                     delay_category TEXT
                 );
             """);
@@ -64,35 +65,36 @@ public class DatamartManager {
     }
 
     public void saveWeather(Weather w) {
-        String sql = "INSERT OR REPLACE INTO weather_records VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT OR REPLACE INTO weather_records VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, w.icao());
             pstmt.setDouble(2, w.temp());
             pstmt.setDouble(3, w.windSpeed());
-            pstmt.setInt(4, w.visibility());
-            pstmt.setString(5, w.ts().toString());
+            pstmt.setDouble(4, w.windGust()); // NUEVO
+            pstmt.setInt(5, w.visibility());
+            pstmt.setString(6, w.ts().toString());
             pstmt.executeUpdate();
         } catch (SQLException e) {
             logger.error("Error saving weather: {}", e.getMessage());
         }
     }
 
-
     public void saveHistoricalFlight(Flight f) {
         Weather w = fetchClosestWeather(f.origin(), f.departureTimeUTC());
         if (w == null) return;
 
-        String sql = "INSERT OR REPLACE INTO flight_features VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT OR REPLACE INTO flight_features VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, f.flightId());
             pstmt.setDouble(2, w.temp());
             pstmt.setDouble(3, w.windSpeed());
-            pstmt.setDouble(4, w.visibility());
-            pstmt.setInt(5, f.distanceKm());
-            pstmt.setInt(6, f.departureDelay());
-            pstmt.setString(7, categorize(f.departureDelay())); // Categoría basada en salida
+            pstmt.setDouble(4, w.windGust()); // NUEVO: Sacamos la racha del objeto weather
+            pstmt.setDouble(5, w.visibility());
+            pstmt.setInt(6, f.distanceKm());
+            pstmt.setInt(7, f.departureDelay());
+            pstmt.setString(8, categorize(f.departureDelay())); // Categoría basada en salida
 
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -126,8 +128,14 @@ public class DatamartManager {
             pstmt.setString(2, isoTime);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                return new Weather(Instant.parse(rs.getString("timestamp")), "", rs.getString("airport_icao"), "", "",
-                        rs.getDouble("temperature"), 0, 0, rs.getInt("visibility"), rs.getDouble("wind_speed"), 0, 0);
+                return new Weather(
+                        Instant.parse(rs.getString("timestamp")), "", rs.getString("airport_icao"), "", "",
+                        rs.getDouble("temperature"), 0, 0,
+                        rs.getInt("visibility"),
+                        rs.getDouble("wind_speed"),
+                        rs.getDouble("wind_gust"), // NUEVO
+                        0
+                );
             }
         } catch (SQLException e) { logger.error("Fetch weather error: {}", e.getMessage()); }
         return null;
@@ -135,7 +143,7 @@ public class DatamartManager {
 
     public List<FlightFeature> loadTrainingData() {
         List<FlightFeature> data = new ArrayList<>();
-        String sql = "SELECT temp, wind, vis, distance_km, delay_category FROM flight_features";
+        String sql = "SELECT temp, wind, gust, vis, distance_km, delay_category FROM flight_features";
 
         try (Connection conn = DriverManager.getConnection(dbUrl);
              Statement stmt = conn.createStatement();
@@ -145,6 +153,7 @@ public class DatamartManager {
                 data.add(new FlightFeature(
                         rs.getDouble("temp"),
                         rs.getDouble("wind"),
+                        rs.getDouble("gust"),
                         rs.getDouble("vis"),
                         rs.getInt("distance_km"),
                         rs.getString("delay_category")
