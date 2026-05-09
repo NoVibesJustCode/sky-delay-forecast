@@ -19,7 +19,7 @@ public class RestInterface {
 
         app.get("/", ctx -> ctx.result("SkyDelay Forecast API is running!"));
 
-        app.get("/api/analysis", ctx -> {
+       /* app.get("/api/analysis", ctx -> {
             ctx.json(datamart.getFlightAnalysis());
         });
 

@@ -133,7 +133,7 @@ public class DatamartManager {
                         rs.getDouble("temp"), 0, 0,
                         rs.getInt("visibility"),
                         rs.getDouble("wind_speed"),
-                        rs.getDouble("wind_gust"), // NUEVO
+                        rs.getDouble("wind_gust"),
                         0
                 );
             }

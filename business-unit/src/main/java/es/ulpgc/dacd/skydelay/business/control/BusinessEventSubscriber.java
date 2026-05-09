@@ -30,6 +30,7 @@ public class BusinessEventSubscriber {
 
     public void subscribeToTopics() {
         subscribe("weather", this::processWeather);
+        subscribe("forecast", this::processForecast);
         subscribe("flight", this::processFlight);
     }
 
@@ -60,6 +61,23 @@ public class BusinessEventSubscriber {
                 }
             } catch (Exception e) {
                 logger.error("Error in weather listener: {}", e.getMessage());
+            }
+        }
+    }
+
+    private void processForecast(Message message) {
+        if (message instanceof TextMessage textMessage) {
+            try {
+                String json = textMessage.getText();
+                Weather forecast = gson.fromJson(json, Weather.class);
+
+                if (forecast != null) {
+                    datamart.saveWeather(forecast);
+                    logger.info("Forecast recorded for {}: {}°C (Scheduled for: {})",
+                            forecast.icao(), forecast.temp(), forecast.ts());
+                }
+            } catch (Exception e) {
+                logger.error("Error in forecast listener: {}", e.getMessage());
             }
         }
     }
