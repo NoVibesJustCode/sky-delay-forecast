@@ -1,54 +1,47 @@
 package es.ulpgc.dacd.skydelay.business.control;
 
+import es.ulpgc.dacd.skydelay.business.view.MainFrame;
+import javafx.application.Platform;
 import org.apache.activemq.ActiveMQConnectionFactory;
-import jakarta.jms.Connection;
-import jakarta.jms.ConnectionFactory;
-import jakarta.jms.JMSException;
+import jakarta.jms.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Controller {
     private static final Logger logger = LoggerFactory.getLogger(Controller.class);
     private final String brokerUrl;
-    private final String dbPath;
-    private final String csvPath;
+    private final MainFrame gui;
 
-    public Controller(String brokerUrl, String dbPath, String csvPath) {
+    public Controller(String brokerUrl, MainFrame gui) {
         this.brokerUrl = brokerUrl;
-        this.dbPath = dbPath;
-        this.csvPath = csvPath;
+        this.gui = gui;
     }
 
-    public void execute() {
+    public void startSubscribers(String dbPath, String csvPath) {
         try {
             DatamartManager datamartManager = new DatamartManager(dbPath, csvPath);
             datamartManager.initializeDatabase();
 
             ConnectionFactory factory = new ActiveMQConnectionFactory(brokerUrl);
             Connection connection = factory.createConnection();
-
-            connection.setClientID("BusinessUnit-Global");
             connection.start();
 
             BusinessEventSubscriber subscriber = new BusinessEventSubscriber(connection, datamartManager);
             subscriber.subscribeToTopics();
 
-            logger.info("Business Unit controller started. Database: {}", dbPath);
-            System.out.println("Business Unit is running. Press Ctrl+C to stop.");
-
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                try {
-                    connection.close();
-                    logger.info("JMS Connection closed safely.");
-                } catch (JMSException e) {
-                    logger.error("Error closing JMS connection: {}", e.getMessage());
-                }
-            }));
-
+            logger.info("Subscribers active for DB: {}", dbPath);
         } catch (JMSException e) {
-            logger.error("JMS Connection error in Business Unit: {}", e.getMessage());
-        } catch (Exception e) {
-            logger.error("Unexpected error in Business Controller: {}", e.getMessage());
+            logger.error("JMS Error: {}", e.getMessage());
         }
+    }
+
+    public void executeMap() {
+        System.out.println("[Control] Cambiando a vista de MAPA...");
+        Platform.runLater(gui::showMapView);
+    }
+
+    public void executeDashboard() {
+        System.out.println("[Control] Cambiando a vista de DASHBOARD...");
+        Platform.runLater(gui::showDashboardView);
     }
 }

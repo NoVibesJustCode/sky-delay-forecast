@@ -5,18 +5,14 @@ import com.gluonhq.maps.MapView;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-
 public class MapPresenter {
     private final MapView mapView;
 
     public MapPresenter() {
         this.mapView = new MapView();
-
-        mapView.setCenter(new MapPoint(48.0, 0.0));
+        mapView.setCenter(new MapPoint(40.41, -3.70));
         mapView.setZoom(5);
-
         mapView.addLayer(new AirportsLayer());
-
         VBox.setVgrow(mapView, Priority.ALWAYS);
     }
 

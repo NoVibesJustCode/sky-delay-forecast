@@ -21,8 +21,7 @@ public class AirportsLayer extends MapLayer {
 
 
         addMarker(40.4167, -3.7033, "Madrid (MAD) - Retraso: 5 min", Color.GREEN);
-        addMarker(51.5074, -0.1278, "Londres (LHR) - Retraso: 25 min", Color.RED);
-        addMarker(48.8566, 2.3522, "París (CDG) - Retraso: 12 min", Color.ORANGE);
+
     }
 
     private void addMarker(double lat, double lon, String info, Color color) {
