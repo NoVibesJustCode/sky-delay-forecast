@@ -67,27 +67,28 @@ public class BusinessEventSubscriber {
     private void processFlight(Message message) {
         if (message instanceof TextMessage textMessage) {
             try {
-                String json = textMessage.getText();
-                Flight flight = gson.fromJson(json, Flight.class);
+                Flight flight = gson.fromJson(textMessage.getText(), Flight.class);
+                if (flight == null) return;
 
-                if (flight != null) {
-                    if (isHistorical(flight)) {
-                        datamart.saveHistoricalFlight(flight);
-                        predictor.refreshModel();
-                        logger.info("Historical data learned from flight: {}", flight.flightId());
-                    } else {
-                        predictor.processNewFlight(flight);
-                        logger.info("Future prediction ready for flight: {}", flight.flightId());
-                    }
+                if (isHistorical(flight)) {
+                    datamart.saveHistoricalFlight(flight);
+                    predictor.refreshModel();
+                    logger.info("Model updated with departure info from: {}", flight.flightId());
+                } else {
+                    predictor.processNewFlight(flight);
+                    logger.info("Shelf updated: Prediction for flight {}", flight.flightId());
                 }
             } catch (Exception e) {
-                logger.error("Error in flight listener: {}", e.getMessage());
+                logger.error("Error processing flight status: {}", e.getMessage());
             }
         }
     }
 
     private boolean isHistorical(Flight f) {
-        return "LANDED".equalsIgnoreCase(f.status()) ||
-                "CANCELLED".equalsIgnoreCase(f.status());
+        String status = f.status().toUpperCase();
+
+        return status.equals("LIVE") ||
+                status.equals("LANDED") ||
+                status.equals("CANCELLED");
     }
 }

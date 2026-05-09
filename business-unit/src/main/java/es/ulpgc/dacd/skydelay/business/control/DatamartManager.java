@@ -80,7 +80,7 @@ public class DatamartManager {
 
 
     public void saveHistoricalFlight(Flight f) {
-        Weather w = fetchClosestWeather(f.origin(), f.ts().toString());
+        Weather w = fetchClosestWeather(f.origin(), f.departureTimeUTC());
         if (w == null) return;
 
         String sql = "INSERT OR REPLACE INTO flight_features VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -91,11 +91,12 @@ public class DatamartManager {
             pstmt.setDouble(3, w.windSpeed());
             pstmt.setDouble(4, w.visibility());
             pstmt.setInt(5, f.distanceKm());
-            pstmt.setInt(6, f.arrivalDelay());
-            pstmt.setString(7, categorize(f.arrivalDelay()));
+            pstmt.setInt(6, f.departureDelay());
+            pstmt.setString(7, categorize(f.departureDelay())); // Categoría basada en salida
+
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            logger.error("Error saving feature: {}", e.getMessage());
+            logger.error("Error saving departure feature: {}", e.getMessage());
         }
     }
 
