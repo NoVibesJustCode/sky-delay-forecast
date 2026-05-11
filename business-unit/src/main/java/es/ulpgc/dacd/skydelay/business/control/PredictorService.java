@@ -17,7 +17,7 @@ public class PredictorService {
     }
 
     public void processNewFlight(Flight f) {
-        Weather forecast = datamart.fetchClosestWeather(f.origin(), f.departureTimeUTC());
+        Weather forecast = datamart.fetchClosestWeather(f.origin(), f.ts().toString());
 
         if (forecast != null) {
             String category = knn.predict(forecast.temp(), forecast.windSpeed(), forecast.windGust(), forecast.visibility());
