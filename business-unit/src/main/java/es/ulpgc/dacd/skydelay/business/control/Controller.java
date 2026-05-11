@@ -50,6 +50,10 @@ public class Controller {
             this.datamartManager = new DatamartManager(dbPath, csvPath);
             this.datamartManager.initializeDatabase();
 
+            if (gui != null) {
+                Platform.runLater(() -> gui.setDatamartManager(this.datamartManager));
+            }
+
             runHistoricalSweep();
 
             this.predictorService = new PredictorService(datamartManager);
