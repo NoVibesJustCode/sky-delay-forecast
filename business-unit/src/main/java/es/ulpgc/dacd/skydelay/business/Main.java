@@ -15,7 +15,6 @@ public class Main {
         System.setProperty("com.gluonhq.charm.down.common.storage.ios", "false");
 
         Thread guiThread = new Thread(() -> Application.launch(MainFrame.class));
-        guiThread.setDaemon(true);
         guiThread.start();
 
         new Thread(() -> {
@@ -27,7 +26,7 @@ public class Main {
                 }
 
                 if (args.length < 4) {
-                    System.err.println("Error: Faltan argumentos.");
+                    System.err.println("Error: Missing arguments.");
                     System.err.println("Uso: java Main <brokerUrl> <dbPath> <csvPath> <eventStorePath>");
                     System.exit(1);
                 }
@@ -40,9 +39,9 @@ public class Main {
 
                 Scanner scanner = new Scanner(System.in);
                 System.out.println("\n" + "=".repeat(35));
-                System.out.println("   SKYDELAY SYSTEM COMMAND LINE");
+                System.out.println("   SKYDELAY COMMAND LINE");
                 System.out.println("=".repeat(35));
-                System.out.println("Comandos: 'map' | 'stats' | 'exit'");
+                System.out.println("Commands: 'map' | 'stats' | 'exit'");
 
                 while (true) {
                     System.out.print("\n> ");
@@ -50,7 +49,6 @@ public class Main {
                         String cmd = scanner.nextLine().trim().toLowerCase();
 
                         if (cmd.equals("exit")) {
-                            System.out.println("Saliendo del sistema...");
                             Platform.exit();
                             System.exit(0);
                         }
@@ -58,12 +56,12 @@ public class Main {
                         switch (cmd) {
                             case "map" -> controller.executeMap();
                             case "stats" -> controller.executeDashboard();
-                            default -> System.out.println("Comando desconocido. Use 'map', 'stats' o 'exit'.");
+                            default -> System.out.println("Unknown command.");
                         }
                     }
                 }
             } catch (Exception e) {
-                System.err.println("Error crítico en el hilo de ejecución: " + e.getMessage());
+                System.err.println("Error on thread: " + e.getMessage());
                 e.printStackTrace();
             }
         }).start();
