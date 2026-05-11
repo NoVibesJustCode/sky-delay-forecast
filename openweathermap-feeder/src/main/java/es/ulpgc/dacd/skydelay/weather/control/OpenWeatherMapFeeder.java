@@ -1,7 +1,7 @@
 package es.ulpgc.dacd.skydelay.weather.control;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import es.ulpgc.dacd.skydelay.weather.model.Airport;
 import es.ulpgc.dacd.skydelay.weather.model.Weather;
@@ -11,8 +11,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 public class OpenWeatherMapFeeder implements WeatherFeeder {
     private final String apiKey;
@@ -55,12 +57,22 @@ public class OpenWeatherMapFeeder implements WeatherFeeder {
                 FORECAST_WEATHER_URL, airport.lat(), airport.lon(), apiKey);
 
         String json = executeRequest(url);
-        JsonObject root = JsonParser.parseString(json).getAsJsonObject();
-        JsonArray list = root.getAsJsonArray("list");
+        JsonArray list = JsonParser.parseString(json).getAsJsonObject().getAsJsonArray("list");
 
-        WeatherForecast nextForecast = parser.parseForecast(list.get(1).toString(), airport.icao(), airport.icao());
+        Instant now = Instant.now();
 
-        return List.of(nextForecast);
+        return StreamSupport.stream(list.spliterator(), false)
+                .map(JsonElement::getAsJsonObject)
+                .filter(item -> Instant.ofEpochSecond(item.get("dt").getAsLong()).isAfter(now))
+                .findFirst()
+                .map(item -> parser.parseForecast(item.toString(), airport.icao(), airport.name()))
+                .map(List::of)
+                .orElseGet(() -> {
+                    if (!list.isEmpty()) {
+                        return List.of(parser.parseForecast(list.get(0).toString(), airport.icao(), airport.name()));
+                    }
+                    return List.of();
+                });
     }
 
     private String executeRequest(String url) throws Exception {
