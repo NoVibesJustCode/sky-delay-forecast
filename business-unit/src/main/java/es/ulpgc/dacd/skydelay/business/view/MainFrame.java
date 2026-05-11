@@ -110,8 +110,7 @@ public class MainFrame extends Application {
         infoPanel.setPadding(new Insets(10, 0, 0, 0));
         infoPanel.setAlignment(Pos.TOP_LEFT);
 
-        sidebar.getChildren().addAll(title, mapBtn, infoPanel);
-        sidebar.getChildren().addAll(title, dashBtn, infoPanel);
+        sidebar.getChildren().addAll(title, mapBtn, dashBtn, infoPanel);
         return sidebar;
     }
 

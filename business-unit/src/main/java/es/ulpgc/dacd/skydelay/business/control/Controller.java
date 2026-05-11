@@ -64,7 +64,7 @@ public class Controller {
             startRealTimeIngestion();
 
         } catch (Exception e) {
-            logger.error("Error crítico en el arranque del Controller: {}", e.getMessage(), e);
+            logger.error("Error starting Controller: {}", e.getMessage(), e);
         }
     }
 
