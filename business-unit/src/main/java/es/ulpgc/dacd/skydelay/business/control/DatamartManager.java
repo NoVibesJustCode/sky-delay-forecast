@@ -21,6 +21,10 @@ public class DatamartManager {
         this.translator = new AirportCodeTranslator(csvPath);
     }
 
+    public Collection<es.ulpgc.dacd.skydelay.business.model.AirportData> getAirports() {
+        return translator.getAirports();
+    }
+
     public void initializeDatabase() {
         try (Connection conn = DriverManager.getConnection(dbUrl);
              Statement stmt = conn.createStatement()) {
@@ -30,7 +34,7 @@ public class DatamartManager {
                     airport_icao TEXT,
                     temp REAL,
                     wind_speed REAL,
-                    wind_gust REAL,  -- NUEVO
+                    wind_gust REAL,
                     visibility INTEGER,
                     timestamp DATETIME,
                     PRIMARY KEY (airport_icao, timestamp)
@@ -40,12 +44,21 @@ public class DatamartManager {
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS flight_features (
                     flight_id TEXT PRIMARY KEY,
-                    temp REAL, wind REAL, gust REAL, vis REAL, -- NUEVO: gust
+                    origin_icao TEXT,
+                    dest_icao TEXT,
+                    temp REAL, wind REAL, gust REAL, vis REAL,
                     distance_km INTEGER,
                     departure_delay INTEGER, 
                     delay_category TEXT
                 );
             """);
+
+            try {
+                stmt.execute("ALTER TABLE flight_features ADD COLUMN origin_icao TEXT");
+                stmt.execute("ALTER TABLE flight_features ADD COLUMN dest_icao TEXT");
+            } catch (SQLException ignored) {
+                // Columns might already exist
+            }
 
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS flight_predictions (
@@ -71,7 +84,7 @@ public class DatamartManager {
             pstmt.setString(1, w.icao());
             pstmt.setDouble(2, w.temp());
             pstmt.setDouble(3, w.windSpeed());
-            pstmt.setDouble(4, w.windGust()); // NUEVO
+            pstmt.setDouble(4, w.windGust());
             pstmt.setInt(5, w.visibility());
             pstmt.setString(6, w.ts().toString());
             pstmt.executeUpdate();
@@ -81,20 +94,25 @@ public class DatamartManager {
     }
 
     public void saveHistoricalFlight(Flight f) {
-        Weather w = fetchClosestWeather(f.origin(), f.departureTimeUTC());
+        String originIcao = translator.toIcao(f.origin());
+        String destIcao = translator.toIcao(f.destination());
+
+        Weather w = fetchClosestWeather(f.origin(), f.ts().toString());
         if (w == null) return;
 
-        String sql = "INSERT OR REPLACE INTO flight_features VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT OR REPLACE INTO flight_features (flight_id, origin_icao, dest_icao, temp, wind, gust, vis, distance_km, departure_delay, delay_category) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, f.flightId());
-            pstmt.setDouble(2, w.temp());
-            pstmt.setDouble(3, w.windSpeed());
-            pstmt.setDouble(4, w.windGust()); // NUEVO: Sacamos la racha del objeto weather
-            pstmt.setDouble(5, w.visibility());
-            pstmt.setInt(6, f.distanceKm());
-            pstmt.setInt(7, f.departureDelay());
-            pstmt.setString(8, categorize(f.departureDelay())); // Categoría basada en salida
+            pstmt.setString(2, originIcao);
+            pstmt.setString(3, destIcao);
+            pstmt.setDouble(4, w.temp());
+            pstmt.setDouble(5, w.windSpeed());
+            pstmt.setDouble(6, w.windGust());
+            pstmt.setDouble(7, w.visibility());
+            pstmt.setInt(8, f.distanceKm());
+            pstmt.setInt(9, f.departureDelay());
+            pstmt.setString(10, categorize(f.departureDelay()));
 
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -102,14 +120,36 @@ public class DatamartManager {
         }
     }
 
+    public List<Map<String, String>> getHistoricalAirportFlights(String icao) {
+        List<Map<String, String>> results = new ArrayList<>();
+        String sql = "SELECT flight_id, dest_icao, departure_delay, delay_category FROM flight_features WHERE origin_icao = ? ORDER BY flight_id DESC LIMIT 5";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, icao);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                results.add(Map.of(
+                        "flight", rs.getString("flight_id"),
+                        "dest", rs.getString("dest_icao") != null ? rs.getString("dest_icao") : "N/A",
+                        "delay", String.valueOf(rs.getInt("departure_delay")),
+                        "category", rs.getString("delay_category")
+                ));
+            }
+        } catch (SQLException e) { logger.error("API Menu error: {}", e.getMessage()); }
+        return results;
+    }
+
     public void saveReadyToEatPrediction(Flight f, String predictedCategory) {
+        String originIcao = translator.toIcao(f.origin());
+        String destIcao = translator.toIcao(f.destination());
+
         String sql = "INSERT OR REPLACE INTO flight_predictions VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, f.flightId());
-            pstmt.setString(2, f.origin());
-            pstmt.setString(3, f.destination());
-            pstmt.setString(4, f.departureTimeUTC());
+            pstmt.setString(2, originIcao);
+            pstmt.setString(3, destIcao);
+            pstmt.setString(4, f.ts().toString());
             pstmt.setString(5, predictedCategory);
             pstmt.setString(6, Instant.now().toString());
             pstmt.executeUpdate();
@@ -174,6 +214,25 @@ public class DatamartManager {
                 results.add(Map.of(
                         "flight", rs.getString("flight_id"),
                         "route", rs.getString("origin_icao") + "->" + rs.getString("dest_icao"),
+                        "time", rs.getString("scheduled_time"),
+                        "prediction", rs.getString("predicted_category")
+                ));
+            }
+        } catch (SQLException e) { logger.error("API Menu error: {}", e.getMessage()); }
+        return results;
+    }
+
+    public List<Map<String, String>> getRecentAirportPredictions(String icao) {
+        List<Map<String, String>> results = new ArrayList<>();
+        String sql = "SELECT flight_id, dest_icao, scheduled_time, predicted_category FROM flight_predictions WHERE origin_icao = ? ORDER BY scheduled_time DESC LIMIT 5";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, icao);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                results.add(Map.of(
+                        "flight", rs.getString("flight_id"),
+                        "dest", rs.getString("dest_icao"),
                         "time", rs.getString("scheduled_time"),
                         "prediction", rs.getString("predicted_category")
                 ));
