@@ -1,150 +1,335 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SKY-DELAY | Premium Flight Ops</title>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --bg: #020617;
-            --card: rgba(15, 23, 42, 0.8);
-            --cyan: #00d9ff;
-            --amber: #f59e0b;
-            --rose: #f43f5e;
-            --green: #10b981;
-            --border: rgba(255, 255, 255, 0.08);
-            --font-main: 'Syne', sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
-        }
-
-        body {
-            background: var(--bg);
-            color: #f1f5f9;
-            font-family: var(--font-main);
-            margin: 0;
-            overflow-x: hidden;
-            background-image: radial-gradient(circle at 50% -20%, #1e293b 0%, transparent 70%);
-        }
-
-        /* HEADER */
-        header {
-            padding: 1.5rem 3rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            backdrop-filter: blur(10px);
-            position: sticky; top: 0; z-index: 100;
-        }
-
-        .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; }
-        .logo span { color: var(--cyan); text-shadow: 0 0 15px var(--cyan); }
-
-        /* KPI ROW */
-        .kpi-container {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1.5rem;
-            padding: 2rem 3rem;
-        }
-
-        .kpi-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.3s ease;
-        }
-
-        .kpi-card:hover { transform: translateY(-5px); border-color: var(--cyan); }
-
-        .kpi-label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
-        .kpi-value { font-family: var(--font-mono); font-size: 2.5rem; margin: 0.5rem 0; }
-        .kpi-card.alert .kpi-value { color: var(--rose); }
-        .kpi-card.normal .kpi-value { color: var(--cyan); }
-
-        /* CHARTS GRID */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1.5fr 1fr;
-            gap: 1.5rem;
-            padding: 0 3rem 3rem;
-        }
-
-        .chart-box {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 2rem;
-            height: 400px;
-        }
-
-        h3 { font-size: 1rem; margin-bottom: 1.5rem; color: #cbd5e1; display: flex; align-items: center; gap: 10px; }
-        h3::before { content: ''; width: 8px; height: 8px; background: var(--cyan); border-radius: 50%; box-shadow: 0 0 8px var(--cyan); }
-
-        .status-dot { width: 10px; height: 10px; background: var(--green); border-radius: 50%; display: inline-block; margin-right: 8px; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyDelay — Predicción de Retrasos en Vuelos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<header>
-    <div class="logo">SKY<span>DELAY</span> <small style="font-size: 0.6rem; vertical-align: top;">PREDICTOR V3</small></div>
-    <div style="font-family: var(--font-mono); font-size: 0.8rem;">
-        <span class="status-dot"></span> SYSTEM LIVE | <span id="clock">00:00:00</span>
+<!-- RADAR BG GRID -->
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-sweep" aria-hidden="true"></div>
+
+<!-- HEADER -->
+<header id="main-header">
+    <div class="header-inner">
+        <div class="brand">
+            <div class="brand-icon">
+                <svg viewBox="0 0 32 32" fill="none">
+                    <path d="M4 24L14 8l4 8 4-5 6 13" stroke="#00d4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="14" cy="8" r="2" fill="#00d4ff" opacity="0.6"/>
+                    <circle cx="28" cy="21" r="1.5" fill="#ff4d6a" opacity="0.8"/>
+                </svg>
+            </div>
+            <div>
+                <div class="brand-name">SkyDelay</div>
+                <div class="brand-sub">Flight Delay Intelligence</div>
+            </div>
+        </div>
+        <nav class="main-nav">
+            <button class="nav-btn active" data-view="overview">Overview</button>
+            <button class="nav-btn" data-view="airports">Aeropuertos</button>
+            <button class="nav-btn" data-view="weather">Meteorología</button>
+            <button class="nav-btn" data-view="flights">Vuelos</button>
+        </nav>
+        <div class="header-status">
+            <div class="live-dot"></div>
+            <span class="mono" id="live-time">--:--:--</span>
+            <div class="status-chip" id="data-status">LIVE DATA</div>
+        </div>
     </div>
 </header>
 
-<div class="kpi-container">
-    <div class="kpi-card normal">
-        <div class="kpi-label">Active Forecasts</div>
-        <div class="kpi-value" id="kpi-total">0</div>
-        <div style="font-size: 0.7rem; color: #475569;">Flights in current datamart</div>
-    </div>
-    <div class="kpi-card alert">
-        <div class="kpi-label">Critical Alerts</div>
-        <div class="kpi-value" id="kpi-alerts">0</div>
-        <div style="font-size: 0.7rem; color: #475569;">High delay risk detected</div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-label">Avg Wind Velocity</div>
-        <div class="kpi-value" id="kpi-wind" style="color: var(--amber);">0<small>km/h</small></div>
-        <div style="font-size: 0.7rem; color: #475569;">Network weather average</div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-label">System Load</div>
-        <div class="kpi-value" style="color: var(--green);">100%</div>
-        <div style="font-size: 0.7rem; color: #475569;">Worker efficiency</div>
-    </div>
-</div>
+<!-- MAIN -->
+<main id="main-content">
 
-<div class="dashboard-grid">
-    <div class="chart-box">
-        <h3>FLIGHT RISK PROFILE (TIME SERIES)</h3>
-        <canvas id="timeChart"></canvas>
+    <!-- HERO KPI ROW -->
+    <section class="kpi-row" id="kpi-row">
+        <div class="kpi-card kpi-primary">
+            <div class="kpi-icon">✈</div>
+            <div class="kpi-body">
+                <div class="kpi-value mono" id="kpi-flights">2,847</div>
+                <div class="kpi-label">Vuelos Analizados</div>
+                <div class="kpi-delta pos">+124 hoy</div>
+            </div>
+        </div>
+        <div class="kpi-card kpi-danger">
+            <div class="kpi-icon">⏱</div>
+            <div class="kpi-body">
+                <div class="kpi-value mono danger" id="kpi-delayed">38.4%</div>
+                <div class="kpi-label">Tasa de Retraso</div>
+                <div class="kpi-delta neg">+2.1% vs ayer</div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon">⏳</div>
+            <div class="kpi-body">
+                <div class="kpi-value mono warn" id="kpi-avg-delay">24 min</div>
+                <div class="kpi-label">Retraso Promedio</div>
+                <div class="kpi-delta neg">+3 min vs media</div>
+            </div>
+        </div>
+        <div class="kpi-card kpi-safe">
+            <div class="kpi-icon">🌡</div>
+            <div class="kpi-body">
+                <div class="kpi-value mono safe" id="kpi-weather-impact">61%</div>
+                <div class="kpi-label">Impacto Meteorológico</div>
+                <div class="kpi-delta pos">Principal causa</div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon">🔮</div>
+            <div class="kpi-body">
+                <div class="kpi-value mono" id="kpi-accuracy">88.2%</div>
+                <div class="kpi-label">Precisión Modelo IA</div>
+                <div class="kpi-delta pos">+1.3% este mes</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VIEW PANELS -->
+    <div id="view-overview" class="view-panel active">
+
+        <!-- ROW: Bar + Pie -->
+        <div class="charts-row-2">
+            <div class="chart-card glass span-2">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-title">Retrasos por Aeropuerto</div>
+                        <div class="chart-sub">Minutos medios de retraso · últimos 30 días</div>
+                    </div>
+                    <div class="legend-pills">
+                        <span class="pill pill-cyan">Salida</span>
+                        <span class="pill pill-red">Llegada</span>
+                    </div>
+                </div>
+                <div class="chart-wrap h360"><canvas id="chart-airport-bar"></canvas></div>
+            </div>
+            <div class="chart-card glass">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-title">Causas de Retraso</div>
+                        <div class="chart-sub">Distribución porcentual</div>
+                    </div>
+                </div>
+                <div class="chart-wrap h320"><canvas id="chart-causes-pie"></canvas></div>
+            </div>
+        </div>
+
+        <!-- ROW: Trend Area + Scatter -->
+        <div class="charts-row-2">
+            <div class="chart-card glass span-2">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-title">Tendencia de Retrasos</div>
+                        <div class="chart-sub">Últimas 24 horas · media móvil 3h</div>
+                    </div>
+                    <div class="time-pills">
+                        <button class="tpill active">24H</button>
+                        <button class="tpill">7D</button>
+                        <button class="tpill">30D</button>
+                    </div>
+                </div>
+                <div class="chart-wrap h280"><canvas id="chart-trend-area"></canvas></div>
+            </div>
+            <div class="chart-card glass">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-title">Viento vs Retraso</div>
+                        <div class="chart-sub">Correlación meteorológica</div>
+                    </div>
+                </div>
+                <div class="chart-wrap h280"><canvas id="chart-wind-scatter"></canvas></div>
+            </div>
+        </div>
+
+        <!-- ROW: Top flights table + radar -->
+        <div class="charts-row-2">
+            <div class="chart-card glass span-2">
+                <div class="chart-card-header">
+                    <div class="chart-title">Vuelos de Alto Riesgo · Próximas 6h</div>
+                    <div class="chart-sub">Predicción IA — ordenado por probabilidad de retraso</div>
+                </div>
+                <div class="flight-table-wrap">
+                    <table class="flight-table">
+                        <thead>
+                        <tr>
+                            <th>Vuelo</th>
+                            <th>Origen → Destino</th>
+                            <th>Salida</th>
+                            <th>Aeronave</th>
+                            <th>Viento</th>
+                            <th>Visib.</th>
+                            <th>Prob. Retraso</th>
+                            <th>Retraso Est.</th>
+                            <th>Estado</th>
+                        </tr>
+                        </thead>
+                        <tbody id="risk-flights-body"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="chart-card glass">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-title">Radar Meteorológico</div>
+                        <div class="chart-sub">Factores de impacto actuales</div>
+                    </div>
+                </div>
+                <div class="chart-wrap h280"><canvas id="chart-weather-radar"></canvas></div>
+            </div>
+        </div>
+
+    </div><!-- /overview -->
+
+    <div id="view-airports" class="view-panel">
+        <div class="charts-row-2">
+            <div class="chart-card glass span-2">
+                <div class="chart-card-header">
+                    <div class="chart-title">Ranking de Aeropuertos — Peores Retrasos</div>
+                    <div class="chart-sub">Media de minutos de retraso acumulados (salida + llegada)</div>
+                </div>
+                <div class="chart-wrap h380"><canvas id="chart-airports-ranking"></canvas></div>
+            </div>
+            <div class="chart-card glass">
+                <div class="chart-card-header">
+                    <div class="chart-title">Retrasos por Hora del Día</div>
+                    <div class="chart-sub">Todos los aeropuertos · media 30 días</div>
+                </div>
+                <div class="chart-wrap h300"><canvas id="chart-hour-bar"></canvas></div>
+            </div>
+        </div>
+        <div class="charts-row-1">
+            <div class="chart-card glass">
+                <div class="chart-card-header">
+                    <div class="chart-title">Distribución de Retrasos por Rango</div>
+                    <div class="chart-sub">% vuelos en cada categoría de retraso</div>
+                </div>
+                <div class="chart-wrap h300"><canvas id="chart-delay-distribution"></canvas></div>
+            </div>
+        </div>
     </div>
-    <div class="chart-box">
-        <h3>CATEGORY DISTRIBUTION</h3>
-        <canvas id="pieChart"></canvas>
+
+    <div id="view-weather" class="view-panel">
+        <div class="charts-row-2">
+            <div class="chart-card glass span-2">
+                <div class="chart-card-header">
+                    <div class="chart-title">Series Meteorológicas · LEMD (Adolfo Suárez)</div>
+                    <div class="chart-sub">Viento, visibilidad y precipitación — últimas 48h</div>
+                </div>
+                <div class="chart-wrap h320"><canvas id="chart-weather-series"></canvas></div>
+            </div>
+            <div class="chart-card glass">
+                <div class="chart-card-header">
+                    <div class="chart-title">Impacto Lluvia vs Retraso</div>
+                    <div class="chart-sub">Precipitación (mm/h) correlacionada</div>
+                </div>
+                <div class="chart-wrap h300"><canvas id="chart-rain-impact"></canvas></div>
+            </div>
+        </div>
+        <div class="charts-row-2">
+            <div class="chart-card glass">
+                <div class="chart-card-header">
+                    <div class="chart-title">Wind Gust vs Retraso Total</div>
+                    <div class="chart-sub">Scatter — ráfagas registradas</div>
+                </div>
+                <div class="chart-wrap h280"><canvas id="chart-gust-scatter"></canvas></div>
+            </div>
+            <div class="chart-card glass">
+                <div class="chart-card-header">
+                    <div class="chart-title">Visibilidad y Cancelaciones</div>
+                    <div class="chart-sub">Correlación visibilidad (km) / operaciones afectadas</div>
+                </div>
+                <div class="chart-wrap h280"><canvas id="chart-visibility"></canvas></div>
+            </div>
+        </div>
     </div>
-    <div class="chart-box">
-        <h3>WEATHER CORRELATION (WIND VS HUMIDITY)</h3>
-        <canvas id="scatterChart"></canvas>
+
+    <div id="view-flights" class="view-panel">
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label class="filter-label">Aeropuerto Origen</label>
+                <select class="filter-select" id="filter-origin">
+                    <option value="">Todos</option>
+                    <option>LEMD — Madrid Barajas</option>
+                    <option>LEBL — Barcelona El Prat</option>
+                    <option>LEMG — Málaga Costa del Sol</option>
+                    <option>GCLP — Gran Canaria</option>
+                    <option>LEPA — Palma de Mallorca</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Estado</label>
+                <select class="filter-select" id="filter-status">
+                    <option value="">Todos</option>
+                    <option>Retrasado</option>
+                    <option>A tiempo</option>
+                    <option>Cancelado</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Aeronave</label>
+                <select class="filter-select" id="filter-aircraft">
+                    <option value="">Todas</option>
+                    <option>Boeing 737</option>
+                    <option>Airbus A320</option>
+                    <option>Airbus A321</option>
+                    <option>Boeing 787</option>
+                </select>
+            </div>
+        </div>
+        <div class="chart-card glass full-width">
+            <div class="chart-card-header">
+                <div class="chart-title">Registro Completo de Vuelos</div>
+                <div class="chart-sub mono" id="flights-count">— vuelos cargados</div>
+            </div>
+            <div class="flight-table-wrap">
+                <table class="flight-table">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Vuelo</th>
+                        <th>Origen</th>
+                        <th>Destino</th>
+                        <th>H. Salida</th>
+                        <th>H. Llegada</th>
+                        <th>Aeronave</th>
+                        <th>Retr. Sal.</th>
+                        <th>Retr. Lleg.</th>
+                        <th>Retr. Total</th>
+                        <th>Estado</th>
+                    </tr>
+                    </thead>
+                    <tbody id="flights-table-body"></tbody>
+                </table>
+            </div>
+            <div class="pagination-row">
+                <button class="page-btn" id="btn-prev">← Anterior</button>
+                <span class="mono" id="page-info">1 / 1</span>
+                <button class="page-btn" id="btn-next">Siguiente →</button>
+            </div>
+        </div>
     </div>
-    <div class="chart-box">
-        <h3>CRITICAL AIRPORTS RANKING</h3>
-        <canvas id="barChart"></canvas>
+
+</main>
+
+<!-- FOOTER -->
+<footer id="main-footer">
+    <div class="footer-inner">
+        <span class="footer-brand">SkyDelay</span>
+        <span class="footer-sep">·</span>
+        <span>Flight Delay Intelligence · Powered by IA + Datos Históricos</span>
+        <span class="footer-sep">·</span>
+        <span class="mono" id="footer-ts"></span>
     </div>
-</div>
+</footer>
 
 <script src="app.js"></script>
-<script>
-    setInterval(() => {
-        document.getElementById('clock').innerText = new Date().toLocaleTimeString();
-    }, 1000);
-</script>
 </body>
 </html>
