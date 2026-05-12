@@ -3,6 +3,7 @@ package es.ulpgc.dacd.skydelay.business.control;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
+import es.ulpgc.dacd.skydelay.business.view.WebDashboard;
 import es.ulpgc.dacd.skydelay.flights.model.Flight;
 import es.ulpgc.dacd.skydelay.weather.model.Weather;
 import org.apache.activemq.ActiveMQConnectionFactory;
@@ -44,7 +45,6 @@ public class Controller {
                 .create();
     }
 
-
     public void execute() {
         try {
             this.datamartManager = new DatamartManager(dbPath, csvPath);
@@ -58,8 +58,8 @@ public class Controller {
 
             this.predictorService = new PredictorService(datamartManager);
 
-            RestInterface api = new RestInterface(datamartManager, 7070);
-            api.start();
+            WebDashboard webDashboard = new WebDashboard(datamartManager);
+            webDashboard.start();
 
             startRealTimeIngestion();
 

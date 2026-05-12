@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKY-DELAY | Premium Flight Ops</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #020617;
+            --card: rgba(15, 23, 42, 0.8);
+            --cyan: #00d9ff;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --green: #10b981;
+            --border: rgba(255, 255, 255, 0.08);
+            --font-main: 'Syne', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        body {
+            background: var(--bg);
+            color: #f1f5f9;
+            font-family: var(--font-main);
+            margin: 0;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% -20%, #1e293b 0%, transparent 70%);
+        }
+
+        /* HEADER */
+        header {
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; }
+        .logo span { color: var(--cyan); text-shadow: 0 0 15px var(--cyan); }
+
+        /* KPI ROW */
+        .kpi-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            padding: 2rem 3rem;
+        }
+
+        .kpi-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .kpi-card:hover { transform: translateY(-5px); border-color: var(--cyan); }
+
+        .kpi-label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        .kpi-value { font-family: var(--font-mono); font-size: 2.5rem; margin: 0.5rem 0; }
+        .kpi-card.alert .kpi-value { color: var(--rose); }
+        .kpi-card.normal .kpi-value { color: var(--cyan); }
+
+        /* CHARTS GRID */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 1.5rem;
+            padding: 0 3rem 3rem;
+        }
+
+        .chart-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            height: 400px;
+        }
+
+        h3 { font-size: 1rem; margin-bottom: 1.5rem; color: #cbd5e1; display: flex; align-items: center; gap: 10px; }
+        h3::before { content: ''; width: 8px; height: 8px; background: var(--cyan); border-radius: 50%; box-shadow: 0 0 8px var(--cyan); }
+
+        .status-dot { width: 10px; height: 10px; background: var(--green); border-radius: 50%; display: inline-block; margin-right: 8px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">SKY<span>DELAY</span> <small style="font-size: 0.6rem; vertical-align: top;">PREDICTOR V3</small></div>
+    <div style="font-family: var(--font-mono); font-size: 0.8rem;">
+        <span class="status-dot"></span> SYSTEM LIVE | <span id="clock">00:00:00</span>
+    </div>
+</header>
+
+<div class="kpi-container">
+    <div class="kpi-card normal">
+        <div class="kpi-label">Active Forecasts</div>
+        <div class="kpi-value" id="kpi-total">0</div>
+        <div style="font-size: 0.7rem; color: #475569;">Flights in current datamart</div>
+    </div>
+    <div class="kpi-card alert">
+        <div class="kpi-label">Critical Alerts</div>
+        <div class="kpi-value" id="kpi-alerts">0</div>
+        <div style="font-size: 0.7rem; color: #475569;">High delay risk detected</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Avg Wind Velocity</div>
+        <div class="kpi-value" id="kpi-wind" style="color: var(--amber);">0<small>km/h</small></div>
+        <div style="font-size: 0.7rem; color: #475569;">Network weather average</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">System Load</div>
+        <div class="kpi-value" style="color: var(--green);">100%</div>
+        <div style="font-size: 0.7rem; color: #475569;">Worker efficiency</div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="chart-box">
+        <h3>FLIGHT RISK PROFILE (TIME SERIES)</h3>
+        <canvas id="timeChart"></canvas>
+    </div>
+    <div class="chart-box">
+        <h3>CATEGORY DISTRIBUTION</h3>
+        <canvas id="pieChart"></canvas>
+    </div>
+    <div class="chart-box">
+        <h3>WEATHER CORRELATION (WIND VS HUMIDITY)</h3>
+        <canvas id="scatterChart"></canvas>
+    </div>
+    <div class="chart-box">
+        <h3>CRITICAL AIRPORTS RANKING</h3>
+        <canvas id="barChart"></canvas>
+    </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+    setInterval(() => {
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+    }, 1000);
+</script>
+</body>
+</html>

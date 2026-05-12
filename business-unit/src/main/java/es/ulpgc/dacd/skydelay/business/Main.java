@@ -42,7 +42,7 @@ public class Main {
                 System.out.println("   SKYDELAY COMMAND LINE");
                 System.out.println("=".repeat(35));
                 System.out.println("Commands: 'map' | 'stats' | 'exit'");
-
+                System.out.println("\n[SISTEMA] Dashboard Web disponible en: http://localhost:7070");
                 while (true) {
                     System.out.print("\n> ");
                     if (scanner.hasNextLine()) {
