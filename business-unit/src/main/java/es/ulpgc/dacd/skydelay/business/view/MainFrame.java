@@ -45,6 +45,9 @@ public class MainFrame extends Application {
         VBox sidebar = createSidebar();
         root.setLeft(sidebar);
 
+        javafx.scene.layout.HBox topBar = createTopBar();
+        root.setTop(topBar);
+
         showMapView();
 
         Scene scene = new Scene(root, 1200, 800);
@@ -96,22 +99,30 @@ public class MainFrame extends Application {
         Label title = new Label("SKY-DELAY\nFORECAST");
         title.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18px; -fx-text-alignment: center;");
 
-        Button mapBtn = new Button("Live Map");
-        mapBtn.setMaxWidth(Double.MAX_VALUE);
-        mapBtn.setStyle("-fx-background-color: #34495e; -fx-text-fill: white; -fx-font-size: 14px; -fx-cursor: hand;");
-        mapBtn.setOnAction(e -> showMapView());
-
-        Button dashBtn = new Button("Dashboard");
-        dashBtn.setMaxWidth(Double.MAX_VALUE);
-        dashBtn.setStyle("-fx-background-color: #34495e; -fx-text-fill: white; -fx-font-size: 14px; -fx-cursor: hand;");
-        dashBtn.setOnAction(e -> showMapView());
-
         infoPanel = new VBox(10);
         infoPanel.setPadding(new Insets(10, 0, 0, 0));
         infoPanel.setAlignment(Pos.TOP_LEFT);
 
-        sidebar.getChildren().addAll(title, mapBtn, dashBtn, infoPanel);
+        sidebar.getChildren().addAll(title, infoPanel);
         return sidebar;
+    }
+
+    private javafx.scene.layout.HBox createTopBar() {
+        javafx.scene.layout.HBox topBar = new javafx.scene.layout.HBox(20);
+        topBar.setPadding(new Insets(10, 20, 10, 20));
+        topBar.setStyle("-fx-background-color: #34495e;");
+        topBar.setAlignment(Pos.CENTER);
+
+        Button mapBtn = new Button("Live Map");
+        mapBtn.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
+        mapBtn.setOnAction(e -> showMapView());
+
+        Button dashBtn = new Button("Dashboard");
+        dashBtn.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
+        dashBtn.setOnAction(e -> showDashboardView());
+
+        topBar.getChildren().addAll(mapBtn, dashBtn);
+        return topBar;
     }
 
     public void showAirportInfo(String icao, String name) {
