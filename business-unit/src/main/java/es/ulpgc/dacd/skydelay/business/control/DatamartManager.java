@@ -313,6 +313,49 @@ public class DatamartManager {
         return results;
     }
 
+    public List<Map<String, Object>> getAirportsWithCurrentDelays() {
+        List<Map<String, Object>> result = new ArrayList<>();
+        // Obtenemos los aeropuertos del traductor (nombre, coordenadas, etc.)
+        Collection<es.ulpgc.dacd.skydelay.business.model.AirportData> airports = translator.getAirports();
+
+        for (es.ulpgc.dacd.skydelay.business.model.AirportData airport : airports) {
+            Map<String, Object> airportMap = new HashMap<>();
+            airportMap.put("icao", airport.icao());
+            airportMap.put("name", airport.name());
+            airportMap.put("lat", airport.lat());
+            airportMap.put("lng", airport.lon());
+
+            // Calculamos el retraso promedio basado en los últimos vuelos registrados
+            double avgDelay = getAverageDelay(airport.icao());
+            airportMap.put("delay", avgDelay);
+
+            // Opcional: añadimos los últimos 5 vuelos directamente para el popup del mapa
+            airportMap.put("recentFlights", getHistoricalAirportFlights(airport.icao()));
+
+            result.add(airportMap);
+        }
+        return result;
+    }
+
+    private double getAverageDelay(String icao) {
+        // Calculamos la media de los últimos 10 vuelos para tener un "estado actual"
+        String sql = "SELECT AVG(departure_delay) as avg_delay FROM (" +
+                "SELECT departure_delay FROM flight_features " +
+                "WHERE origin_icao = ? ORDER BY flight_id DESC LIMIT 10)";
+
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, icao);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble("avg_delay");
+            }
+        } catch (SQLException e) {
+            logger.error("Error calculating avg delay for {}: {}", icao, e.getMessage());
+        }
+        return 0.0; // Si no hay datos, asumimos 0 retraso
+    }
+
     private String categorize(int mins) {
         if (mins <= 15) return "none";
         if (mins <= 30) return "low";

@@ -1,41 +1,25 @@
+<!-- En resources/business-unit/index.html -->
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <title>Mapa con Leaflet</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Ops - Live Map</title>
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-        html, body, #map {
-            height: 100%;
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            background: #cbd2d9;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css"> <!-- Tu CSS personalizado -->
 </head>
 <body>
 <div id="map"></div>
 
-<script>
-    var map = L.map('map').setView([40.41, -3.70], 6);
+<!-- Contenedor del Mapa e Info -->
+<div class="map-overlay">
+    <h1>Air Traffic Monitor</h1>
+    <p>Real-time airport delay metrics</p>
+</div>
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    // Asegurar render inicial correcto
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 0);
-
-    // Observar cambios de tamaño
-    const observer = new ResizeObserver(() => {
-        map.invalidateSize();
-    });
-
-    observer.observe(document.getElementById('map'));
-</script>
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

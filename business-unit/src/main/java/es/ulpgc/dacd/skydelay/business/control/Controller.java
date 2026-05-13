@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
 import es.ulpgc.dacd.skydelay.business.view.WebDashboard;
+import es.ulpgc.dacd.skydelay.business.view.WebMap;
 import es.ulpgc.dacd.skydelay.flights.model.Flight;
 import es.ulpgc.dacd.skydelay.weather.model.Weather;
 import org.apache.activemq.ActiveMQConnectionFactory;
@@ -21,24 +22,19 @@ import jakarta.jms.*;
 
 public class Controller {
     private static final Logger logger = LoggerFactory.getLogger(Controller.class);
-
     private final String brokerUrl;
     private final String dbPath;
     private final String csvPath;
     private final String eventStorePath;
-
     private final Gson gson;
-    private final MainFrame gui;
     private PredictorService predictorService;
     private DatamartManager datamartManager;
 
-    public Controller(String brokerUrl, String dbPath, String csvPath, String eventStorePath, MainFrame gui) {
+    public Controller(String brokerUrl, String dbPath, String csvPath, String eventStorePath) {
         this.brokerUrl = brokerUrl;
         this.dbPath = dbPath;
         this.csvPath = csvPath;
         this.eventStorePath = eventStorePath;
-        this.gui = gui;
-
         this.gson = new GsonBuilder()
                 .registerTypeAdapter(Instant.class, (JsonDeserializer<Instant>) (json, typeOfT, context) ->
                         Instant.parse(json.getAsString()))
@@ -50,16 +46,14 @@ public class Controller {
             this.datamartManager = new DatamartManager(dbPath, csvPath);
             this.datamartManager.initializeDatabase();
 
-            if (gui != null) {
-                Platform.runLater(() -> gui.setDatamartManager(this.datamartManager));
-            }
-
             runHistoricalSweep();
 
             this.predictorService = new PredictorService(datamartManager);
 
             WebDashboard webDashboard = new WebDashboard(datamartManager);
+            WebMap webMap = new WebMap(datamartManager);
             webDashboard.start();
+            webMap.start();
 
             startRealTimeIngestion();
 
@@ -96,13 +90,4 @@ public class Controller {
             }
         }));
     }
-
-
-    public void executeMap() {
-        if (gui != null) {
-            System.out.println("[Control] Solicitando cambio a vista de MAPA...");
-            Platform.runLater(gui::showMapView);
-        }
-    }
-
 }
