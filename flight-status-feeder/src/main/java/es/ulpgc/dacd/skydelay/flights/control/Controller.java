@@ -21,10 +21,11 @@ public class Controller {
 
     public void execute() {
         Timer timer = new Timer("Flight-System-Timer");
-
+        /*
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
+
                 System.out.println("[CRAWLER]...");
                 Map<String, List<String>> linksMap = crawler.getDomesticFlightLinks();
 
@@ -43,13 +44,15 @@ public class Controller {
             }
         }, 0, 6 * 60 * 60 * 1000L);
 
+                 */
+
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 System.out.println("[SCRAPER]...");
                 scraper.startCapture(store, linksPath);
             }
-        }, 10 * 60 * 1000L, 20 * 60 * 1000L);
+        }, 0 * 60 * 1000L, 20 * 60 * 1000L);
     }
 }
 
