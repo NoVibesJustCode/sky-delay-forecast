@@ -4,7 +4,7 @@
     let map;
 
     function initMap() {
-        map = L.map('map').setView(36.0, -5.0], 5);
+        map = L.map('map').setView([36.0, -5.0], 5);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap &copy; CARTO'
@@ -20,7 +20,7 @@
 
     async function loadMapData() {
         try {
-            const response = await fetch('/api/map-data');
+            const response = await fetch('/api/data');
             if (!response.ok) throw new Error('Network response was not ok');
 
             const airports = await response.json();

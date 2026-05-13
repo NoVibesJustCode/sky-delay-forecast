@@ -3,8 +3,6 @@ package es.ulpgc.dacd.skydelay.business.control;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
-import es.ulpgc.dacd.skydelay.business.view.WebDashboard;
-import es.ulpgc.dacd.skydelay.business.view.WebMap;
 import es.ulpgc.dacd.skydelay.flights.model.Flight;
 import es.ulpgc.dacd.skydelay.weather.model.Weather;
 import org.apache.activemq.ActiveMQConnectionFactory;
@@ -14,10 +12,6 @@ import jakarta.jms.JMSException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.time.Instant;
-
-import es.ulpgc.dacd.skydelay.business.view.MainFrame;
-import javafx.application.Platform;
-import jakarta.jms.*;
 
 
 public class Controller {
@@ -50,10 +44,7 @@ public class Controller {
 
             this.predictorService = new PredictorService(datamartManager);
 
-            WebDashboard webDashboard = new WebDashboard(datamartManager);
-            WebMap webMap = new WebMap(datamartManager);
-            webDashboard.start();
-            webMap.start();
+            new RestInterface(datamartManager).start();
 
             startRealTimeIngestion();
 

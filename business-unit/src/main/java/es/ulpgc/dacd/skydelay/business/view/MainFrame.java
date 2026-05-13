@@ -26,7 +26,7 @@ public class MainFrame extends Application {
     private BorderPane root;
     private MapPresenter mapPresenter;
     private DatamartManager datamartManager;
-    private String currentView = "map";
+    private String currentView = "public/map";
     private VBox infoPanel;
 
     public static MainFrame getInstance() {
@@ -66,7 +66,7 @@ public class MainFrame extends Application {
     }
 
     public void showMapView() {
-        currentView = "map";
+        currentView = "public/map";
         root.setCenter(mapPresenter.getView());
         if (datamartManager != null) mapPresenter.refresh();
     }
@@ -74,7 +74,7 @@ public class MainFrame extends Application {
 
     private void refreshCurrentView() {
         if (datamartManager == null) return;
-        if ("map".equals(currentView)) {
+        if ("public/map".equals(currentView)) {
             mapPresenter.refresh();
         }
     }
