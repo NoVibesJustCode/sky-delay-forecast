@@ -205,6 +205,78 @@ public class DatamartManager {
         return data;
     }
 
+    public List<Map<String, Object>> getAllFlightFeatures() {
+        List<Map<String, Object>> results = new ArrayList<>();
+        String sql = "SELECT flight_id, origin_icao, dest_icao, temp, wind, gust, vis, distance_km, departure_delay, delay_category FROM flight_features";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             ResultSet rs = conn.createStatement().executeQuery(sql)) {
+            while (rs.next()) {
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("flightId", rs.getString("flight_id"));
+                row.put("originIcao", rs.getString("origin_icao"));
+                row.put("destIcao", rs.getString("dest_icao"));
+                row.put("temp", rs.getDouble("temp"));
+                row.put("wind", rs.getDouble("wind"));
+                row.put("gust", rs.getDouble("gust"));
+                row.put("vis", rs.getDouble("vis"));
+                row.put("distanceKm", rs.getInt("distance_km"));
+                row.put("departureDelay", rs.getInt("departure_delay"));
+                row.put("delayCategory", rs.getString("delay_category"));
+                results.add(row);
+            }
+        } catch (SQLException e) {
+            logger.error("getAllFlightFeatures error: {}", e.getMessage());
+        }
+        return results;
+    }
+
+    public List<Map<String, Object>> getWeatherSeries(String icao, int limit) {
+        List<Map<String, Object>> results = new ArrayList<>();
+        String sql = "SELECT airport_icao, temp, wind_speed, wind_gust, visibility, timestamp FROM weather_records WHERE airport_icao = ? ORDER BY timestamp DESC LIMIT ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, icao);
+            pstmt.setInt(2, limit);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("icao", rs.getString("airport_icao"));
+                row.put("temp", rs.getDouble("temp"));
+                row.put("windSpeed", rs.getDouble("wind_speed"));
+                row.put("windGust", rs.getDouble("wind_gust"));
+                row.put("visibility", rs.getInt("visibility"));
+                row.put("timestamp", rs.getString("timestamp"));
+                results.add(row);
+            }
+        } catch (SQLException e) {
+            logger.error("getWeatherSeries error: {}", e.getMessage());
+        }
+        return results;
+    }
+
+    public List<Map<String, Object>> getAllWeatherRecords(int limit) {
+        List<Map<String, Object>> results = new ArrayList<>();
+        String sql = "SELECT airport_icao, temp, wind_speed, wind_gust, visibility, timestamp FROM weather_records ORDER BY timestamp DESC LIMIT ?";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, limit);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("icao", rs.getString("airport_icao"));
+                row.put("temp", rs.getDouble("temp"));
+                row.put("windSpeed", rs.getDouble("wind_speed"));
+                row.put("windGust", rs.getDouble("wind_gust"));
+                row.put("visibility", rs.getInt("visibility"));
+                row.put("timestamp", rs.getString("timestamp"));
+                results.add(row);
+            }
+        } catch (SQLException e) {
+            logger.error("getAllWeatherRecords error: {}", e.getMessage());
+        }
+        return results;
+    }
+
     public List<Map<String, Object>> getReadyToEatMenu() {
         List<Map<String, Object>> results = new ArrayList<>();
         String sql = "SELECT * FROM flight_predictions ORDER BY scheduled_time ASC";

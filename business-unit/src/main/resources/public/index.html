@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -70,11 +72,11 @@
             <div class="chart-card glass">
                 <div class="chart-card-header">
                     <div>
-                        <div class="chart-title">Delay Causes</div>
-                        <div class="chart-sub">Percentage distribution</div>
+                        <div class="chart-title">Feature Impact on Delay</div>
+                        <div class="chart-sub">Correlation strength · captured variables</div>
                     </div>
                 </div>
-                <div class="chart-wrap h320"><canvas id="chart-causes-pie"></canvas></div>
+                <div class="chart-wrap h320"><canvas id="chart-feature-impact"></canvas></div>
             </div>
         </div>
 
@@ -83,16 +85,17 @@
             <div class="chart-card glass span-2">
                 <div class="chart-card-header">
                     <div>
-                        <div class="chart-title">Delay Trend</div>
-                        <div class="chart-sub">Last 24 hours · 3h moving average</div>
+                        <div class="chart-title">Severity Mix by Hour</div>
+                        <div class="chart-sub">Stacked area · flights bucketed by delay category</div>
                     </div>
-                    <div class="time-pills">
-                        <button class="tpill active">24H</button>
-                        <button class="tpill">7D</button>
-                        <button class="tpill">30D</button>
+                    <div class="legend-pills">
+                        <span class="pill pill-safe">None</span>
+                        <span class="pill pill-cyan">Low</span>
+                        <span class="pill pill-warn">Moderate</span>
+                        <span class="pill pill-red">Severe</span>
                     </div>
                 </div>
-                <div class="chart-wrap h280"><canvas id="chart-trend-area"></canvas></div>
+                <div class="chart-wrap h280"><canvas id="chart-severity-area"></canvas></div>
             </div>
             <div class="chart-card glass">
                 <div class="chart-card-header">
@@ -116,15 +119,15 @@
                     <table class="flight-table">
                         <thead>
                         <tr>
-                            <th>Flight</th>
-                            <th>Origin → Destination</th>
-                            <th>Departure</th>
+                            <th>Flight ID</th>
+                            <th>Route</th>
+                            <th>Dep. UTC</th>
                             <th>Aircraft</th>
-                            <th>Wind</th>
-                            <th>Visib.</th>
-                            <th>Delay Prob.</th>
-                            <th>Est. Delay</th>
-                            <th>Status</th>
+                            <th>Wind (m/s)</th>
+                            <th>Gust (m/s)</th>
+                            <th>Visib. (km)</th>
+                            <th>Dep. Delay</th>
+                            <th>Severity</th>
                         </tr>
                         </thead>
                         <tbody id="risk-flights-body"></tbody>
@@ -164,10 +167,18 @@
         <div class="charts-row-1">
             <div class="chart-card glass">
                 <div class="chart-card-header">
-                    <div class="chart-title">Delay Distribution by Range</div>
-                    <div class="chart-sub">% of flights in each delay category</div>
+                    <div>
+                        <div class="chart-title">Airport × Severity Heatmap</div>
+                        <div class="chart-sub">% of flights per severity bucket · darker = more concentrated</div>
+                    </div>
+                    <div class="legend-pills">
+                        <span class="pill pill-safe">none</span>
+                        <span class="pill pill-cyan">low</span>
+                        <span class="pill pill-warn">moderate</span>
+                        <span class="pill pill-red">severe</span>
+                    </div>
                 </div>
-                <div class="chart-wrap h300"><canvas id="chart-delay-distribution"></canvas></div>
+                <div id="heatmap-airport-severity" class="heatmap-grid"></div>
             </div>
         </div>
     </div>
@@ -183,10 +194,10 @@
             </div>
             <div class="chart-card glass">
                 <div class="chart-card-header">
-                    <div class="chart-title">Rain Impact vs Delay</div>
-                    <div class="chart-sub">Precipitation (mm/h) correlated</div>
+                    <div class="chart-title">Cloudiness Impact</div>
+                    <div class="chart-sub">Average departure delay by cloud cover (%)</div>
                 </div>
-                <div class="chart-wrap h300"><canvas id="chart-rain-impact"></canvas></div>
+                <div class="chart-wrap h300"><canvas id="chart-cloud-impact"></canvas></div>
             </div>
         </div>
         <div class="charts-row-2">
@@ -213,19 +224,22 @@
                 <label class="filter-label">Origin Airport</label>
                 <select class="filter-select" id="filter-origin">
                     <option value="">All</option>
-                    <option>LEMD — Madrid Barajas</option>
-                    <option>LEBL — Barcelona El Prat</option>
-                    <option>LEMG — Málaga Costa del Sol</option>
-                    <option>GCLP — Gran Canaria</option>
-                    <option>LEPA — Palma de Mallorca</option>
+                    <option value="MAD">MAD — Madrid Barajas</option>
+                    <option value="BCN">BCN — Barcelona El Prat</option>
+                    <option value="AGP">AGP — Málaga Costa del Sol</option>
+                    <option value="LPA">LPA — Gran Canaria</option>
+                    <option value="PMI">PMI — Palma de Mallorca</option>
+                    <option value="VLC">VLC — Valencia</option>
+                    <option value="BIO">BIO — Bilbao</option>
+                    <option value="SVQ">SVQ — Sevilla</option>
                 </select>
             </div>
             <div class="filter-group">
                 <label class="filter-label">Status</label>
                 <select class="filter-select" id="filter-status">
                     <option value="">All</option>
+                    <option>Landed</option>
                     <option>Delayed</option>
-                    <option>On time</option>
                     <option>Cancelled</option>
                 </select>
             </div>
@@ -233,10 +247,11 @@
                 <label class="filter-label">Aircraft</label>
                 <select class="filter-select" id="filter-aircraft">
                     <option value="">All</option>
-                    <option>Boeing 737</option>
                     <option>Airbus A320</option>
-                    <option>Airbus A321</option>
-                    <option>Boeing 787</option>
+                    <option>Airbus A320 Neo</option>
+                    <option>Airbus A321 Neo</option>
+                    <option>Boeing B737-800</option>
+                    <option>ATR 72-600</option>
                 </select>
             </div>
         </div>
@@ -250,15 +265,16 @@
                     <thead>
                     <tr>
                         <th>#</th>
-                        <th>Flight</th>
+                        <th>Flight ID</th>
                         <th>Origin</th>
                         <th>Destination</th>
-                        <th>Dep. Time</th>
-                        <th>Arr. Time</th>
+                        <th>Date</th>
+                        <th>Dep. UTC</th>
+                        <th>Arr. UTC</th>
                         <th>Aircraft</th>
+                        <th>Distance</th>
                         <th>Dep. Delay</th>
                         <th>Arr. Delay</th>
-                        <th>Total Delay</th>
                         <th>Status</th>
                     </tr>
                     </thead>
