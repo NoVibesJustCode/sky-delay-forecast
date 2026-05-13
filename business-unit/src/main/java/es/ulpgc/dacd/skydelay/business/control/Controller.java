@@ -3,6 +3,7 @@ package es.ulpgc.dacd.skydelay.business.control;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
+import es.ulpgc.dacd.skydelay.business.control.datamart.DatamartManager;
 import es.ulpgc.dacd.skydelay.flights.model.Flight;
 import es.ulpgc.dacd.skydelay.weather.model.Weather;
 import org.apache.activemq.ActiveMQConnectionFactory;
