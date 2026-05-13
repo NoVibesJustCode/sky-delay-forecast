@@ -90,9 +90,14 @@
             airports.forEach(airport => {
                 const icao = airport.icao;
 
-                const airportPreds = predictions.filter(p =>
-                    typeof p.route === 'string' && p.route.startsWith(icao)
-                );
+                // BUSCAR EL AEROPUERTO CORRESPONDIENTE EN LOS DATOS DE PREDICCIÓN
+                // 'predictions' ahora es la lista de mapas que devuelve getAirportsWithCurrentDelays()
+                const airportData = predictions.find(p => p.icao === icao);
+
+                // EXTRAER LOS VUELOS QUE VIENEN EN EL CAMPO 'recentFlights' DE TU JAVA
+                const airportPreds = (airportData && airportData.recentFlights) ? airportData.recentFlights : [];
+
+                // El resto de la lógica de conteo se mantiene igual
                 const severe   = airportPreds.filter(p => p.prediction === 'severe').length;
                 const moderate = airportPreds.filter(p => p.prediction === 'moderate').length;
                 const low      = airportPreds.filter(p => p.prediction === 'low').length;

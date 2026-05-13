@@ -20,30 +20,22 @@ public class RestInterface {
             config.staticFiles.add("/public/map", Location.CLASSPATH);
         }).start(8080);
 
-        setupRoutes(dashboardApp);
-        setupRoutes(mapApp);
 
-        System.out.println("Dashboard disponible en: http://localhost:7070");
-        System.out.println("Mapa disponible en: http://localhost:8080");
+        dashboardApp.get("/api/data", ctx -> ctx.json(datamartManager.getReadyToEatMenu()));
+        setupCommonRoutes(dashboardApp);
+
+        mapApp.get("/api/data", ctx -> ctx.json(datamartManager.getAirportsWithCurrentDelays()));
+        setupCommonRoutes(mapApp);
+
     }
 
-    private void setupRoutes(Javalin app) {
-        app.get("/api/data", ctx -> ctx.json(datamartManager.getReadyToEatMenu()));
-
-        app.get("/api/flight-features", ctx -> ctx.json(datamartManager.getAllFlightFeatures()));
-
-        app.get("/api/weather-series", ctx -> {
-            String icao = ctx.queryParamAsClass("icao", String.class).getOrDefault("LEMD");
-            int limit = ctx.queryParamAsClass("limit", Integer.class).getOrDefault(200);
-            ctx.json(datamartManager.getWeatherSeries(icao, limit));
-        });
-
+    private void setupCommonRoutes(Javalin app) {
+        app.get("/api/airports", ctx -> ctx.json(datamartManager.getAirports()));
         app.get("/api/weather-records", ctx -> {
             int limit = ctx.queryParamAsClass("limit", Integer.class).getOrDefault(500);
             ctx.json(datamartManager.getAllWeatherRecords(limit));
         });
-
-        app.get("/api/airports", ctx -> ctx.json(datamartManager.getAirports()));
-
     }
+
+
 }

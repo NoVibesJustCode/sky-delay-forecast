@@ -122,17 +122,19 @@ public class DatamartManager {
 
     public List<Map<String, String>> getHistoricalAirportFlights(String icao) {
         List<Map<String, String>> results = new ArrayList<>();
-        String sql = "SELECT flight_id, dest_icao, departure_delay, delay_category FROM flight_features WHERE origin_icao = ? ORDER BY flight_id DESC LIMIT 5";
+        // Seleccionamos los datos necesarios de flight_features
+        String sql = "SELECT flight_id, dest_icao, delay_category FROM flight_features WHERE origin_icao = ? ORDER BY flight_id DESC LIMIT 5";
         try (Connection conn = DriverManager.getConnection(dbUrl);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, icao);
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
+                String destination = rs.getString("dest_icao") != null ? rs.getString("dest_icao") : "N/A";
                 results.add(Map.of(
-                        "flight", rs.getString("flight_id"),
-                        "dest", rs.getString("dest_icao") != null ? rs.getString("dest_icao") : "N/A",
-                        "delay", String.valueOf(rs.getInt("departure_delay")),
-                        "category", rs.getString("delay_category")
+                        // UNIFICAMOS: 'flight' y 'dest' en una sola cadena 'route' para el popup
+                        "route", rs.getString("flight_id") + " → " + destination,
+                        // RENOMBRAMOS: 'category' a 'prediction' para que app.js lo reconozca
+                        "prediction", rs.getString("delay_category")
                 ));
             }
         } catch (SQLException e) { logger.error("API Menu error: {}", e.getMessage()); }
