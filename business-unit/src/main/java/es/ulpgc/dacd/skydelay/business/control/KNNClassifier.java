@@ -5,7 +5,7 @@ import es.ulpgc.dacd.skydelay.business.model.FlightFeature;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class KNNClassifier {
+public class KNNClassifier implements Classifier {
     private final List<FlightFeature> trainingData;
     private final int k;
 
@@ -20,6 +20,7 @@ public class KNNClassifier {
         this.k = k;
     }
 
+    @Override
     public String predict(double temp, double wind, double gust, double vis) {
         if (trainingData.isEmpty()) return "none";
 
@@ -51,7 +52,8 @@ public class KNNClassifier {
                 .orElse("none");
     }
 
-    private double normalize(double val, double min, double max) {
+    @Override
+    public double normalize(double val, double min, double max) {
         if (max == min) return 0.0;
         double normalized = (val - min) / (max - min);
         return Math.max(0.0, Math.min(1.0, normalized));
