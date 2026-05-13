@@ -105,10 +105,4 @@ public class Controller {
         }
     }
 
-    public void executeDashboard() {
-        if (gui != null) {
-            System.out.println("[Control] Solicitando cambio a vista de DASHBOARD...");
-            Platform.runLater(gui::showDashboardView);
-        }
-    }
 }

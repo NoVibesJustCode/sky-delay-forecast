@@ -55,7 +55,6 @@ public class Main {
 
                         switch (cmd) {
                             case "map" -> controller.executeMap();
-                            case "stats" -> controller.executeDashboard();
                             default -> System.out.println("Unknown command.");
                         }
                     }

@@ -145,7 +145,7 @@
                 labels,
                 datasets: [
                     {
-                        label: 'Retraso Salida (min)',
+                        label: 'Departure Delay (min)',
                         data: depDelays.map(v => +v.toFixed(1)),
                         backgroundColor: T.cyanDim,
                         borderColor: T.cyan,
@@ -153,7 +153,7 @@
                         borderRadius: 4,
                     },
                     {
-                        label: 'Retraso Llegada (min)',
+                        label: 'Arrival Delay (min)',
                         data: arrDelays.map(v => +v.toFixed(1)),
                         backgroundColor: T.redDim,
                         borderColor: T.red,
@@ -171,7 +171,7 @@
                     y: {
                         grid: { color: T.grid },
                         ticks: { color: T.textMuted, callback: v => v + ' min' },
-                        title: { display: true, text: 'Minutos', color: T.textMuted, font: { size: 10 } }
+                        title: { display: true, text: 'Minutes', color: T.textMuted, font: { size: 10 } }
                     }
                 }
             }
@@ -186,7 +186,7 @@
         new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['Meteorología', 'Operaciones', 'Control Aéreo', 'Aeronave', 'Pasajeros', 'Otros'],
+                labels: ['Weather', 'Operations', 'Air Traffic Control', 'Aircraft', 'Passengers', 'Other'],
                 datasets: [{
                     data: [38, 22, 16, 12, 7, 5],
                     backgroundColor: [
@@ -233,7 +233,7 @@
                 labels: hours,
                 datasets: [
                     {
-                        label: 'Retraso Medio (min)',
+                        label: 'Average Delay (min)',
                         data: delays,
                         fill: true,
                         backgroundColor: 'rgba(0,212,255,0.06)',
@@ -245,7 +245,7 @@
                         yAxisID: 'y',
                     },
                     {
-                        label: '% Vuelos Retrasados',
+                        label: '% Delayed Flights',
                         data: probs,
                         fill: true,
                         backgroundColor: 'rgba(255,77,106,0.05)',
@@ -297,7 +297,7 @@
             type: 'scatter',
             data: {
                 datasets: [{
-                    label: 'Vuelo',
+                    label: 'Flight',
                     data: pts,
                     pointBackgroundColor: pts.map(p =>
                         p.y > 60 ? T.red : p.y > 20 ? T.warn : T.safe
@@ -314,7 +314,7 @@
                     legend: { display: false },
                     tooltip: {
                         callbacks: {
-                            label: c => ` Viento: ${c.raw.x} km/h | Retraso: ${c.raw.y} min`
+                            label: c => ` Wind: ${c.raw.x} km/h | Delay: ${c.raw.y} min`
                         }
                     }
                 },
@@ -322,12 +322,12 @@
                     x: {
                         grid: { color: T.grid },
                         ticks: { color: T.textMuted },
-                        title: { display: true, text: 'Viento (km/h)', color: T.textMuted, font: { size: 10 } }
+                        title: { display: true, text: 'Wind (km/h)', color: T.textMuted, font: { size: 10 } }
                     },
                     y: {
                         grid: { color: T.grid },
                         ticks: { color: T.textMuted },
-                        title: { display: true, text: 'Retraso Total (min)', color: T.textMuted, font: { size: 10 } }
+                        title: { display: true, text: 'Total Delay (min)', color: T.textMuted, font: { size: 10 } }
                     }
                 }
             }
@@ -342,10 +342,10 @@
         new Chart(ctx, {
             type: 'radar',
             data: {
-                labels: ['Viento', 'Visibilidad\n(inv.)', 'Lluvia', 'Wind Gust', 'Temperatura\nextema', 'Niebla'],
+                labels: ['Wind', 'Visibility\n(inv.)', 'Rain', 'Wind Gust', 'Extreme\ntemperature', 'Fog'],
                 datasets: [
                     {
-                        label: 'Condiciones Actuales',
+                        label: 'Current Conditions',
                         data: [72, 55, 40, 68, 30, 20],
                         borderColor: T.cyan,
                         backgroundColor: 'rgba(0,212,255,0.08)',
@@ -354,7 +354,7 @@
                         pointRadius: 3,
                     },
                     {
-                        label: 'Umbral Crítico',
+                        label: 'Critical Threshold',
                         data: [80, 80, 80, 80, 80, 80],
                         borderColor: T.red,
                         backgroundColor: 'rgba(255,77,106,0.04)',
@@ -398,7 +398,7 @@
             data: {
                 labels: data.map(d => d.code),
                 datasets: [{
-                    label: 'Retraso Medio Total (min)',
+                    label: 'Total Average Delay (min)',
                     data: data.map(d => +d.avg.toFixed(1)),
                     backgroundColor: data.map((_, i) => i < 3 ? T.redDim : T.cyanDim),
                     borderColor: data.map((_, i) => i < 3 ? T.red : T.cyan),
@@ -434,7 +434,7 @@
             data: {
                 labels: hours.map(h => `${String(h).padStart(2,'0')}h`),
                 datasets: [{
-                    label: 'Retraso Medio (min)',
+                    label: 'Average Delay (min)',
                     data: delays.map(v=>+v.toFixed(1)),
                     backgroundColor: delays.map(v => v > 40 ? T.redDim : v > 25 ? T.warnDim : T.safeDim),
                     borderColor: delays.map(v => v > 40 ? T.red : v > 25 ? T.warn : T.safe),
@@ -459,7 +459,7 @@
         if (!ctx) return;
 
         const buckets = [
-            { label: 'A tiempo (0)', count: 0 },
+            { label: 'On time (0)', count: 0 },
             { label: '1–15 min', count: 0 },
             { label: '16–30 min', count: 0 },
             { label: '31–60 min', count: 0 },
@@ -499,7 +499,7 @@
                 cutout: '55%',
                 plugins: {
                     legend: { position: 'right', labels: { boxWidth: 10, padding: 14, font: { size: 10 } } },
-                    tooltip: { callbacks: { label: c => ` ${c.label}: ${c.parsed} vuelos (${(c.parsed/total*100).toFixed(1)}%)` } }
+                    tooltip: { callbacks: { label: c => ` ${c.label}: ${c.parsed} flights (${(c.parsed/total*100).toFixed(1)}%)` } }
                 }
             }
         });
@@ -526,7 +526,7 @@
                 labels: times,
                 datasets: [
                     {
-                        label: 'Viento (km/h)',
+                        label: 'Wind (km/h)',
                         data: wind,
                         borderColor: T.cyan,
                         backgroundColor: 'rgba(0,212,255,0.05)',
@@ -537,7 +537,7 @@
                         yAxisID: 'y',
                     },
                     {
-                        label: 'Visibilidad (km)',
+                        label: 'Visibility (km)',
                         data: vis,
                         borderColor: T.safe,
                         backgroundColor: 'transparent',
@@ -548,7 +548,7 @@
                         yAxisID: 'y2',
                     },
                     {
-                        label: 'Precipitación (mm/h)',
+                        label: 'Precipitation (mm/h)',
                         data: rain,
                         borderColor: T.warn,
                         backgroundColor: 'rgba(245,158,11,0.06)',
@@ -591,7 +591,7 @@
             data: {
                 labels,
                 datasets: [{
-                    label: 'Retraso Medio (min)',
+                    label: 'Average Delay (min)',
                     data: avgDelays.map(v=>+v.toFixed(1)),
                     backgroundColor: avgDelays.map((_,i) => i < 2 ? T.safeDim : i < 4 ? T.warnDim : T.redDim),
                     borderColor: avgDelays.map((_,i) => i < 2 ? T.safe : i < 4 ? T.warn : T.red),
@@ -621,7 +621,7 @@
             type: 'scatter',
             data: {
                 datasets: [{
-                    label: 'Vuelo',
+                    label: 'Flight',
                     data: pts,
                     pointBackgroundColor: pts.map(p => p.y > 60 ? T.red : p.y > 20 ? T.warn : T.cyan),
                     pointBorderColor: 'transparent',
@@ -634,11 +634,11 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    tooltip: { callbacks: { label: c => ` Ráfaga: ${c.raw.x} km/h | Retraso: ${c.raw.y} min` } }
+                    tooltip: { callbacks: { label: c => ` Gust: ${c.raw.x} km/h | Delay: ${c.raw.y} min` } }
                 },
                 scales: {
                     x: { grid:{color:T.grid}, ticks:{color:T.textMuted}, title:{display:true,text:'Wind Gust (km/h)',color:T.textMuted,font:{size:10}} },
-                    y: { grid:{color:T.grid}, ticks:{color:T.textMuted}, title:{display:true,text:'Retraso (min)',color:T.textMuted,font:{size:10}} }
+                    y: { grid:{color:T.grid}, ticks:{color:T.textMuted}, title:{display:true,text:'Delay (min)',color:T.textMuted,font:{size:10}} }
                 }
             }
         });
@@ -665,7 +665,7 @@
                 labels,
                 datasets: [
                     {
-                        label: 'Retraso Medio (min)',
+                        label: 'Average Delay (min)',
                         data: avgD.map(v=>+v.toFixed(1)),
                         borderColor: T.warn,
                         fill: false,
@@ -676,7 +676,7 @@
                         yAxisID: 'y',
                     },
                     {
-                        label: '% Cancelaciones',
+                        label: '% Cancellations',
                         data: cancel.map(v=>+v.toFixed(1)),
                         borderColor: T.red,
                         fill: false,
@@ -716,7 +716,7 @@
             const pct = f.delayProb * 100;
             const fillCls = pct > 60 ? 'high' : pct > 35 ? 'mid' : 'low';
             const dCls = f.totalDelay > 60 ? 'd-high' : f.totalDelay > 20 ? 'd-mid' : 'd-low';
-            const statusLabel = { 'on-time':'A tiempo', delayed:'Retrasado', critical:'Crítico', cancelled:'Cancelado' }[f.status] || f.status;
+            const statusLabel = { 'on-time':'On time', delayed:'Delayed', critical:'Critical', cancelled:'Cancelled' }[f.status] || f.status;
             return `
             <tr>
                 <td><span class="flight-code">${f.code}</span></td>
@@ -750,12 +750,12 @@
         const slice = filteredFlights.slice(start, start + PAGE_SIZE);
         const totalPages = Math.ceil(filteredFlights.length / PAGE_SIZE);
 
-        $('flights-count').textContent = `${filteredFlights.length} vuelos cargados`;
+        $('flights-count').textContent = `${filteredFlights.length} flights loaded`;
         $('page-info').textContent = `${currentPage} / ${totalPages}`;
         $('btn-prev').disabled = currentPage === 1;
         $('btn-next').disabled = currentPage === totalPages || totalPages === 0;
 
-        const statusLabel = s => ({ 'on-time':'A tiempo', delayed:'Retrasado', critical:'Crítico', cancelled:'Cancelado' }[s]||s);
+        const statusLabel = s => ({ 'on-time':'On time', delayed:'Delayed', critical:'Critical', cancelled:'Cancelled' }[s]||s);
         const dClass = d => d > 60 ? 'd-high' : d > 15 ? 'd-mid' : 'd-low';
 
         tbody.innerHTML = slice.map((f, i) => `
@@ -781,7 +781,7 @@
         const now = new Date();
         const str = now.toTimeString().slice(0,8);
         if (el) el.textContent = str;
-        if (ts) ts.textContent = now.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}) + ' ' + str;
+        if (ts) ts.textContent = now.toLocaleDateString('en-US',{day:'2-digit',month:'short',year:'numeric'}) + ' ' + str;
     }
 
     // ─── VIEW SWITCHING ───────────────────────────────────────
@@ -853,7 +853,7 @@
                 const acft = $('filter-aircraft')?.value || '';
                 filteredFlights = ALL_FLIGHTS.filter(f => {
                     if (ori && !f.origin.name.includes(ori.split('—')[1]?.trim() || ori)) return false;
-                    const statusLabels = { 'on-time':'A tiempo', delayed:'Retrasado', critical:'Retrasado', cancelled:'Cancelado' };
+                    const statusLabels = { 'on-time':'On time', delayed:'Delayed', critical:'Delayed', cancelled:'Cancelled' };
                     if (sta && statusLabels[f.status] !== sta) return false;
                     if (acft && f.aircraft !== acft) return false;
                     return true;

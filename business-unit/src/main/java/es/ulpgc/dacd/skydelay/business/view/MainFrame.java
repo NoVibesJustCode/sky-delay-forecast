@@ -25,7 +25,6 @@ public class MainFrame extends Application {
     private static MainFrame instance;
     private BorderPane root;
     private MapPresenter mapPresenter;
-    private ChartsDashboard chartsDashboard;
     private DatamartManager datamartManager;
     private String currentView = "map";
     private VBox infoPanel;
@@ -40,7 +39,6 @@ public class MainFrame extends Application {
         this.root = new BorderPane();
 
         this.mapPresenter = new MapPresenter();
-        this.chartsDashboard = new ChartsDashboard();
 
         VBox sidebar = createSidebar();
         root.setLeft(sidebar);
@@ -64,7 +62,6 @@ public class MainFrame extends Application {
     public void setDatamartManager(DatamartManager datamartManager) {
         this.datamartManager = datamartManager;
         this.mapPresenter.setDatamartManager(datamartManager);
-        this.chartsDashboard.setDatamartManager(datamartManager);
         refreshCurrentView();
     }
 
@@ -74,18 +71,11 @@ public class MainFrame extends Application {
         if (datamartManager != null) mapPresenter.refresh();
     }
 
-    public void showDashboardView() {
-        currentView = "dashboard";
-        root.setCenter(chartsDashboard.getView());
-        if (datamartManager != null) chartsDashboard.refresh();
-    }
 
     private void refreshCurrentView() {
         if (datamartManager == null) return;
         if ("map".equals(currentView)) {
             mapPresenter.refresh();
-        } else {
-            chartsDashboard.refresh();
         }
     }
 
@@ -117,11 +107,7 @@ public class MainFrame extends Application {
         mapBtn.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
         mapBtn.setOnAction(e -> showMapView());
 
-        Button dashBtn = new Button("Dashboard");
-        dashBtn.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
-        dashBtn.setOnAction(e -> showDashboardView());
-
-        topBar.getChildren().addAll(mapBtn, dashBtn);
+        topBar.getChildren().addAll(mapBtn);
         return topBar;
     }
 
