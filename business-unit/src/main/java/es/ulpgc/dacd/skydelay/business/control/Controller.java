@@ -4,6 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
 import es.ulpgc.dacd.skydelay.business.control.datamart.DatamartManager;
+import es.ulpgc.dacd.skydelay.business.control.datamart.FlightDAO;
+import es.ulpgc.dacd.skydelay.business.control.datamart.WeatherDAO;
+import es.ulpgc.dacd.skydelay.business.control.services.DataStore;
+import es.ulpgc.dacd.skydelay.business.control.services.MapDataService;
+import es.ulpgc.dacd.skydelay.business.control.services.PredictionService;
 import es.ulpgc.dacd.skydelay.flights.model.Flight;
 import es.ulpgc.dacd.skydelay.weather.model.Weather;
 import org.apache.activemq.ActiveMQConnectionFactory;
@@ -14,16 +19,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.time.Instant;
 
-
 public class Controller {
     private static final Logger logger = LoggerFactory.getLogger(Controller.class);
+
     private final String brokerUrl;
     private final String dbPath;
     private final String csvPath;
     private final String eventStorePath;
     private final Gson gson;
-    private PredictorService predictorService;
-    private DatamartManager datamartManager;
+
+    // Infraestructura de datos
+    private FlightDAO flightDAO;
+    private WeatherDAO weatherDAO;
+
+    // Servicios de aplicación
+    private PredictionService predictionService;
+    private MapDataService mapDataService;
 
     public Controller(String brokerUrl, String dbPath, String csvPath, String eventStorePath) {
         this.brokerUrl = brokerUrl;
@@ -38,14 +49,24 @@ public class Controller {
 
     public void execute() {
         try {
-            this.datamartManager = new DatamartManager(dbPath, csvPath);
-            this.datamartManager.initializeDatabase();
+            // --- Infraestructura de acceso a datos ---
+            DatamartManager datamartManager = new DatamartManager(dbPath);
+            datamartManager.initializeDatabase();
 
+            AirportCodeTranslator translator = new AirportCodeTranslator(csvPath);
+            this.flightDAO  = new FlightDAO(datamartManager);
+            this.weatherDAO = new WeatherDAO(datamartManager);
+
+            // --- Servicios de aplicación ---
+            DataStore dataStore = new DataStore(flightDAO, weatherDAO);
+            this.mapDataService    = new MapDataService(dataStore, translator);
+            this.predictionService = new PredictionService(flightDAO, weatherDAO, translator);
+
+            // --- Fases de arranque ---
             runHistoricalSweep();
+            predictionService.refreshModel();
 
-            this.predictorService = new PredictorService(datamartManager);
-
-            new RestInterface(datamartManager).start();
+            new RestInterface(flightDAO, weatherDAO, mapDataService, translator).start();
 
             startRealTimeIngestion();
 
@@ -57,8 +78,8 @@ public class Controller {
     private void runHistoricalSweep() {
         logger.info("Iniciando barrido de datos históricos (Fase de entrenamiento)...");
         EventStoreReader reader = new EventStoreReader(eventStorePath, this.gson);
-        reader.processEvents("weather", Weather.class, datamartManager::saveWeather);
-        reader.processEvents("flight", Flight.class, datamartManager::saveHistoricalFlight);
+        reader.processEvents("weather", Weather.class, weatherDAO::save);
+        reader.processEvents("flight",  Flight.class,  predictionService::saveHistoricalFlight);
         logger.info("Barrido completado. Modelo Predictor listo.");
     }
 
@@ -68,7 +89,8 @@ public class Controller {
         connection.setClientID("BusinessUnit-Global");
         connection.start();
 
-        BusinessEventSubscriber subscriber = new BusinessEventSubscriber(connection, datamartManager, predictorService);
+        BusinessEventSubscriber subscriber =
+                new BusinessEventSubscriber(connection, weatherDAO, predictionService);
         subscriber.subscribeToTopics();
 
         logger.info("Suscripciones ActiveMQ activadas.");

@@ -64,4 +64,41 @@ public class PredictionService {
         logger.info("Prediction saved for flight {}: {} (origin: {})",
                 f.flightId(), category, originIcao);
     }
+
+    /**
+     * Persiste un vuelo histórico (ya aterrizado/cancelado) como dato de
+     * entrenamiento en {@code flight_features}.
+     * Traduce los códigos IATA a ICAO, busca el registro meteorológico más
+     * cercano en el tiempo y categoriza el retraso antes de guardar.
+     *
+     * @param f vuelo con estado LIVE / LANDED / CANCELLED
+     */
+    public void saveHistoricalFlight(Flight f) {
+        String originIcao = translator.toIcao(f.origin());
+        String destIcao   = translator.toIcao(f.destination());
+
+        Weather w = weatherDAO.findClosest(originIcao, f.ts().toString());
+        if (w == null) {
+            logger.warn("No weather data for {} at {}. Historical flight {} skipped.",
+                    originIcao, f.ts(), f.flightId());
+            return;
+        }
+
+        flightDAO.saveFeature(
+                f.flightId(),
+                originIcao,
+                destIcao,
+                w.temp(),
+                w.windSpeed(),
+                w.windGust(),
+                w.visibility(),
+                f.distanceKm(),
+                f.departureDelay(),
+                FlightDAO.categorize(f.departureDelay())
+        );
+
+        logger.info("Historical flight {} saved (origin: {}, delay: {} min, category: {}).",
+                f.flightId(), originIcao, f.departureDelay(),
+                FlightDAO.categorize(f.departureDelay()));
+    }
 }
