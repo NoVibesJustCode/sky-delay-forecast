@@ -9,8 +9,8 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws JMSException {
-        WeatherStore store = new ActiveMQWeatherStore(args[1], args[2], args[3]);
-        AirportsReader reader = new AirportsReader(args[4]);
+        WeatherStore store = new ActiveMQWeatherStore(args[0], args[1], args[2]);
+        AirportsReader reader = new AirportsReader(args[3]);
         List<Airport> airports = reader.read();
         WeatherParser parser = new WeatherParser();
         WeatherFeeder feeder = new OpenWeatherMapFeeder(parser);
