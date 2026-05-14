@@ -2,15 +2,20 @@ package es.ulpgc.dacd.skydelay.flights.control;
 
 import com.microsoft.playwright.*;
 import es.ulpgc.dacd.skydelay.flights.model.Flight;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.*;
 
 public class FlighteraScraper implements FlightScraper {
-    private static final int BATCH_SIZE = 10;
+    private static final int BATCH_SIZE = 20;
     private static final Logger logger = LoggerFactory.getLogger(FlighteraScraper.class);
 
     @Override
@@ -18,15 +23,24 @@ public class FlighteraScraper implements FlightScraper {
         LinkManager linkManager = new LinkManager(textFilePath);
         Random random = new Random();
 
+        String chromePath = Dotenv.load().get("CHROME_EXECUTABLE_PATH");
+        String userDataDir = Dotenv.load().get("CHROME_USER_DATA");
+
+        deleteUserDataDir(userDataDir);
+
+        if (chromePath == null || userDataDir == null) {
+            throw new RuntimeException("Missing browser environment variables (CHROME_EXECUTABLE_PATH or CHROME_USER_DATA)");
+        }
+
         try (Playwright playwright = Playwright.create()) {
             BrowserType.LaunchPersistentContextOptions options = new BrowserType.LaunchPersistentContextOptions()
                     .setHeadless(false)
-                    .setExecutablePath(Paths.get("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"))
+                    .setExecutablePath(Paths.get(chromePath))
                     .setLocale("en-US")
                     .setArgs(List.of("--disable-blink-features=AutomationControlled"));
 
             BrowserContext context = playwright.chromium().launchPersistentContext(
-                    Paths.get("user-data-dir"),
+                    Paths.get(userDataDir),
                     options
             );
 
@@ -53,6 +67,7 @@ public class FlighteraScraper implements FlightScraper {
         } catch (Exception e) {
             logger.error("Critical error during Playwright execution", e);
         }
+        deleteUserDataDir(userDataDir);
     }
 
     private Flight scrapFlight(String flightURL, Page page) {
@@ -89,6 +104,21 @@ public class FlighteraScraper implements FlightScraper {
         } catch (Exception ignored) {
             Locator fallback = page.locator("button:has-text('Rechazar todo')").first();
             if (fallback.isVisible()) fallback.click();
+        }
+    }
+
+    private void deleteUserDataDir(String path) {
+        try {
+            Path directory = Paths.get(path);
+            if (Files.exists(directory)) {
+                Files.walk(directory)
+                        .sorted(Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .forEach(File::delete);
+                System.out.println("[CLEANUP] user-data-dir deleted to reset session.");
+            }
+        } catch (IOException e) {
+            System.err.println("[ERROR] Could not delete user-data-dir: " + e.getMessage());
         }
     }
 }

@@ -18,12 +18,11 @@ public class Controller {
         this.airports = airports;
     }
 
-
     public void start() {
         Timer timer = new Timer("Weather-Timer");
 
         long delay = 0;
-        long period = 3 * 60 * 60 * 1000L;
+        long period = 60 * 60 * 1000L;
 
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -32,7 +31,7 @@ public class Controller {
             }
         }, delay, period);
 
-        System.out.println("Scheduled control: sending information every 3 hours.");
+        System.out.println("Scheduled control: sending information every hour.");
     }
 
     public void execute() {

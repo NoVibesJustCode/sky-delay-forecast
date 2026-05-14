@@ -52,6 +52,12 @@
             <version>2.0.17</version>
         </dependency>
         <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.5.32</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>org.ulpgc.dacd.novibesjustcode</groupId>
             <artifactId>openweathermap-feeder</artifactId>
             <version>1.0-SNAPSHOT</version>
