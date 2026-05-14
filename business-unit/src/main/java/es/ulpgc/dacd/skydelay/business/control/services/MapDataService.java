@@ -13,6 +13,29 @@ public class MapDataService {
         this.translator = translator;
     }
 
+    public List<Map<String, Object>> getAirportsWithPredictions() {
+        List<Map<String, Object>> result = new ArrayList<>();
+        Collection<AirportData> airports = translator.getAirports();
+
+        for (AirportData airport : airports) {
+            Map<String, Object> airportMap = new LinkedHashMap<>();
+            airportMap.put("icao", airport.icao());
+            airportMap.put("iata", airport.iata());
+            airportMap.put("name", airport.name());
+            airportMap.put("lat",  airport.lat());
+            airportMap.put("lng",  airport.lon());
+
+            List<Map<String, String>> predictions = dataStore.fetchRecentPredictions(airport.icao(), 5);
+            airportMap.put("predictions", predictions);
+
+            String worstSeverity = deriveWorstSeverity(predictions);
+            airportMap.put("severity", worstSeverity);
+
+            result.add(airportMap);
+        }
+        return result;
+    }
+
     public List<Map<String, Object>> getAirportsWithCurrentDelays() {
         List<Map<String, Object>> result = new ArrayList<>();
         Collection<AirportData> airports = translator.getAirports();
@@ -33,6 +56,26 @@ public class MapDataService {
             result.add(airportMap);
         }
         return result;
+    }
+
+    private static String deriveWorstSeverity(List<Map<String, String>> predictions) {
+        int worst = 0;
+        for (Map<String, String> p : predictions) {
+            String cat = p.getOrDefault("prediction", "none").toLowerCase();
+            int level = switch (cat) {
+                case "severe"   -> 3;
+                case "moderate" -> 2;
+                case "low"      -> 1;
+                default         -> 0;
+            };
+            if (level > worst) worst = level;
+        }
+        return switch (worst) {
+            case 3  -> "severe";
+            case 2  -> "moderate";
+            case 1  -> "low";
+            default -> "none";
+        };
     }
 
     public List<Map<String, String>> getHistoricalFlightsForAirport(String icao) {

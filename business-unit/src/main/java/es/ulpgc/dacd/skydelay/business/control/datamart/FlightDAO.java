@@ -98,10 +98,6 @@ public class FlightDAO {
         return results;
     }
 
-    /**
-     * Enriched version of getHistoricalAirportFlights that returns the full
-     * flight_features columns needed by the map popup's flights table.
-     */
     public List<Map<String, Object>> getRichHistoricalFlights(String icao, int limit) {
         List<Map<String, Object>> results = new ArrayList<>();
         String sql = "SELECT flight_id, dest_icao, departure_delay, delay_category, " +
@@ -217,10 +213,12 @@ public class FlightDAO {
         return results;
     }
 
+
     public List<Map<String, String>> getRecentAirportPredictions(String icao, int limit) {
         List<Map<String, String>> results = new ArrayList<>();
         String sql = "SELECT flight_id, dest_icao, scheduled_time, predicted_category " +
-                     "FROM flight_predictions WHERE origin_icao = ? ORDER BY scheduled_time DESC LIMIT ?";
+                     "FROM flight_predictions WHERE origin_icao = ? " +
+                     "ORDER BY ABS(julianday(scheduled_time) - julianday('now')) ASC LIMIT ?";
         try (Connection conn = db.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, icao);
@@ -238,6 +236,52 @@ public class FlightDAO {
             logger.error("getRecentAirportPredictions error: {}", e.getMessage());
         }
         return results;
+    }
+
+
+    public List<Map<String, String>> getAllPredictions(String originFilter) {
+        List<Map<String, String>> results = new ArrayList<>();
+        String sql;
+        if (originFilter != null && !originFilter.isEmpty()) {
+            sql = "SELECT flight_id, origin_icao, dest_icao, scheduled_time, predicted_category, last_updated " +
+                  "FROM flight_predictions WHERE origin_icao = ? ORDER BY scheduled_time ASC";
+        } else {
+            sql = "SELECT flight_id, origin_icao, dest_icao, scheduled_time, predicted_category, last_updated " +
+                  "FROM flight_predictions ORDER BY scheduled_time ASC";
+        }
+        try (Connection conn = db.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            if (originFilter != null && !originFilter.isEmpty()) {
+                pstmt.setString(1, originFilter);
+            }
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Map<String, String> row = new LinkedHashMap<>();
+                row.put("flight",      rs.getString("flight_id"));
+                row.put("origin",      rs.getString("origin_icao"));
+                row.put("dest",        rs.getString("dest_icao"));
+                row.put("time",        rs.getString("scheduled_time"));
+                row.put("prediction",  rs.getString("predicted_category"));
+                row.put("lastUpdated", rs.getString("last_updated"));
+                results.add(row);
+            }
+        } catch (SQLException e) {
+            logger.error("getAllPredictions error: {}", e.getMessage());
+        }
+        return results;
+    }
+
+    public int purgeExpiredPredictions() {
+        String sql = "DELETE FROM flight_predictions WHERE julianday('now') - julianday(scheduled_time) > (2.0/24.0)";
+        try (Connection conn = db.getConnection();
+             Statement stmt = conn.createStatement()) {
+            int deleted = stmt.executeUpdate(sql);
+            if (deleted > 0) logger.info("Purged {} expired predictions", deleted);
+            return deleted;
+        } catch (SQLException e) {
+            logger.error("purgeExpiredPredictions error: {}", e.getMessage());
+        }
+        return 0;
     }
 
     public static String categorize(int mins) {

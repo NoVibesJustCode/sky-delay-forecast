@@ -30,15 +30,16 @@
     --ease:         cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-body.dark-mode {
-    --bg:         #0e131c;
-    --paper:      #1a2030;
-    --paper-soft: #232b40;
-    --ink:        #e7eef9;
-    --ink-soft:   #8aa1c4;
-    --rule:       #2e3a55;
-    --gold:       #4674b8;
-    --gold-deep:  #6792d8;
+/* Cartoon / watercolor mode — warmer paper tones */
+body.cartoon-mode {
+    --bg:         #f0e6cc;
+    --paper:      #fdf5e0;
+    --paper-soft: #faf0d2;
+    --ink:        #3b2f1e;
+    --ink-soft:   #7a6842;
+    --rule:       #e0cfa0;
+    --gold:       #d4a84a;
+    --gold-deep:  #b8862e;
 }
 
 body, html {
@@ -65,9 +66,9 @@ body, html {
     transition: filter 0.5s var(--ease);
 }
 
-/* Dark mode uses actual dark tiles — no CSS filter needed */
-body.dark-mode .leaflet-tile-pane {
-    filter: none;
+/* Cartoon mode — slightly softer tiles */
+body.cartoon-mode .leaflet-tile-pane {
+    filter: saturate(1.2) contrast(1.05) brightness(1.02);
 }
 
 /* Subtle grain over the map for paper feel */
@@ -81,9 +82,9 @@ body.dark-mode .leaflet-tile-pane {
     z-index: 400;
     transition: opacity 0.5s var(--ease);
 }
-body.dark-mode #map::after {
-    background-image: radial-gradient(circle at 20% 0%, rgba(80,160,255,0.06), transparent 50%),
-                      radial-gradient(circle at 90% 100%, rgba(100,50,180,0.04), transparent 50%);
+body.cartoon-mode #map::after {
+    background-image: radial-gradient(circle at 20% 0%, rgba(255,180,60,0.08), transparent 50%),
+                      radial-gradient(circle at 90% 100%, rgba(200,100,50,0.05), transparent 50%);
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
@@ -209,9 +210,9 @@ body.dark-mode #map::after {
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
-   DARK MODE TOGGLE (top-right Leaflet control)
+   STYLE TOGGLE (top-right Leaflet control — clean ↔ cartoon)
    ════════════════════════════════════════════════════════════════════════════ */
-.dark-toggle {
+.style-toggle {
     width: 42px;
     height: 42px;
     background: var(--paper);
@@ -225,11 +226,11 @@ body.dark-mode #map::after {
     box-shadow: var(--shadow-soft);
     transition: background 0.3s, border-color 0.3s, transform 0.2s var(--ease);
 }
-.dark-toggle:hover {
+.style-toggle:hover {
     background: var(--paper-soft);
     transform: rotate(15deg) scale(1.05);
 }
-.dark-toggle:active { transform: scale(0.92); }
+.style-toggle:active { transform: scale(0.92); }
 
 /* ════════════════════════════════════════════════════════════════════════════
    TEARDROP PIN MARKER
@@ -569,22 +570,26 @@ body.dark-mode #map::after {
     color: #94a3b8;
     font-size: 10.5px;
 }
-.sky-popup-table .num {
+/* Scheduled time column */
+.sky-popup-table .time-cell {
     font-family: 'Fira Code', monospace;
     color: #94a3b8;
-    text-align: right;
-    font-size: 10.5px;
+    font-size: 10px;
+    letter-spacing: 0.02em;
 }
-.sky-popup-table .delay-val {
+
+/* Delay category badge — follows the blue→purple storm palette */
+.sky-popup-table .delay-cat {
     font-family: 'Fira Code', monospace;
     font-weight: 700;
+    font-size: 10px;
     text-align: right;
+    letter-spacing: 0.04em;
 }
-/* Delay colours follow the blue→purple storm palette */
-.sky-popup-table .delay-val.d-none { color: #81D4FA; }
-.sky-popup-table .delay-val.d-low  { color: #7986CB; }
-.sky-popup-table .delay-val.d-mod  { color: #AB47BC; }
-.sky-popup-table .delay-val.d-sev  { color: #7B1FA2; }
+.sky-popup-table .delay-cat.d-none { color: #81D4FA; }
+.sky-popup-table .delay-cat.d-low  { color: #7986CB; }
+.sky-popup-table .delay-cat.d-mod  { color: #AB47BC; }
+.sky-popup-table .delay-cat.d-sev  { color: #7B1FA2; }
 
 .empty-row {
     text-align: center !important;
@@ -650,9 +655,5 @@ body.dark-mode #map::after {
     font-size: 9px !important;
     border-radius: 6px 0 0 0;
     padding: 3px 8px !important;
-}
-body.dark-mode .leaflet-control-attribution {
-    background: rgba(26,32,48,0.9) !important;
-    color: var(--ink-soft) !important;
 }
 .leaflet-control-attribution a { color: var(--gold-deep) !important; }

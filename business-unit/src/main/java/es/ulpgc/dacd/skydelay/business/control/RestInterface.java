@@ -42,7 +42,17 @@ public class RestInterface {
         dashboardApp.get("/api/data", ctx -> ctx.json(flightDAO.getReadyToEatMenu()));
         setupCommonRoutes(dashboardApp);
 
-        mapApp.get("/api/data", ctx -> ctx.json(mapDataService.getAirportsWithCurrentDelays()));
+        mapApp.get("/api/data", ctx -> {
+            flightDAO.purgeExpiredPredictions();
+            ctx.json(mapDataService.getAirportsWithPredictions());
+        });
+
+        // Full predictions list (for the predictions page) with optional origin filter
+        mapApp.get("/api/predictions", ctx -> {
+            String origin = ctx.queryParam("origin");
+            ctx.json(flightDAO.getAllPredictions(origin));
+        });
+
         setupCommonRoutes(mapApp);
     }
 
