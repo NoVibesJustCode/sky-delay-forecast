@@ -28,11 +28,9 @@ public class Controller {
     private final String eventStorePath;
     private final Gson gson;
 
-    // Infraestructura de datos
     private FlightDAO flightDAO;
     private WeatherDAO weatherDAO;
 
-    // Servicios de aplicación
     private PredictionService predictionService;
     private MapDataService mapDataService;
 
@@ -49,7 +47,6 @@ public class Controller {
 
     public void execute() {
         try {
-            // --- Infraestructura de acceso a datos ---
             DatamartManager datamartManager = new DatamartManager(dbPath);
             datamartManager.initializeDatabase();
 
@@ -57,12 +54,10 @@ public class Controller {
             this.flightDAO  = new FlightDAO(datamartManager);
             this.weatherDAO = new WeatherDAO(datamartManager);
 
-            // --- Servicios de aplicación ---
             DataStore dataStore = new DataStore(flightDAO, weatherDAO);
             this.mapDataService    = new MapDataService(dataStore, translator);
             this.predictionService = new PredictionService(flightDAO, weatherDAO, translator);
 
-            // --- Fases de arranque ---
             runHistoricalSweep();
             predictionService.refreshModel();
 
