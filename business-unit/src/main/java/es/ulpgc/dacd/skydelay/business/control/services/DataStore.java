@@ -26,6 +26,10 @@ public class DataStore {
         return flightDAO.getHistoricalAirportFlights(icao, limit);
     }
 
+    public List<Map<String, Object>> fetchRichHistoricalFlights(String icao, int limit) {
+        return flightDAO.getRichHistoricalFlights(icao, limit);
+    }
+
     public List<Map<String, String>> fetchRecentPredictions(String icao, int limit) {
         return flightDAO.getRecentAirportPredictions(icao, limit);
     }

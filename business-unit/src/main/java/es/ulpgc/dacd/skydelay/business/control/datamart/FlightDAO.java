@@ -98,6 +98,43 @@ public class FlightDAO {
         return results;
     }
 
+    /**
+     * Enriched version of getHistoricalAirportFlights that returns the full
+     * flight_features columns needed by the map popup's flights table.
+     */
+    public List<Map<String, Object>> getRichHistoricalFlights(String icao, int limit) {
+        List<Map<String, Object>> results = new ArrayList<>();
+        String sql = "SELECT flight_id, dest_icao, departure_delay, delay_category, " +
+                     "temp, wind, gust, vis, distance_km " +
+                     "FROM flight_features WHERE origin_icao = ? ORDER BY flight_id DESC LIMIT ?";
+        try (Connection conn = db.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, icao);
+            pstmt.setInt(2, limit);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Map<String, Object> row = new LinkedHashMap<>();
+                String flightId = rs.getString("flight_id");
+                String dest     = rs.getString("dest_icao") != null ? rs.getString("dest_icao") : "N/A";
+                row.put("flightId",    flightId);
+                row.put("dest",        dest);
+                row.put("route",       flightId + " → " + dest);    // legacy alias
+                row.put("delay",       rs.getInt("departure_delay"));
+                row.put("category",    rs.getString("delay_category"));
+                row.put("prediction",  rs.getString("delay_category")); // legacy alias
+                row.put("temp",        rs.getDouble("temp"));
+                row.put("wind",        rs.getDouble("wind"));
+                row.put("gust",        rs.getDouble("gust"));
+                row.put("vis",         rs.getDouble("vis"));
+                row.put("distanceKm",  rs.getInt("distance_km"));
+                results.add(row);
+            }
+        } catch (SQLException e) {
+            logger.error("getRichHistoricalFlights error: {}", e.getMessage());
+        }
+        return results;
+    }
+
     public List<Map<String, Object>> getAllFlightFeatures() {
         List<Map<String, Object>> results = new ArrayList<>();
         String sql = "SELECT flight_id, origin_icao, dest_icao, temp, wind, gust, vis, " +

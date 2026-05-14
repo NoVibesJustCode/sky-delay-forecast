@@ -18,16 +18,17 @@ public class MapDataService {
         Collection<AirportData> airports = translator.getAirports();
 
         for (AirportData airport : airports) {
-            Map<String, Object> airportMap = new HashMap<>();
+            Map<String, Object> airportMap = new LinkedHashMap<>();
             airportMap.put("icao", airport.icao());
+            airportMap.put("iata", airport.iata());
             airportMap.put("name", airport.name());
-            airportMap.put("lat", airport.lat());
-            airportMap.put("lng", airport.lon());
+            airportMap.put("lat",  airport.lat());
+            airportMap.put("lng",  airport.lon());
 
             double avgDelay = dataStore.getAverageDelayForAirport(airport.icao(), 10);
             airportMap.put("delay", avgDelay);
 
-            airportMap.put("recentFlights", getHistoricalFlightsForAirport(airport.icao()));
+            airportMap.put("recentFlights", dataStore.fetchRichHistoricalFlights(airport.icao(), 12));
 
             result.add(airportMap);
         }
