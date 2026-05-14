@@ -61,8 +61,6 @@ storage/db/datamart.db
 eventstore/flight/flight-feeder/*.events
 eventstore/weather/weather-feeder/*.events
 
-### docs ###
-docs/*.png
 
 ### Others ###
 user-data-dir/
