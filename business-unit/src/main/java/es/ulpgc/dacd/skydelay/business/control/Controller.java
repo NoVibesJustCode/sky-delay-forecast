@@ -23,9 +23,9 @@ public class Controller {
     private static final Logger logger = LoggerFactory.getLogger(Controller.class);
 
     private final String brokerUrl;
+    private final String eventStorePath;
     private final String dbPath;
     private final String csvPath;
-    private final String eventStorePath;
     private final Gson gson;
 
     private FlightDAO flightDAO;
@@ -34,11 +34,11 @@ public class Controller {
     private PredictionService predictionService;
     private MapDataService mapDataService;
 
-    public Controller(String brokerUrl, String dbPath, String csvPath, String eventStorePath) {
+    public Controller(String brokerUrl, String eventStorePath, String dbPath, String csvPath) {
         this.brokerUrl = brokerUrl;
+        this.eventStorePath = eventStorePath;
         this.dbPath = dbPath;
         this.csvPath = csvPath;
-        this.eventStorePath = eventStorePath;
         this.gson = new GsonBuilder()
                 .registerTypeAdapter(Instant.class, (JsonDeserializer<Instant>) (json, typeOfT, context) ->
                         Instant.parse(json.getAsString()))
