@@ -461,7 +461,7 @@ body.dark-mode #map::after {
     margin-top: 10px;
     font-size: 11px;
     font-family: 'Fira Code', monospace;
-    color: #556880;
+    color: #c8d6e8;
 }
 .sky-popup-weather span { display: inline-flex; align-items: center; gap: 4px; }
 
@@ -470,7 +470,7 @@ body.dark-mode #map::after {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #3d5068;
+    color: #8899aa;
 }
 
 /* ── Distribution bar (replaces colorful count pills) ─────────────────────── */
@@ -504,7 +504,7 @@ body.dark-mode #map::after {
     margin-top: 6px;
     font-family: 'Fira Code', monospace;
     font-size: 10px;
-    color: #556880;
+    color: #c8d6e8;
     letter-spacing: 0.02em;
 }
 
@@ -540,7 +540,7 @@ body.dark-mode #map::after {
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #3d5068;
+    color: #c0cee0;
     white-space: nowrap;
 }
 .sky-popup-table th:first-child { padding-left: 14px; }
