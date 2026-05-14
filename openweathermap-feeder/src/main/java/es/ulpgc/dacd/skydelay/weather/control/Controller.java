@@ -18,7 +18,6 @@ public class Controller {
         this.airports = airports;
     }
 
-
     public void start() {
         Timer timer = new Timer("Weather-Timer");
 
@@ -32,7 +31,7 @@ public class Controller {
             }
         }, delay, period);
 
-        System.out.println("Scheduled control: sending information every 3 hours.");
+        System.out.println("Scheduled control: sending information every hour.");
     }
 
     public void execute() {
