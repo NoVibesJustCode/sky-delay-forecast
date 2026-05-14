@@ -12,6 +12,7 @@
         <module>openweathermap-feeder</module>
         <module>flight-status-feeder</module>
         <module>event-store-builder</module>
+        <module>business-unit</module>
     </modules>
 
     <properties>

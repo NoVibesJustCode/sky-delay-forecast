@@ -3,5 +3,5 @@ package es.ulpgc.dacd.skydelay.weather.control;
 import es.ulpgc.dacd.skydelay.weather.model.Weather;
 
 public interface WeatherStore {
-    void save(Weather weather);
+    void save(Object weatherEvent);
 }
