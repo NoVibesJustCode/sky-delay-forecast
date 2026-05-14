@@ -79,7 +79,7 @@ Current Weather event format:
 <img src="docs/weatherEvents.png" style="border: 2px solid #000;">
 
 Forecast Weather event format:
-<img src="docs/forecastEvents.pngEvents.png" style="border: 2px solid #000;">
+<img src="docs/forecastEvents.png" style="border: 2px solid #000;">
 
 ### Flight Status Feeder
 A module dedicated to obtaining real-time flight status information.
@@ -87,7 +87,7 @@ A module dedicated to obtaining real-time flight status information.
 -   **Publication**: Sends flight events to the broker for further processing.
 
 Flight event format:
-<img src="docs/flightEvents.pngvents.png" style="border: 2px solid #000;">
+<img src="docs/flightEvents.png" style="border: 2px solid #000;">
 
 ### Event Store Builder
 This component ensures the integrity and durability of the system's historical data.
