@@ -43,8 +43,8 @@ public class Controller {
                 }
             }
         }, 0, 6 * 60 * 60 * 1000L);
+        */
 
-                 */
 
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override

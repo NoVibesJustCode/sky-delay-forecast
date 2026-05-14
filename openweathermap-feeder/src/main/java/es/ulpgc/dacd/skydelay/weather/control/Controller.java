@@ -23,7 +23,7 @@ public class Controller {
         Timer timer = new Timer("Weather-Timer");
 
         long delay = 0;
-        long period = 3 * 60 * 60 * 1000L;
+        long period = 60 * 60 * 1000L;
 
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override

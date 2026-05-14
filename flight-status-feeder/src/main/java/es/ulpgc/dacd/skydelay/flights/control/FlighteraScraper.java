@@ -2,6 +2,7 @@ package es.ulpgc.dacd.skydelay.flights.control;
 
 import com.microsoft.playwright.*;
 import es.ulpgc.dacd.skydelay.flights.model.Flight;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,15 +19,22 @@ public class FlighteraScraper implements FlightScraper {
         LinkManager linkManager = new LinkManager(textFilePath);
         Random random = new Random();
 
+        String chromePath = Dotenv.load().get("CHROME_EXECUTABLE_PATH");
+        String userDataDir = Dotenv.load().get("CHROME_USER_DATA");
+
+        if (chromePath == null || userDataDir == null) {
+            throw new RuntimeException("Missing browser environment variables (CHROME_EXECUTABLE_PATH or CHROME_USER_DATA)");
+        }
+
         try (Playwright playwright = Playwright.create()) {
             BrowserType.LaunchPersistentContextOptions options = new BrowserType.LaunchPersistentContextOptions()
                     .setHeadless(false)
-                    .setExecutablePath(Paths.get("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"))
+                    .setExecutablePath(Paths.get(chromePath))
                     .setLocale("en-US")
                     .setArgs(List.of("--disable-blink-features=AutomationControlled"));
 
             BrowserContext context = playwright.chromium().launchPersistentContext(
-                    Paths.get("user-data-dir"),
+                    Paths.get(userDataDir),
                     options
             );
 
