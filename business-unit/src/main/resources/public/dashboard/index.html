@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkyDelay — Flight Delay Prediction</title>
+    <title>SkyDelay — Flight Delay Intelligence</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -24,9 +22,8 @@
         <div class="brand">
             <div class="brand-icon">
                 <svg viewBox="0 0 32 32" fill="none">
-                    <path d="M4 24L14 8l4 8 4-5 6 13" stroke="#00d4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <circle cx="14" cy="8" r="2" fill="#00d4ff" opacity="0.6"/>
-                    <circle cx="28" cy="21" r="1.5" fill="#ff4d6a" opacity="0.8"/>
+                    <path d="M4 24L14 8l4 8 4-5 6 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="brand-stroke"/>
+                    <circle cx="14" cy="8" r="2" fill="currentColor" opacity="0.6" class="brand-stroke"/>
                 </svg>
             </div>
             <div>
@@ -41,6 +38,7 @@
             <button class="nav-btn" data-view="flights">Flights</button>
         </nav>
         <div class="header-status">
+            <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark mode">☀️</button>
             <div class="live-dot"></div>
             <span class="mono" id="live-time">--:--:--</span>
             <div class="status-chip" id="data-status">LIVE DATA</div>
@@ -51,22 +49,19 @@
 <!-- MAIN -->
 <main id="main-content">
 
-    <!-- VIEW PANELS -->
+    <!-- ═══ OVERVIEW ═══ -->
     <div id="view-overview" class="view-panel active">
 
-        <!-- ROW: Bar + Pie -->
+        <!-- ROW: Bar + Feature Impact -->
         <div class="charts-row-2">
             <div class="chart-card glass span-2">
                 <div class="chart-card-header">
                     <div>
                         <div class="chart-title">Delays by Airport</div>
-                        <div class="chart-sub">Average delay minutes · last 30 days</div>
-                    </div>
-                    <div class="legend-pills">
-                        <span class="pill pill-cyan">Departure</span>
-                        <span class="pill pill-red">Arrival</span>
+                        <div class="chart-sub">Average departure delay · historical data</div>
                     </div>
                 </div>
+                <div class="airport-selector-wrap" id="airport-selector"></div>
                 <div class="chart-wrap h360"><canvas id="chart-airport-bar"></canvas></div>
             </div>
             <div class="chart-card glass">
@@ -80,7 +75,7 @@
             </div>
         </div>
 
-        <!-- ROW: Trend Area + Scatter -->
+        <!-- ROW: Severity Area + Wind Scatter -->
         <div class="charts-row-2">
             <div class="chart-card glass span-2">
                 <div class="chart-card-header">
@@ -108,58 +103,22 @@
             </div>
         </div>
 
-        <!-- ROW: Top flights table + radar -->
-        <div class="charts-row-2">
-            <div class="chart-card glass span-2">
-                <div class="chart-card-header">
-                    <div class="chart-title">High Risk Flights · Next 6h</div>
-                    <div class="chart-sub">AI Prediction — sorted by delay probability</div>
-                </div>
-                <div class="flight-table-wrap">
-                    <table class="flight-table">
-                        <thead>
-                        <tr>
-                            <th>Flight ID</th>
-                            <th>Route</th>
-                            <th>Dep. UTC</th>
-                            <th>Aircraft</th>
-                            <th>Wind (m/s)</th>
-                            <th>Gust (m/s)</th>
-                            <th>Visib. (km)</th>
-                            <th>Dep. Delay</th>
-                            <th>Severity</th>
-                        </tr>
-                        </thead>
-                        <tbody id="risk-flights-body"></tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="chart-card glass">
-                <div class="chart-card-header">
-                    <div>
-                        <div class="chart-title">Weather Radar</div>
-                        <div class="chart-sub">Current impact factors</div>
-                    </div>
-                </div>
-                <div class="chart-wrap h280"><canvas id="chart-weather-radar"></canvas></div>
-            </div>
-        </div>
-
     </div><!-- /overview -->
 
+    <!-- ═══ AIRPORTS ═══ -->
     <div id="view-airports" class="view-panel">
         <div class="charts-row-2">
             <div class="chart-card glass span-2">
                 <div class="chart-card-header">
                     <div class="chart-title">Airport Ranking — Worst Delays</div>
-                    <div class="chart-sub">Average accumulated delay minutes (departure + arrival)</div>
+                    <div class="chart-sub">Average delay minutes per airport</div>
                 </div>
                 <div class="chart-wrap h380"><canvas id="chart-airports-ranking"></canvas></div>
             </div>
             <div class="chart-card glass">
                 <div class="chart-card-header">
                     <div class="chart-title">Delays by Hour of Day</div>
-                    <div class="chart-sub">All airports · 30-day average</div>
+                    <div class="chart-sub">All airports · historical average</div>
                 </div>
                 <div class="chart-wrap h300"><canvas id="chart-hour-bar"></canvas></div>
             </div>
@@ -169,13 +128,7 @@
                 <div class="chart-card-header">
                     <div>
                         <div class="chart-title">Airport × Severity Heatmap</div>
-                        <div class="chart-sub">% of flights per severity bucket · darker = more concentrated</div>
-                    </div>
-                    <div class="legend-pills">
-                        <span class="pill pill-safe">none</span>
-                        <span class="pill pill-cyan">low</span>
-                        <span class="pill pill-warn">moderate</span>
-                        <span class="pill pill-red">severe</span>
+                        <div class="chart-sub">% of flights per severity bucket by origin airport</div>
                     </div>
                 </div>
                 <div id="heatmap-airport-severity" class="heatmap-grid"></div>
@@ -183,24 +136,16 @@
         </div>
     </div>
 
+    <!-- ═══ WEATHER ═══ -->
     <div id="view-weather" class="view-panel">
         <div class="charts-row-2">
             <div class="chart-card glass span-2">
                 <div class="chart-card-header">
                     <div class="chart-title">Weather Series · LEMD (Adolfo Suárez)</div>
-                    <div class="chart-sub">Wind, visibility and precipitation — last 48h</div>
+                    <div class="chart-sub">Wind, visibility and temperature — recent records</div>
                 </div>
                 <div class="chart-wrap h320"><canvas id="chart-weather-series"></canvas></div>
             </div>
-            <div class="chart-card glass">
-                <div class="chart-card-header">
-                    <div class="chart-title">Cloudiness Impact</div>
-                    <div class="chart-sub">Average departure delay by cloud cover (%)</div>
-                </div>
-                <div class="chart-wrap h300"><canvas id="chart-cloud-impact"></canvas></div>
-            </div>
-        </div>
-        <div class="charts-row-2">
             <div class="chart-card glass">
                 <div class="chart-card-header">
                     <div class="chart-title">Wind Gust vs Total Delay</div>
@@ -208,6 +153,8 @@
                 </div>
                 <div class="chart-wrap h280"><canvas id="chart-gust-scatter"></canvas></div>
             </div>
+        </div>
+        <div class="charts-row-1">
             <div class="chart-card glass">
                 <div class="chart-card-header">
                     <div class="chart-title">Visibility and Cancellations</div>
@@ -218,6 +165,7 @@
         </div>
     </div>
 
+    <!-- ═══ FLIGHTS ═══ -->
     <div id="view-flights" class="view-panel">
         <div class="filter-bar">
             <div class="filter-group">
@@ -229,9 +177,11 @@
                     <option value="AGP">AGP — Málaga Costa del Sol</option>
                     <option value="LPA">LPA — Gran Canaria</option>
                     <option value="PMI">PMI — Palma de Mallorca</option>
+                    <option value="ALC">ALC — Alicante-Elche</option>
                     <option value="VLC">VLC — Valencia</option>
                     <option value="BIO">BIO — Bilbao</option>
                     <option value="SVQ">SVQ — Sevilla</option>
+                    <option value="TFN">TFN — Tenerife Norte</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -243,21 +193,10 @@
                     <option>Cancelled</option>
                 </select>
             </div>
-            <div class="filter-group">
-                <label class="filter-label">Aircraft</label>
-                <select class="filter-select" id="filter-aircraft">
-                    <option value="">All</option>
-                    <option>Airbus A320</option>
-                    <option>Airbus A320 Neo</option>
-                    <option>Airbus A321 Neo</option>
-                    <option>Boeing B737-800</option>
-                    <option>ATR 72-600</option>
-                </select>
-            </div>
         </div>
         <div class="chart-card glass full-width">
             <div class="chart-card-header">
-                <div class="chart-title">Complete Flight Log</div>
+                <div class="chart-title">Historical Flight Log</div>
                 <div class="chart-sub mono" id="flights-count">— flights loaded</div>
             </div>
             <div class="flight-table-wrap">
@@ -268,13 +207,9 @@
                         <th>Flight ID</th>
                         <th>Origin</th>
                         <th>Destination</th>
-                        <th>Date</th>
-                        <th>Dep. UTC</th>
-                        <th>Arr. UTC</th>
                         <th>Aircraft</th>
                         <th>Distance</th>
                         <th>Dep. Delay</th>
-                        <th>Arr. Delay</th>
                         <th>Status</th>
                     </tr>
                     </thead>
@@ -296,7 +231,7 @@
     <div class="footer-inner">
         <span class="footer-brand">SkyDelay</span>
         <span class="footer-sep">·</span>
-        <span>Flight Delay Intelligence · Powered by AI + Historical Data</span>
+        <span>Flight Delay Intelligence · Historical Data Dashboard</span>
         <span class="footer-sep">·</span>
         <span class="mono" id="footer-ts"></span>
     </div>

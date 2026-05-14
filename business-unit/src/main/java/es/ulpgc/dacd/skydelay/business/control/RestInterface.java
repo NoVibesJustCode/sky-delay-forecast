@@ -30,11 +30,18 @@ public class RestInterface {
                 config.staticFiles.add("/public/map", Location.CLASSPATH)
         ).start(8080);
 
-        // Dashboard: menú Ready-to-Eat (predicciones ya generadas)
+        dashboardApp.get("/api/flight-features", ctx ->
+                ctx.json(flightDAO.getAllFlightFeatures()));
+
+        dashboardApp.get("/api/weather-series", ctx -> {
+            String icao = ctx.queryParamAsClass("icao", String.class).getOrDefault("LEMD");
+            int limit = ctx.queryParamAsClass("limit", Integer.class).getOrDefault(200);
+            ctx.json(weatherDAO.getSeries(icao, limit));
+        });
+
         dashboardApp.get("/api/data", ctx -> ctx.json(flightDAO.getReadyToEatMenu()));
         setupCommonRoutes(dashboardApp);
 
-        // Mapa: aeropuertos con retraso promedio y vuelos recientes
         mapApp.get("/api/data", ctx -> ctx.json(mapDataService.getAirportsWithCurrentDelays()));
         setupCommonRoutes(mapApp);
     }
