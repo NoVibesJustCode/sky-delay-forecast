@@ -560,18 +560,18 @@ body.dark-mode #map::after {
 .sky-popup-table .flight-id {
     font-family: 'Fira Code', monospace;
     font-weight: 700;
-    color: #81D4FA;
+    color: #FFB300;
     font-size: 11px;
     letter-spacing: 0.05em;
 }
 .sky-popup-table .route-cell {
     font-family: 'Fira Code', monospace;
-    color: #556880;
+    color: #94a3b8;
     font-size: 10.5px;
 }
 .sky-popup-table .num {
     font-family: 'Fira Code', monospace;
-    color: #556880;
+    color: #94a3b8;
     text-align: right;
     font-size: 10.5px;
 }

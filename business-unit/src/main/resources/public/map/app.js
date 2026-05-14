@@ -30,6 +30,7 @@
     let labelLayer;
     let markers = [];
     let isDarkMode = false;
+    let iataLookup = new Map();   // ICAO → IATA for destination display
 
     // ── Init ──────────────────────────────────────────────────────────────────
     function initMap() {
@@ -221,10 +222,11 @@
         const rows = flights.length > 0
             ? flights.map(f => {
                 const delay = typeof f.delay === 'number' ? f.delay : parseInt(f.delay, 10) || 0;
+                const destCode = f.dest ? (iataLookup.get(f.dest) || f.dest) : '—';
                 return `
                   <tr>
                     <td class="flight-id">${escapeHtml(f.flightId || (f.route?.split('→')?.[0]?.trim()) || '—')}</td>
-                    <td class="route-cell">→ ${escapeHtml(f.dest || '—')}</td>
+                    <td class="route-cell">→ ${escapeHtml(destCode)}</td>
                     <td class="num">${fmtNum(f.wind)}</td>
                     <td class="num">${fmtVis(f.vis)}</td>
                     <td class="delay-val ${delayClass(delay)}">${delay >= 0 ? '+' : ''}${delay}′</td>
@@ -291,6 +293,10 @@
 
             const byIcao = new Map(dataPayload.map(d => [d.icao, d]));
 
+            // Build ICAO → IATA lookup for destination display in popups
+            airports.forEach(a => { if (a.iata) iataLookup.set(a.icao, a.iata); });
+            dataPayload.forEach(d => { if (d.iata) iataLookup.set(d.icao, d.iata); });
+
             airports.forEach((airport, idx) => {
                 const enriched = byIcao.get(airport.icao) || {};
                 const flights = enriched.recentFlights ?? [];
@@ -355,27 +361,62 @@
         }
     }
 
-    // ── Marker drop-in cascade ────────────────────────────────────────────────
+    // ── Marker pin-stab entrance (anime.js) ─────────────────────────────────
+    // Pins fall from the sky, stab into the map with a squish-bounce on landing.
     function cascadeMarkerEntrance() {
         const els = markers
             .map(m => m.marker.getElement()?.querySelector('.sky-pin'))
             .filter(Boolean);
+
+        // Also grab the tiny shadow elements for a landing pulse
+        const shadows = markers
+            .map(m => m.marker.getElement()?.querySelector('.sky-pin-shadow'))
+            .filter(Boolean);
+
         els.forEach(el => {
             el.style.opacity = 0;
             el.style.transformOrigin = 'center bottom';
         });
+        shadows.forEach(el => { el.style.opacity = 0; });
 
+        // Phase 1 — accelerating fall from above
+        // Phase 2 — squish on landing (scaleY compress, scaleX stretch)
+        // Phase 3 — elastic bounce-back to rest
         anime({
             targets: els,
-            opacity: [0, 1],
-            translateY: [-32, 0],
-            scale: [0.4, 1],
-            duration: 700,
-            delay: anime.stagger(70, { from: 'center' }),
-            easing: 'easeOutBack',
+            translateY: [
+                { value: [-220, 0], duration: 420, easing: 'easeInCubic' },
+            ],
+            scaleY: [
+                { value: 1, duration: 420 },
+                { value: 0.68, duration: 80, easing: 'easeOutQuad' },
+                { value: 1, duration: 500, easing: 'easeOutElastic(1, .45)' },
+            ],
+            scaleX: [
+                { value: 1, duration: 420 },
+                { value: 1.25, duration: 80, easing: 'easeOutQuad' },
+                { value: 1, duration: 500, easing: 'easeOutElastic(1, .45)' },
+            ],
+            opacity: [
+                { value: [0, 1], duration: 120, easing: 'linear' },
+            ],
+            delay: anime.stagger(40, { from: 'center' }),
             complete: () => {
-                // Clean up inline transforms left by anime.js
                 els.forEach(el => { el.style.transform = ''; });
+            }
+        });
+
+        // Shadow appears on "landing" — slight delayed fade-in + scale
+        anime({
+            targets: shadows,
+            opacity: [0, 1],
+            scaleX: [2.5, 1],
+            scaleY: [2.5, 1],
+            duration: 350,
+            delay: anime.stagger(40, { from: 'center', start: 400 }),
+            easing: 'easeOutQuad',
+            complete: () => {
+                shadows.forEach(el => { el.style.transform = ''; });
             }
         });
     }
