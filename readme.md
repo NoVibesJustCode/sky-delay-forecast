@@ -177,6 +177,13 @@ Each module must be run independently, preferably in the following order:
     java -jar <path_to_flight_status_feeder_jar> <broker_url> <topic_name> <path_to_pending_links_txt>
     ```
 
+    **Browser-path**: the local path to your browser used for scraping.
+    ```prolog
+    In .env
+    CHROME_EXECUTABLE_PATH=<path>
+    CHROME_USER_DATA=<directory>
+    ```
+
 5.  **Business Unit**:
     Requires the broker URL, the Event Store directory path (```eventstore/```), the SQLite database path (e.g., ```storage/db/datamart.db```) and the airport data file.
     ```bash
