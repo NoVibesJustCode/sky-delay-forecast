@@ -76,7 +76,7 @@ This module is responsible for weather data ingestion. It uses the OpenWeatherMa
 -   **Publication**: Sends weather events to the ActiveMQ broker in JSON format.
 
 Current Weather event format:
-<img src="docs/currentWeatherEvents.png" style="border: 2px solid #000;">
+<img src="docs/weatherEvents.png" style="border: 2px solid #000;">
 
 Forecast Weather event format:
 <img src="docs/forecastEvents.png" style="border: 2px solid #000;">
