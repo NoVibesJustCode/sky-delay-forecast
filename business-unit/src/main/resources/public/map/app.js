@@ -2,20 +2,23 @@
    SKYDELAY · PREDICTION MAP + FLIGHTS
    ─────────────────────────────────────────────────────────────────────────────
    · Map pins coloured by Delay Index (1 − OTP), a 0–1 continuous scale
+   · Pulse ring on airports with a new prediction in the last 10 minutes
    · Up to 5 closest-to-now predictions per airport popup
    · Flights tab: full searchable/filterable predictions table
-   · Two tile styles: clean (CARTO voyager) + sketch (Stamen Toner Lite)
+   · Two tile styles: clean (CARTO voyager) + vivid (Stamen Terrain)
    ════════════════════════════════════════════════════════════════════════════ */
 
 (() => {
     'use strict';
 
+    const PULSE_THRESHOLD_MS = 10 * 60 * 1000;  // 10 minutes
+
     /* ── Tile URLs ──────────────────────────────────────────────────────── */
-    const ATTR =
+    const ATTR_CLEAN =
         '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>' +
         ' · &copy; <a href="https://carto.com/">CARTO</a>';
 
-    const ATTR_SKETCH =
+    const ATTR_VIVID =
         '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>' +
         ' · <a href="https://stadiamaps.com/">Stadia</a>';
 
@@ -24,21 +27,19 @@
             base:   'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',
             labels: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',
         },
-        sketch: {
-            base:   'https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png',
-            labels: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',
+        vivid: {
+            // Stamen Terrain — colorful, topographic, hand-drawn feel
+            base:   'https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}{r}.png',
+            labels: null,  // no separate label layer — terrain includes its own
         }
     };
 
     let map, baseLayer, labelLayer;
     let markers = [];
-    let isSketchMode = false;
+    let isVividMode = false;
     let iataLookup = new Map();
 
     /* ── Colour interpolation for 0–1 delay rate ────────────────────── */
-    // 0.0 → light sky blue (#81D4FA)  rgb(129,212,250)
-    // 0.5 → indigo/purple   (#7C4DFF)  rgb(124,77,255)
-    // 1.0 → deep purple     (#4A148C)  rgb(74,20,140)
     const GRADIENT_STOPS = [
         { t: 0.0, r: 129, g: 212, b: 250 },
         { t: 0.3, r: 92,  g: 107, b: 192 },
@@ -66,6 +67,26 @@
     const CATEGORY_LABELS = {
         none: 'On Time', low: 'Low', moderate: 'Moderate', severe: 'Severe',
     };
+
+    /* ── Pulse helpers ──────────────────────────────────────────────── */
+    /**
+     * Returns true if the airport had a prediction added within the last 10 min.
+     */
+    function isRecentlyPredicted(latestPredictionAt) {
+        if (!latestPredictionAt) return false;
+        try {
+            const t = new Date(latestPredictionAt).getTime();
+            return (Date.now() - t) < PULSE_THRESHOLD_MS;
+        } catch { return false; }
+    }
+
+    /**
+     * Removes the pulse ring from a marker DOM element.
+     */
+    function removePulse(markerEl) {
+        const pulse = markerEl?.querySelector('.sky-pin-pulse');
+        if (pulse) pulse.remove();
+    }
 
     /* ── Tab switching ───────────────────────────────────────────────── */
     function initTabs() {
@@ -115,7 +136,7 @@
         map.zoomControl.setPosition('bottomright');
 
         baseLayer = L.tileLayer(TILES.clean.base, {
-            attribution: ATTR,
+            attribution: ATTR_CLEAN,
             subdomains: 'abcd',
             maxZoom: 19,
         }).addTo(map);
@@ -131,7 +152,7 @@
         loadMapData();
     }
 
-    /* ── Style toggle (clean ↔ sketch) ─────────────────────────────── */
+    /* ── Style toggle (clean ↔ vivid) ──────────────────────────────── */
     function addStyleToggle() {
         const Toggle = L.Control.extend({
             options: { position: 'topright' },
@@ -149,7 +170,7 @@
     }
 
     function toggleStyle() {
-        isSketchMode = !isSketchMode;
+        isVividMode = !isVividMode;
         const btn = document.getElementById('styleToggleBtn');
         anime({
             targets: btn,
@@ -159,12 +180,25 @@
             easing: 'easeOutBack',
             complete: () => { btn.style.transform = ''; }
         });
-        btn.textContent = isSketchMode ? '🗺️' : '🎨';
-        document.body.classList.toggle('sketch-mode', isSketchMode);
+        btn.textContent = isVividMode ? '🗺️' : '🎨';
+        document.body.classList.toggle('vivid-mode', isVividMode);
 
-        const theme = isSketchMode ? 'sketch' : 'clean';
-        baseLayer.setUrl(TILES[theme].base);
-        labelLayer.setUrl(TILES[theme].labels);
+        if (isVividMode) {
+            // Switch to Stamen Terrain (includes its own labels)
+            baseLayer.setUrl(TILES.vivid.base);
+            // Remove the separate label layer so voyager labels don't overlap
+            if (labelLayer && map.hasLayer(labelLayer)) {
+                map.removeLayer(labelLayer);
+            }
+        } else {
+            // Switch back to clean voyager
+            baseLayer.setUrl(TILES.clean.base);
+            // Re-add the label layer
+            if (labelLayer && !map.hasLayer(labelLayer)) {
+                labelLayer.setUrl(TILES.clean.labels);
+                labelLayer.addTo(map);
+            }
+        }
     }
 
     /* ── Chrome entrance animations ────────────────────────────────── */
@@ -222,6 +256,7 @@
         if (!isoStr) return '—';
         try {
             const d = new Date(isoStr);
+            if (isNaN(d.getTime())) return isoStr;
             return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
                 + ' · ' + d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
         } catch { return isoStr; }
@@ -233,11 +268,10 @@
         const colour   = delayRateToRgb(delayRate);
         const total    = predictions.length;
 
-        const tempStr = weather && Number.isFinite(weather.temp)    ? `${weather.temp.toFixed(1)}°C`            : '—';
-        const windStr = weather && Number.isFinite(weather.windSpeed) ? `${weather.windSpeed.toFixed(1)} m/s`     : '—';
+        const tempStr = weather && Number.isFinite(weather.temp)       ? `${weather.temp.toFixed(1)}°C`                : '—';
+        const windStr = weather && Number.isFinite(weather.windSpeed)  ? `${weather.windSpeed.toFixed(1)} m/s`          : '—';
         const visStr  = weather && Number.isFinite(weather.visibility) ? `${(weather.visibility / 1000).toFixed(0)} km` : '—';
 
-        // Distribution bar
         const distSegs = [
             { key: 'none', count: counts.none },
             { key: 'low', count: counts.low },
@@ -336,6 +370,10 @@
                 const enriched    = byIcao.get(airport.icao) || {};
                 const predictions = enriched.predictions ?? [];
                 const delayRate   = typeof enriched.delayRate === 'number' ? enriched.delayRate : 0;
+                const latestPred  = enriched.latestPredictionAt || null;
+
+                // Pulse only if a new prediction arrived in the last 10 min
+                const shouldPulse = isRecentlyPredicted(latestPred);
 
                 const latestWeather = weatherList
                     .filter(w => w.icao === airport.icao)
@@ -344,7 +382,7 @@
                 const icon = createPinIcon(
                     delayRate,
                     airport.iata || enriched.iata || '',
-                    delayRate >= 0.6
+                    shouldPulse
                 );
 
                 const lat = airport.lat;
@@ -366,15 +404,27 @@
                     autoPanPadding: [30, 30],
                 });
 
+                // On popup open: show content + remove pulse (user acknowledged)
                 marker.on('popupopen', e => {
                     const { airport, weather, predictions, delayRate } = marker.airportData;
                     e.popup.setContent(buildPopupHtml(airport, weather, predictions, delayRate));
+
+                    // Remove pulse ring on click
+                    removePulse(marker.getElement());
+
                     requestAnimationFrame(() => {
                         const node = e.popup.getElement()?.querySelector('.sky-popup');
                         if (!node) return;
                         anime({ targets: node, scale: [0.92, 1], opacity: [0, 1], duration: 360, easing: 'easeOutBack' });
                     });
                 });
+
+                // Auto-expire pulse after 10 min
+                if (shouldPulse && latestPred) {
+                    const elapsed = Date.now() - new Date(latestPred).getTime();
+                    const remaining = Math.max(0, PULSE_THRESHOLD_MS - elapsed);
+                    setTimeout(() => removePulse(marker.getElement()), remaining);
+                }
 
                 markers.push({ marker, idx });
             });

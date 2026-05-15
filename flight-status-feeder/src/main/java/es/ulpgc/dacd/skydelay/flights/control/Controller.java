@@ -21,7 +21,7 @@ public class Controller {
 
     public void execute() {
         Timer timer = new Timer("Flight-System-Timer");
-        /*
+
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -42,8 +42,7 @@ public class Controller {
                     System.err.println("[CRAWLER] ❌ Error: " + e.getMessage());
                 }
             }
-        }, 0, 6 * 60 * 60 * 1000L);
-        */
+        }, 0, 12 * 60 * 60 * 1000L);
 
 
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -52,7 +51,7 @@ public class Controller {
                 System.out.println("[SCRAPER]...");
                 scraper.startCapture(store, linksPath);
             }
-        }, 0 * 60 * 1000L, 20 * 60 * 1000L);
+        }, 10 * 60 * 1000L, 10 * 60 * 1000L);
     }
 }
 

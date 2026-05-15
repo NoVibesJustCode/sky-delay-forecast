@@ -30,16 +30,16 @@
     --ease:         cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Sketch / cartoon mode — light blue background, clean lines */
-body.sketch-mode {
-    --bg:         #dceefb;
-    --paper:      #eef6fd;
-    --paper-soft: #e4f0fa;
-    --ink:        #1a3250;
-    --ink-soft:   #4a6a8a;
-    --rule:       #b8d4ec;
-    --gold:       #5a9fd4;
-    --gold-deep:  #3a7cb8;
+/* Vivid mode — colorful terrain with warm vibrant tones */
+body.vivid-mode {
+    --bg:         #e6f2ee;
+    --paper:      #f0faf6;
+    --paper-soft: #e8f5f0;
+    --ink:        #1b3028;
+    --ink-soft:   #3d6852;
+    --rule:       #a8d4be;
+    --gold:       #e07840;
+    --gold-deep:  #c45a28;
 }
 
 body, html {
@@ -119,8 +119,8 @@ body, html {
     filter: saturate(1.65) contrast(1.1) brightness(1.03);
     transition: filter 0.5s var(--ease);
 }
-body.sketch-mode .leaflet-tile-pane {
-    filter: saturate(0.3) contrast(1.15) brightness(1.08);
+body.vivid-mode .leaflet-tile-pane {
+    filter: saturate(1.4) contrast(1.08) brightness(1.05);
 }
 
 #map::after {
@@ -133,9 +133,9 @@ body.sketch-mode .leaflet-tile-pane {
     z-index: 400;
     transition: opacity 0.5s var(--ease);
 }
-body.sketch-mode #map::after {
-    background-image: radial-gradient(circle at 20% 0%, rgba(90,160,220,0.06), transparent 50%),
-                      radial-gradient(circle at 90% 100%, rgba(60,120,200,0.04), transparent 50%);
+body.vivid-mode #map::after {
+    background-image: radial-gradient(circle at 20% 0%, rgba(240,140,60,0.06), transparent 50%),
+                      radial-gradient(circle at 90% 100%, rgba(60,180,120,0.05), transparent 50%);
 }
 
 /* ── Overlay (top-left brand card) ──────────────────────────────────────── */

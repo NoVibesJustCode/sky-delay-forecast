@@ -214,7 +214,7 @@ public class FlightDAO {
 
     public List<Map<String, String>> getRecentAirportPredictions(String icao, int limit) {
         List<Map<String, String>> results = new ArrayList<>();
-        String sql = "SELECT flight_id, dest_icao, scheduled_time, predicted_category " +
+        String sql = "SELECT flight_id, dest_icao, scheduled_time, predicted_category, last_updated " +
                      "FROM flight_predictions WHERE origin_icao = ? " +
                      "ORDER BY ABS(julianday(scheduled_time) - julianday('now')) ASC LIMIT ?";
         try (Connection conn = db.getConnection();
@@ -223,12 +223,13 @@ public class FlightDAO {
             pstmt.setInt(2, limit);
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
-                results.add(Map.of(
-                        "flight",     rs.getString("flight_id"),
-                        "dest",       rs.getString("dest_icao"),
-                        "time",       rs.getString("scheduled_time"),
-                        "prediction", rs.getString("predicted_category")
-                ));
+                Map<String, String> row = new LinkedHashMap<>();
+                row.put("flight",      rs.getString("flight_id"));
+                row.put("dest",        rs.getString("dest_icao"));
+                row.put("time",        rs.getString("scheduled_time"));
+                row.put("prediction",  rs.getString("predicted_category"));
+                row.put("lastUpdated", rs.getString("last_updated"));
+                results.add(row);
             }
         } catch (SQLException e) {
             logger.error("getRecentAirportPredictions error: {}", e.getMessage());
@@ -270,7 +271,8 @@ public class FlightDAO {
 
     public int purgeExpiredPredictions() {
         String sql = "DELETE FROM flight_predictions WHERE " +
-                     "flight_id IN (SELECT flight_id FROM flight_features) " +
+                     "(flight_id IN (SELECT flight_id FROM flight_features) " +
+                     " AND julianday('now') > julianday(scheduled_time)) " +
                      "OR julianday('now') - julianday(scheduled_time) > (4.0/24.0)";
         try (Connection conn = db.getConnection();
              Statement stmt = conn.createStatement()) {

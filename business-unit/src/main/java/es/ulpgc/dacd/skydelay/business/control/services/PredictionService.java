@@ -9,6 +9,13 @@ import es.ulpgc.dacd.skydelay.weather.model.Weather;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoField;
+import java.util.Locale;
+
 public class PredictionService {
 
     private static final Logger logger = LoggerFactory.getLogger(PredictionService.class);
@@ -53,16 +60,84 @@ public class PredictionService {
         );
 
         String destIcao = translator.toIcao(f.destination());
+        String scheduledDeparture = buildScheduledDeparture(f);
+
         flightDAO.savePrediction(
                 f.flightId(),
                 originIcao,
                 destIcao,
-                f.ts().toString(),
+                scheduledDeparture,
                 category
         );
 
-        logger.info("Prediction saved for flight {}: {} (origin: {})",
-                f.flightId(), category, originIcao);
+        logger.info("Prediction saved for flight {}: {} (origin: {}, scheduled: {})",
+                f.flightId(), category, originIcao, scheduledDeparture);
+    }
+
+
+    private String buildScheduledDeparture(Flight f) {
+        String depTimeStr = f.departureTimeUTC();
+
+        if (depTimeStr == null || "N/A".equals(depTimeStr) || depTimeStr.isBlank()) {
+            logger.warn("No UTC departure time for {}. Using scrape timestamp.", f.flightId());
+            return f.ts().toString();
+        }
+
+        try {
+            LocalTime depTime = LocalTime.parse(depTimeStr);
+
+            LocalDate depDate = tryParseFlightDate(f.date());
+            if (depDate == null) {
+                depDate = LocalDate.now(ZoneOffset.UTC);
+                LocalDateTime tentative = LocalDateTime.of(depDate, depTime);
+                if (tentative.isBefore(LocalDateTime.now(ZoneOffset.UTC).minusHours(6))) {
+                    depDate = depDate.plusDays(1);
+                }
+            }
+
+            return LocalDateTime.of(depDate, depTime)
+                    .toInstant(ZoneOffset.UTC)
+                    .toString();
+        } catch (DateTimeParseException e) {
+            logger.warn("Could not parse departure time '{}' for {}. Using scrape timestamp.",
+                    depTimeStr, f.flightId());
+            return f.ts().toString();
+        }
+    }
+
+    /**
+     * Attempts to parse the raw date text from the scraper into a LocalDate.
+     * Handles several common Flightera formats like "Thu, 15 May 2026", "May 15, 2026",
+     * "15 May 2026", etc. Returns null if parsing fails.
+     */
+    private static LocalDate tryParseFlightDate(String dateText) {
+        if (dateText == null || dateText.isBlank()) return null;
+
+        // Strip leading day-of-week names (e.g., "Thu, 15 May" → "15 May")
+        String cleaned = dateText.replaceAll("^\\w{3},?\\s*", "").trim();
+
+        DateTimeFormatter[] formats = {
+                DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH),
+                DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH),
+                DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.ENGLISH),
+                DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.ENGLISH),
+                // Without year — default to current year
+                new DateTimeFormatterBuilder()
+                        .appendPattern("d MMM")
+                        .parseDefaulting(ChronoField.YEAR, Year.now().getValue())
+                        .toFormatter(Locale.ENGLISH),
+                new DateTimeFormatterBuilder()
+                        .appendPattern("MMM d")
+                        .parseDefaulting(ChronoField.YEAR, Year.now().getValue())
+                        .toFormatter(Locale.ENGLISH),
+        };
+
+        for (DateTimeFormatter fmt : formats) {
+            try {
+                return LocalDate.parse(cleaned, fmt);
+            } catch (DateTimeParseException ignored) { }
+        }
+        return null;
     }
 
     /**
