@@ -41,7 +41,6 @@ public class PredictionService {
                 flightDAO.loadTrainingData().size());
     }
 
-
     public void processNewFlight(Flight f) {
         String originIcao = translator.toIcao(f.origin());
         Weather forecast  = weatherDAO.findClosest(originIcao, f.ts().toString());
@@ -74,7 +73,6 @@ public class PredictionService {
                 f.flightId(), category, originIcao, scheduledDeparture);
     }
 
-
     private String buildScheduledDeparture(Flight f) {
         String depTimeStr = f.departureTimeUTC();
 
@@ -105,15 +103,9 @@ public class PredictionService {
         }
     }
 
-    /**
-     * Attempts to parse the raw date text from the scraper into a LocalDate.
-     * Handles several common Flightera formats like "Thu, 15 May 2026", "May 15, 2026",
-     * "15 May 2026", etc. Returns null if parsing fails.
-     */
     private static LocalDate tryParseFlightDate(String dateText) {
         if (dateText == null || dateText.isBlank()) return null;
 
-        // Strip leading day-of-week names (e.g., "Thu, 15 May" → "15 May")
         String cleaned = dateText.replaceAll("^\\w{3},?\\s*", "").trim();
 
         DateTimeFormatter[] formats = {
@@ -121,7 +113,6 @@ public class PredictionService {
                 DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH),
                 DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.ENGLISH),
                 DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.ENGLISH),
-                // Without year — default to current year
                 new DateTimeFormatterBuilder()
                         .appendPattern("d MMM")
                         .parseDefaulting(ChronoField.YEAR, Year.now().getValue())
@@ -140,14 +131,6 @@ public class PredictionService {
         return null;
     }
 
-    /**
-     * Persiste un vuelo histórico (ya aterrizado/cancelado) como dato de
-     * entrenamiento en {@code flight_features}.
-     * Traduce los códigos IATA a ICAO, busca el registro meteorológico más
-     * cercano en el tiempo y categoriza el retraso antes de guardar.
-     *
-     * @param f vuelo con estado LIVE / LANDED / CANCELLED
-     */
     public void saveHistoricalFlight(Flight f) {
         String originIcao = translator.toIcao(f.origin());
         String destIcao   = translator.toIcao(f.destination());

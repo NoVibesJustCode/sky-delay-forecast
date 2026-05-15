@@ -13,7 +13,8 @@ public class FlighteraCrawler implements FlightCrawler {
             "LEMD", "LEBL", "LEPA", "LEMG", "LEAL", "LEVC", "LEZL",
             "GCLP", "GCXO", "GCTS", "GCFV", "GCRR", "GCLA", "GCHI",
             "LEBB", "LEST", "LECO", "LEVX", "LEAS", "LEXJ", "LEIB",
-            "LEMH", "LEGE", "LEGR", "LEAM", "LEJR", "LEBZ", "GEML"
+            "LEMH", "LEGE", "LEGR", "LEAM", "LEJR", "LEBZ", "GEML",
+            "LEVT"
     );
 
     private static final Logger logger = LoggerFactory.getLogger(FlighteraCrawler.class);
