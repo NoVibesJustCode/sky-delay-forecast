@@ -1,0 +1,5 @@
+# Mark Frontend files as vendored to exclude them from the repository language statistics
+# This ensures GitHub attributes the project 100% to Java core logic
+*.html linguist-vendored
+*.css linguist-vendored
+*.js linguist-vendored
