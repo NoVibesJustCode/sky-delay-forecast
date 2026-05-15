@@ -55,29 +55,6 @@ public class FlightDAO {
         }
     }
 
-    public List<Map<String, String>> getRecentByOrigin(String icao, int limit) {
-        List<Map<String, String>> results = new ArrayList<>();
-        String sql = "SELECT flight_id, dest_icao, departure_delay, delay_category " +
-                     "FROM flight_features WHERE origin_icao = ? ORDER BY flight_id DESC LIMIT ?";
-        try (Connection conn = db.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, icao);
-            pstmt.setInt(2, limit);
-            ResultSet rs = pstmt.executeQuery();
-            while (rs.next()) {
-                results.add(Map.of(
-                        "flight", rs.getString("flight_id"),
-                        "dest",   rs.getString("dest_icao"),
-                        "delay",  rs.getString("departure_delay"),
-                        "category", rs.getString("delay_category")
-                ));
-            }
-        } catch (SQLException e) {
-            logger.error("getRecentByOrigin error: {}", e.getMessage());
-        }
-        return results;
-    }
-
     public List<Map<String, String>> getHistoricalAirportFlights(String icao, int limit) {
         List<Map<String, String>> results = new ArrayList<>();
         String sql = "SELECT flight_id, dest_icao, delay_category " +

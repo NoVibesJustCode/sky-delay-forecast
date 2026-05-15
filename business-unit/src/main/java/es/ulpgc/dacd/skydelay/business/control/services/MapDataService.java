@@ -33,7 +33,6 @@ public class MapDataService {
             double delayRate = delayRates.getOrDefault(airport.icao(), 0.0);
             airportMap.put("delayRate", delayRate);
 
-            // Find the most recent lastUpdated among this airport's predictions
             String latestUpdate = predictions.stream()
                     .map(p -> p.getOrDefault("lastUpdated", ""))
                     .filter(s -> !s.isEmpty())

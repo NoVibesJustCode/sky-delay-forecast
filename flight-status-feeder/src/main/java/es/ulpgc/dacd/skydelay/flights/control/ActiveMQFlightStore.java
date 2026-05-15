@@ -10,13 +10,13 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 
 import java.time.Instant;
 
-public class ActiveMqFlightStore implements FlightStore {
+public class ActiveMQFlightStore implements FlightStore {
     private final Connection connection;
     private final MessageProducer producer;
     private final Session session;
     private final Gson gson;
 
-    public ActiveMqFlightStore(String brokerUrl, String topicName) throws JMSException {
+    public ActiveMQFlightStore(String brokerUrl, String topicName) throws JMSException {
         this.gson = new GsonBuilder().registerTypeAdapter(Instant.class, (JsonSerializer<Instant>) (src, typeOfSrc, context) ->
                         new JsonPrimitive(src.toString()))
                 .create();

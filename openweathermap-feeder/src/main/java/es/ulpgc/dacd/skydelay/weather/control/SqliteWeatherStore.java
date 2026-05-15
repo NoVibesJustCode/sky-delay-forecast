@@ -92,4 +92,9 @@ public class SqliteWeatherStore implements WeatherStore {
         pstmt.setDouble(9, gust);
         pstmt.setInt(10, clouds);
     }
+
+    @Override
+    public void close() {
+        System.out.println("SqliteWeatherStore: No persistent connections to close.");
+    }
 }

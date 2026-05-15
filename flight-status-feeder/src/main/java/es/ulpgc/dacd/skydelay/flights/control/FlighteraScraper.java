@@ -72,7 +72,6 @@ public class FlighteraScraper implements FlightScraper {
 
     private Flight scrapFlight(String flightURL, Page page) {
         page.navigate(flightURL);
-        handleCookies(page);
 
         page.waitForSelector("h1[itemprop='flightNumber']");
 
@@ -91,20 +90,6 @@ public class FlighteraScraper implements FlightScraper {
                 FlightMapper.parseDistance(page.locator("[itemprop='distance']").first().innerText()),
                 FlightMapper.cleanAircraft(page.locator("[itemprop='model']").count() > 0 ? page.locator("[itemprop='model']").innerText() : "Unknown")
         );
-    }
-
-    private static void handleCookies(Page page) {
-        try {
-            FrameLocator cookieFrame = page.frameLocator("iframe[id^='sp_message_iframe']");
-            Locator btn = cookieFrame.locator("button[title='Rechazar todo']");
-            if (btn.isVisible()) {
-                btn.click();
-                page.waitForCondition(() -> !btn.isVisible());
-            }
-        } catch (Exception ignored) {
-            Locator fallback = page.locator("button:has-text('Rechazar todo')").first();
-            if (fallback.isVisible()) fallback.click();
-        }
     }
 
     private void deleteUserDataDir(String path) {

@@ -46,13 +46,11 @@ public class DatamartManager {
                 );
             """);
 
-            // Migrations: add columns if they don't exist yet
             try { stmt.execute("ALTER TABLE flight_features ADD COLUMN scheduled_departure TEXT"); }
-            catch (SQLException ignored) { /* column already exists */ }
+            catch (SQLException ignored) {}
             try { stmt.execute("ALTER TABLE flight_features ADD COLUMN aircraft_model TEXT"); }
-            catch (SQLException ignored) { /* column already exists */ }
+            catch (SQLException ignored) {}
 
-            // Backfill scheduled_departure from flight_predictions where possible
             stmt.execute("""
                 UPDATE flight_features SET scheduled_departure = (
                     SELECT scheduled_time FROM flight_predictions
