@@ -46,6 +46,20 @@ public class DatamartManager {
                 );
             """);
 
+            // Migrations: add columns if they don't exist yet
+            try { stmt.execute("ALTER TABLE flight_features ADD COLUMN scheduled_departure TEXT"); }
+            catch (SQLException ignored) { /* column already exists */ }
+            try { stmt.execute("ALTER TABLE flight_features ADD COLUMN aircraft_model TEXT"); }
+            catch (SQLException ignored) { /* column already exists */ }
+
+            // Backfill scheduled_departure from flight_predictions where possible
+            stmt.execute("""
+                UPDATE flight_features SET scheduled_departure = (
+                    SELECT scheduled_time FROM flight_predictions
+                    WHERE flight_predictions.flight_id = flight_features.flight_id
+                ) WHERE scheduled_departure IS NULL
+            """);
+
             logger.info("Datamart schema initialized successfully.");
         } catch (SQLException e) {
             logger.error("DB Initialization error: {}", e.getMessage());

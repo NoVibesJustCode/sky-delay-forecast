@@ -15,8 +15,9 @@ public class FlightDAO {
 
     public void saveFeature(String flightId, String origin, String dest,
                             double temp, double wind, double gust, double vis,
-                            int dist, int delay, String category) {
-        String sql = "INSERT OR REPLACE INTO flight_features VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                            int dist, int delay, String category,
+                            String scheduledDeparture, String aircraftModel) {
+        String sql = "INSERT OR REPLACE INTO flight_features VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = db.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, flightId);
@@ -29,6 +30,8 @@ public class FlightDAO {
             pstmt.setInt(8, dist);
             pstmt.setInt(9, delay);
             pstmt.setString(10, category);
+            pstmt.setString(11, scheduledDeparture);
+            pstmt.setString(12, aircraftModel);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             logger.error("Error saving flight feature: {}", e.getMessage());
@@ -133,7 +136,8 @@ public class FlightDAO {
     public List<Map<String, Object>> getAllFlightFeatures() {
         List<Map<String, Object>> results = new ArrayList<>();
         String sql = "SELECT flight_id, origin_icao, dest_icao, temp, wind, gust, vis, " +
-                     "distance_km, departure_delay, delay_category FROM flight_features";
+                     "distance_km, departure_delay, delay_category, " +
+                     "scheduled_departure, aircraft_model FROM flight_features";
         try (Connection conn = db.getConnection();
              ResultSet rs = conn.createStatement().executeQuery(sql)) {
             while (rs.next()) {
@@ -148,6 +152,8 @@ public class FlightDAO {
                 row.put("distanceKm",    rs.getInt("distance_km"));
                 row.put("departureDelay", rs.getInt("departure_delay"));
                 row.put("delayCategory", rs.getString("delay_category"));
+                row.put("scheduledDeparture", rs.getString("scheduled_departure"));
+                row.put("aircraftModel",      rs.getString("aircraft_model"));
                 results.add(row);
             }
         } catch (SQLException e) {

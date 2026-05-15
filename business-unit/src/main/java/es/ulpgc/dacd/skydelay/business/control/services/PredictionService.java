@@ -142,6 +142,8 @@ public class PredictionService {
             return;
         }
 
+        String scheduledDep = buildScheduledDeparture(f);
+
         flightDAO.saveFeature(
                 f.flightId(),
                 originIcao,
@@ -152,7 +154,9 @@ public class PredictionService {
                 w.visibility(),
                 f.distanceKm(),
                 f.departureDelay(),
-                FlightDAO.categorize(f.departureDelay())
+                FlightDAO.categorize(f.departureDelay()),
+                scheduledDep,
+                f.aircraftModel()
         );
 
         logger.info("Historical flight {} saved (origin: {}, delay: {} min, category: {}).",
