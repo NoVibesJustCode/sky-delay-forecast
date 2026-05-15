@@ -75,7 +75,6 @@ public class FlightDAO {
         return results;
     }
 
-
     public List<Map<String, String>> getHistoricalAirportFlights(String icao, int limit) {
         List<Map<String, String>> results = new ArrayList<>();
         String sql = "SELECT flight_id, dest_icao, delay_category " +
@@ -213,7 +212,6 @@ public class FlightDAO {
         return results;
     }
 
-
     public List<Map<String, String>> getRecentAirportPredictions(String icao, int limit) {
         List<Map<String, String>> results = new ArrayList<>();
         String sql = "SELECT flight_id, dest_icao, scheduled_time, predicted_category " +
@@ -237,7 +235,6 @@ public class FlightDAO {
         }
         return results;
     }
-
 
     public List<Map<String, String>> getAllPredictions(String originFilter) {
         List<Map<String, String>> results = new ArrayList<>();
@@ -272,7 +269,9 @@ public class FlightDAO {
     }
 
     public int purgeExpiredPredictions() {
-        String sql = "DELETE FROM flight_predictions WHERE julianday('now') - julianday(scheduled_time) > (2.0/24.0)";
+        String sql = "DELETE FROM flight_predictions WHERE " +
+                     "flight_id IN (SELECT flight_id FROM flight_features) " +
+                     "OR julianday('now') - julianday(scheduled_time) > (4.0/24.0)";
         try (Connection conn = db.getConnection();
              Statement stmt = conn.createStatement()) {
             int deleted = stmt.executeUpdate(sql);
@@ -282,6 +281,37 @@ public class FlightDAO {
             logger.error("purgeExpiredPredictions error: {}", e.getMessage());
         }
         return 0;
+    }
+
+
+    public Map<String, Double> getDelayRateByAirport(int recentLimit) {
+        Map<String, Double> result = new LinkedHashMap<>();
+        String airportsSql = "SELECT DISTINCT origin_icao FROM flight_features";
+        String rateSql = "SELECT COUNT(*) as total, " +
+                         "SUM(CASE WHEN departure_delay > 15 THEN 1 ELSE 0 END) as delayed " +
+                         "FROM (SELECT departure_delay FROM flight_features " +
+                         "WHERE origin_icao = ? ORDER BY rowid DESC LIMIT ?)";
+        try (Connection conn = db.getConnection();
+             Statement airStmt = conn.createStatement();
+             ResultSet airRs = airStmt.executeQuery(airportsSql)) {
+            while (airRs.next()) {
+                String icao = airRs.getString("origin_icao");
+                try (PreparedStatement pstmt = conn.prepareStatement(rateSql)) {
+                    pstmt.setString(1, icao);
+                    pstmt.setInt(2, recentLimit);
+                    ResultSet rs = pstmt.executeQuery();
+                    if (rs.next()) {
+                        int total = rs.getInt("total");
+                        int delayed = rs.getInt("delayed");
+                        double rate = total > 0 ? (double) delayed / total : 0.0;
+                        result.put(icao, Math.round(rate * 1000.0) / 1000.0);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("getDelayRateByAirport error: {}", e.getMessage());
+        }
+        return result;
     }
 
     public static String categorize(int mins) {

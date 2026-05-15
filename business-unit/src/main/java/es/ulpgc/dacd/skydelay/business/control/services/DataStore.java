@@ -16,11 +16,9 @@ public class DataStore {
         this.weatherDAO = weatherDAO;
     }
 
-
     public double getAverageDelayForAirport(String icao, int limit) {
         return flightDAO.getAverageDelay(icao, limit);
     }
-
 
     public List<Map<String, String>> fetchHistoricalFlights(String icao, int limit) {
         return flightDAO.getHistoricalAirportFlights(icao, limit);
@@ -36,5 +34,9 @@ public class DataStore {
 
     public List<Map<String, Object>> fetchWeatherSeries(String icao, int limit) {
         return weatherDAO.getSeries(icao, limit);
+    }
+
+    public Map<String, Double> fetchDelayRates(int recentLimit) {
+        return flightDAO.getDelayRateByAirport(recentLimit);
     }
 }

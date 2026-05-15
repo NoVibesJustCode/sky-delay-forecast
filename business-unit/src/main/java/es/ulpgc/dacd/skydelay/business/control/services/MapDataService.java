@@ -17,6 +17,8 @@ public class MapDataService {
         List<Map<String, Object>> result = new ArrayList<>();
         Collection<AirportData> airports = translator.getAirports();
 
+        Map<String, Double> delayRates = dataStore.fetchDelayRates(50);
+
         for (AirportData airport : airports) {
             Map<String, Object> airportMap = new LinkedHashMap<>();
             airportMap.put("icao", airport.icao());
@@ -27,6 +29,9 @@ public class MapDataService {
 
             List<Map<String, String>> predictions = dataStore.fetchRecentPredictions(airport.icao(), 5);
             airportMap.put("predictions", predictions);
+
+            double delayRate = delayRates.getOrDefault(airport.icao(), 0.0);
+            airportMap.put("delayRate", delayRate);
 
             String worstSeverity = deriveWorstSeverity(predictions);
             airportMap.put("severity", worstSeverity);
