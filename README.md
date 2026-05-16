@@ -376,7 +376,7 @@ This component ensures the integrity and durability of the system's historical d
 
 ```mermaid
 flowchart TD
-  node_event_main(("Event Store Builder Main")):::toneBlue
+  node_event_main(("Event Store Main")):::toneBlue
   node_event_controller["Event Controller"]:::toneBlue
   node_event_subscriber["Event Subscriber"]:::toneBlue
   node_event_store_interface["«Interface» 
@@ -407,47 +407,67 @@ The intelligent core of the project. It integrates both processing logic and use
 
 ```mermaid
 flowchart TD
-  node_business_main(("Business Main")):::toneGreen
+  node_business_main(("Main")):::toneGreen
   node_business_controller["Business Controller"]:::toneGreen
-  node_business_subscriber["Business Event Subscriber"]:::toneGreen
-  node_datamart_manager["Datamart Manager"]:::toneGreen
-  node_flight_dao["Flight DAO"]:::toneGreen
-  node_weather_dao["Weather DAO"]:::toneGreen
-  node_datamart_db[("datamart.db")]:::toneGreen
-  node_rest_interface["REST Interface"]:::toneGreen
-  node_classifier_interface["«Interface» Classifier"]:::toneGreen
-  node_knn_classifier["KNN Classifier"]:::toneGreen
-  node_prediction_service["Prediction Service"]:::toneGreen
+  
+  subgraph pkg_datamart ["package: datamart"]
+    node_dm_manager["Datamart Manager"]:::toneGreen
+    node_daos["DAOs (Flight / Weather)"]:::toneGreen
+  end
+
+  subgraph pkg_services ["package: services"]
+    node_services["Core Services<br/>(Prediction / MapData)"]:::toneGreen
+  end
+
+  subgraph pkg_metrics ["package: metrics"]
+    node_metrics["Evaluation & Metrics"]:::toneGreen
+  end
+
+  node_event_reader["EventStore Reader"]:::toneGreen
+  node_subscriber["Business Event Subscriber"]:::toneGreen
+  node_rest["REST Interface (Javalin)"]:::toneGreen
+  
+  node_classifier_int["«Interface» 
+  Classifier"]:::toneGreen
+  node_knn["KNN Classifier"]:::toneGreen
   
   node_amq["ActiveMQ Broker"]:::toneAmber
-  node_map_view["Predictive Map View"]:::tonePurple
-  node_dashboard_view["Analytics Dashboard"]:::tonePurple
+  node_db[("datamart.db")]:::toneGreen
 
+  %% Logic Flow
   node_business_main --> node_business_controller
-  node_business_controller --> node_business_subscriber
-  node_business_subscriber --> node_amq
-  node_business_controller --> node_datamart_manager
-  node_datamart_manager --> node_datamart_db
-  node_datamart_manager --> node_flight_dao
-  node_datamart_manager --> node_weather_dao
-  node_business_controller --> node_rest_interface
-  node_business_controller --> node_classifier_interface
-  node_classifier_interface --> node_knn_classifier
-  node_business_controller --> node_prediction_service
-  node_rest_interface --> node_prediction_service
   
-  node_map_view --> node_rest_interface
-  node_dashboard_view --> node_rest_interface
+  %% Orchestration
+  node_business_controller --> node_subscriber
+  node_business_controller --> node_event_reader
+  node_business_controller --> node_dm_manager
+  node_business_controller --> pkg_services
+  node_business_controller --> pkg_metrics
+  node_business_controller --> node_rest
+  
+  %% Internal dependencies
+  node_subscriber --> node_amq
+  node_dm_manager --> node_daos
+  node_daos --> node_db
+  
+  pkg_services --> node_classifier_int
+  node_classifier_int --> node_knn
+  
+  %% Frontend connection
+  subgraph Presentation ["Presentation Layer"]
+    node_map["Predictive Map"]:::tonePurple
+    node_dash["Analytics Dashboard"]:::tonePurple
+  end
 
+  node_map --> node_rest
+  node_dash --> node_rest
+
+  %% Clickable Links
   click node_business_main "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/Main.java"
-  click node_business_controller "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/Controller.java"
-  click node_business_subscriber "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/BusinessEventSubscriber.java"
-  click node_datamart_manager "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/datamart/DatamartManager.java"
-  click node_flight_dao "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/datamart/FlightDAO.java"
-  click node_weather_dao "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/datamart/WeatherDAO.java"
-  click node_rest_interface "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/RestInterface.java"
-  click node_knn_classifier "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/KNNClassifier.java"
-  click node_prediction_service "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/services/PredictionService.java"
+  click node_business_controller "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/Controller.java"
+  click node_subscriber "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/BusinessEventSubscriber.java"
+  click node_rest "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/RestInterface.java"
+  click node_knn "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/KNNClassifier.java"
 
   classDef toneGreen fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
   classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
