@@ -60,7 +60,7 @@ storage/db/datamart.db
 ### EventStore ###
 eventstore/flight/flight-feeder/*.events
 eventstore/weather/weather-feeder/*.events
-
+eventstore/forecast/weather-feeder/*.events
 
 ### Others ###
 user-data-dir/
