@@ -21,6 +21,12 @@ public class LinkManager {
         return links;
     }
 
+    public void saveUniqueLinks(List<String> newLinks) throws IOException {
+        Set<String> allLinks = new HashSet<>(getPendingLinks());
+        allLinks.addAll(newLinks);
+        overwrite(new ArrayList<>(allLinks));
+    }
+
     public void removeProcessedLinks(List<String> processed) throws IOException {
         List<String> current = getPendingLinks();
 
