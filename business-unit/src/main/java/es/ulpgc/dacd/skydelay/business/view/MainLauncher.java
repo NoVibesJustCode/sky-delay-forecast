@@ -7,7 +7,6 @@ import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.InputStream;
 import java.net.URI;
 import javax.imageio.ImageIO;
 
@@ -98,9 +97,9 @@ public class MainLauncher extends JFrame {
         JLabel logoIcon = new JLabel();
         logoIcon.setAlignmentX(Component.LEFT_ALIGNMENT);
         try {
-            InputStream is = getClass().getClassLoader().getResourceAsStream("skydelay_logo.png");
-            if (is != null) {
-                BufferedImage img = ImageIO.read(is);
+            File logoFile = resolveLogoFile("skydelay_logo_transparent.png");
+            if (logoFile != null && logoFile.exists()) {
+                BufferedImage img = ImageIO.read(logoFile);
                 logoIcon.setIcon(new ImageIcon(img.getScaledInstance(48, 48, Image.SCALE_SMOOTH)));
             }
         } catch (Exception ignored) {}
@@ -343,6 +342,15 @@ public class MainLauncher extends JFrame {
                 }
             }
         });
+    }
+
+    private static File resolveLogoFile(String filename) {
+        String[] prefixes = { "docs/assets/", "../docs/assets/", "../../docs/assets/" };
+        for (String prefix : prefixes) {
+            File f = new File(prefix + filename);
+            if (f.exists()) return f;
+        }
+        return null;
     }
 
     public static void main(String[] args) {

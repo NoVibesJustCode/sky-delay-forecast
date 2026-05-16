@@ -17,7 +17,7 @@ public class MapDataService {
         List<Map<String, Object>> result = new ArrayList<>();
         Collection<AirportData> airports = translator.getAirports();
 
-        Map<String, Double> delayRates = dataStore.fetchDelayRates(50);
+        Map<String, Double> delayRates = dataStore.fetchDelayRates(10);
 
         for (AirportData airport : airports) {
             Map<String, Object> airportMap = new LinkedHashMap<>();

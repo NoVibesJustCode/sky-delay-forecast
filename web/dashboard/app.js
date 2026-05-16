@@ -628,7 +628,10 @@
             vis:  { key: f => f.weather.vis,  label: 'Visibility (km)' },
         };
         const v = varMap[currentWeatherVar] || varMap.wind;
-        const pts = DATA.flights.map(f => ({ x: v.key(f), y: Math.max(0, f.depDelay) }));
+        const MAX_DELAY = 180; // Cap at 3h — above is likely cancelled/diverted
+        const pts = DATA.flights
+            .filter(f => f.depDelay <= MAX_DELAY)
+            .map(f => ({ x: v.key(f), y: Math.max(0, f.depDelay) }));
 
         chartInstances.weatherScatter = new Chart(ctx, {
             type: 'scatter',

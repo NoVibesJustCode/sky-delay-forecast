@@ -10,6 +10,7 @@ import io.javalin.http.staticfiles.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -107,5 +108,28 @@ public class RestInterface {
             int limit = ctx.queryParamAsClass("limit", Integer.class).getOrDefault(500);
             ctx.json(weatherDAO.getAllWeatherRecords(limit));
         });
+
+        // Serve logos from the single source: docs/assets/
+        app.get("/assets/logo.png", ctx -> serveLogo(ctx, "skydelay_logo.png"));
+        app.get("/assets/logo_transparent.png", ctx -> serveLogo(ctx, "skydelay_logo_transparent.png"));
+    }
+
+    private void serveLogo(io.javalin.http.Context ctx, String filename) throws IOException {
+        Path logo = resolveAssetPath(filename);
+        if (logo != null && Files.exists(logo)) {
+            ctx.contentType("image/png");
+            ctx.result(Files.newInputStream(logo));
+        } else {
+            ctx.status(404).result("Logo not found");
+        }
+    }
+
+    private static Path resolveAssetPath(String filename) {
+        String[] prefixes = { "docs/assets/", "../docs/assets/", "../../docs/assets/" };
+        for (String prefix : prefixes) {
+            Path p = Path.of(prefix + filename);
+            if (Files.exists(p)) return p;
+        }
+        return null;
     }
 }
