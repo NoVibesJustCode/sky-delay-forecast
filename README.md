@@ -162,22 +162,10 @@ Each module must be run independently, preferably in the following order:
 >
 
 ---
-## System Architecture
-
-The platform is engineered combining **Event-Driven Architecture** and **Lambda Architecture** patterns. It runs independent decoupled modules via a message broker (Apache ActiveMQ) to achieve two goals simultaneously: managing immutable long-term data warehousing for machine learning re-training, and handling low-latency real-time prediction pipelines.
-
-1. **Data Producers (Feeders)**: Specialized ingestion microservices that capture environmental data from public interfaces and stream them directly into the broker.
-2. **Message Broker (Ingestion & Distribution Hub)**: Acts as an asynchronous, event-driven streaming backbone using JMS queues.
-3. **Event Store Builder (Batch Layer Ingestion)**: Consumes raw telemetry events from the broker to serialize and append them into an immutable file system historical ledger.
-4. **Business Unit (Processing & Serving Layer)**: The analytical core. It aggregates real-time streams, executes model training tasks by querying past logs, matches upcoming flight streams against weather forecasts, and exposes a unified relational data store alongside web routing endpoints.
-5. **User Interfaces (Presentation Layer)**: Web applications that call the server endpoints to paint reactive visualizations, geographic overlays, and restricted metrics.
-
-
-
 
 ## System Architecture
 
-The system is based on an **Event-Driven Architecture** and **Lambda Architecture** consisting of independent modules that communicate through a message broker (Apache ActiveMQ). The data flow follows an Event Sourcing pattern, where every state change or new piece of information is treated as a persistent event.
+The system is engineered combining **Event-Driven Architecture** and **Lambda Architecture** patterns. It runs independent decoupled modules via a message broker (Apache ActiveMQ) to achieve two goals simultaneously: managing immutable long-term data warehousing for machine learning re-training, and handling low-latency real-time prediction pipelines.
 
 1.  **Data Producers (Feeders)**: Capture information from external sources and publish it to the broker.
 2.  **Message Broker**: Acts as an intermediary, ensuring decoupling between producers and consumers.
