@@ -178,9 +178,7 @@ The map provides a geographical overview of the Spanish airspace. It visualizes 
 
 Designed for administrative and operational oversight, the dashboard consolidates historical data and evaluates how weather influences flights.
 
-<video src="docs/demos/dashboard_demo.mp4" width="100%" controls>
-  Tu navegador no soporta el video.
-</video>
+https://github.com/user-attachments/assets/d6ce9866-5eca-482b-85b3-aaf8b0a50642
 
 ---
 
