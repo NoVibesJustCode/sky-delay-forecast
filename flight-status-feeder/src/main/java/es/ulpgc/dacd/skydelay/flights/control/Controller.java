@@ -44,6 +44,7 @@ public class Controller {
             }
         }, 0, 12 * 60 * 60 * 1000L);
 
+
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {

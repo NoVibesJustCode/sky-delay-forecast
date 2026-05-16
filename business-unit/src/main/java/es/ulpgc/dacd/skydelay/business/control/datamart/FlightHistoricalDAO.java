@@ -7,10 +7,6 @@ import org.slf4j.LoggerFactory;
 import java.sql.*;
 import java.util.*;
 
-/**
- * DAO responsible for historical flight data (flight_features table).
- * Handles saving, querying, training data loading, and delay statistics.
- */
 public class FlightHistoricalDAO {
     private static final Logger logger = LoggerFactory.getLogger(FlightHistoricalDAO.class);
     private final DatamartManager db;

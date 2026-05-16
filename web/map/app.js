@@ -593,6 +593,12 @@
         initInfoModal();
         initFlightsListeners();
         initMap();
+
+        // Auto-refresh every 5 minutes
+        setInterval(() => {
+            console.log('[SkyDelay] Auto-refreshing map data...');
+            loadMapData();
+        }, 5 * 60 * 1000);
     });
 
 })();

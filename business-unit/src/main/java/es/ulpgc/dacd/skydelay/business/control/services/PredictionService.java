@@ -2,7 +2,8 @@ package es.ulpgc.dacd.skydelay.business.control.services;
 
 import es.ulpgc.dacd.skydelay.business.control.AirportCodeTranslator;
 import es.ulpgc.dacd.skydelay.business.control.KNNClassifier;
-import es.ulpgc.dacd.skydelay.business.control.datamart.FlightDAO;
+import es.ulpgc.dacd.skydelay.business.control.datamart.FlightHistoricalDAO;
+import es.ulpgc.dacd.skydelay.business.control.datamart.FlightPredictionsDAO;
 import es.ulpgc.dacd.skydelay.business.control.datamart.WeatherDAO;
 import es.ulpgc.dacd.skydelay.flights.model.Flight;
 import es.ulpgc.dacd.skydelay.weather.model.Weather;
@@ -22,23 +23,25 @@ public class PredictionService {
 
     private static final int KNN_K = 5;
 
-    private final FlightDAO flightDAO;
+    private final FlightHistoricalDAO historicalDAO;
+    private final FlightPredictionsDAO predictionsDAO;
     private final WeatherDAO weatherDAO;
     private final AirportCodeTranslator translator;
     private KNNClassifier knn;
 
-    public PredictionService(FlightDAO flightDAO, WeatherDAO weatherDAO,
-                             AirportCodeTranslator translator) {
-        this.flightDAO  = flightDAO;
-        this.weatherDAO = weatherDAO;
-        this.translator = translator;
+    public PredictionService(FlightHistoricalDAO historicalDAO, FlightPredictionsDAO predictionsDAO,
+                             WeatherDAO weatherDAO, AirportCodeTranslator translator) {
+        this.historicalDAO  = historicalDAO;
+        this.predictionsDAO = predictionsDAO;
+        this.weatherDAO     = weatherDAO;
+        this.translator     = translator;
         refreshModel();
     }
 
     public void refreshModel() {
-        this.knn = new KNNClassifier(flightDAO.loadTrainingData(), KNN_K);
+        this.knn = new KNNClassifier(historicalDAO.loadTrainingData(), KNN_K);
         logger.info("KNN model refreshed ({} training samples).",
-                flightDAO.loadTrainingData().size());
+                historicalDAO.loadTrainingData().size());
     }
 
     public void processNewFlight(Flight f) {
@@ -61,7 +64,7 @@ public class PredictionService {
         String destIcao = translator.toIcao(f.destination());
         String scheduledDeparture = buildScheduledDeparture(f);
 
-        flightDAO.savePrediction(
+        predictionsDAO.savePrediction(
                 f.flightId(),
                 originIcao,
                 destIcao,
@@ -86,7 +89,6 @@ public class PredictionService {
 
             LocalDate depDate = tryParseFlightDate(f.date());
             if (depDate == null) {
-                // Fallback: use the scrape timestamp date instead of LocalDate.now()
                 depDate = f.ts().atZone(ZoneOffset.UTC).toLocalDate();
             }
 
@@ -103,13 +105,10 @@ public class PredictionService {
     private static LocalDate tryParseFlightDate(String dateText) {
         if (dateText == null || dateText.isBlank()) return null;
 
-        // Strip leading day name (e.g., "Fri, " or "Friday ")
         String cleaned = dateText.replaceAll("^\\w{3,9},?\\s*", "").trim();
 
-        // Strip trailing time portions (e.g., "4:30 PM", "16:30 UTC", "10:00 AM EDT")
         cleaned = cleaned.replaceAll("\\d{1,2}:\\d{2}(:\\d{2})?\\s*(AM|PM|am|pm)?\\s*\\w{0,4}$", "").trim();
 
-        // Strip trailing comma if any
         cleaned = cleaned.replaceAll(",\\s*$", "").trim();
 
         DateTimeFormatter[] formats = {
@@ -151,7 +150,7 @@ public class PredictionService {
 
         String scheduledDep = buildScheduledDeparture(f);
 
-        flightDAO.saveFeature(
+        historicalDAO.saveFeature(
                 f.flightId(),
                 originIcao,
                 destIcao,
@@ -161,13 +160,13 @@ public class PredictionService {
                 w.visibility(),
                 f.distanceKm(),
                 f.departureDelay(),
-                FlightDAO.categorize(f.departureDelay()),
+                FlightHistoricalDAO.categorize(f.departureDelay()),
                 scheduledDep,
                 f.aircraftModel()
         );
 
         logger.info("Historical flight {} saved (origin: {}, delay: {} min, category: {}).",
                 f.flightId(), originIcao, f.departureDelay(),
-                FlightDAO.categorize(f.departureDelay()));
+                FlightHistoricalDAO.categorize(f.departureDelay()));
     }
 }

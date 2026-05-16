@@ -4,7 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
 import es.ulpgc.dacd.skydelay.business.control.datamart.DatamartManager;
-import es.ulpgc.dacd.skydelay.business.control.datamart.FlightDAO;
+import es.ulpgc.dacd.skydelay.business.control.datamart.FlightHistoricalDAO;
+import es.ulpgc.dacd.skydelay.business.control.datamart.FlightPredictionsDAO;
 import es.ulpgc.dacd.skydelay.business.control.datamart.WeatherDAO;
 import es.ulpgc.dacd.skydelay.business.control.services.DataStore;
 import es.ulpgc.dacd.skydelay.business.control.services.MapDataService;
@@ -28,7 +29,8 @@ public class Controller {
     private final String csvPath;
     private final Gson gson;
 
-    private FlightDAO flightDAO;
+    private FlightHistoricalDAO historicalDAO;
+    private FlightPredictionsDAO predictionsDAO;
     private WeatherDAO weatherDAO;
 
     private PredictionService predictionService;
@@ -51,17 +53,18 @@ public class Controller {
             datamartManager.initializeDatabase();
 
             AirportCodeTranslator translator = new AirportCodeTranslator(csvPath);
-            this.flightDAO  = new FlightDAO(datamartManager);
-            this.weatherDAO = new WeatherDAO(datamartManager);
+            this.historicalDAO   = new FlightHistoricalDAO(datamartManager);
+            this.predictionsDAO  = new FlightPredictionsDAO(datamartManager);
+            this.weatherDAO      = new WeatherDAO(datamartManager);
 
-            DataStore dataStore = new DataStore(flightDAO, weatherDAO);
+            DataStore dataStore = new DataStore(historicalDAO, predictionsDAO, weatherDAO);
             this.mapDataService    = new MapDataService(dataStore, translator);
-            this.predictionService = new PredictionService(flightDAO, weatherDAO, translator);
+            this.predictionService = new PredictionService(historicalDAO, predictionsDAO, weatherDAO, translator);
 
             runHistoricalSweep();
             predictionService.refreshModel();
 
-            new RestInterface(flightDAO, weatherDAO, mapDataService, translator).start();
+            new RestInterface(historicalDAO, predictionsDAO, weatherDAO, mapDataService, translator).start();
 
             startRealTimeIngestion();
 

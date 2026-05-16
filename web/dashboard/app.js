@@ -1147,6 +1147,12 @@
 
         // Default view
         activateView('overview');
+
+        // Auto-refresh every 5 minutes
+        setInterval(() => {
+            console.log('[SkyDelay] Auto-refreshing dashboard data...');
+            init();
+        }, 5 * 60 * 1000);
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

@@ -1,6 +1,7 @@
 package es.ulpgc.dacd.skydelay.business.control;
 
-import es.ulpgc.dacd.skydelay.business.control.datamart.FlightDAO;
+import es.ulpgc.dacd.skydelay.business.control.datamart.FlightHistoricalDAO;
+import es.ulpgc.dacd.skydelay.business.control.datamart.FlightPredictionsDAO;
 import es.ulpgc.dacd.skydelay.business.control.datamart.WeatherDAO;
 import es.ulpgc.dacd.skydelay.business.control.services.MapDataService;
 import io.javalin.Javalin;
@@ -15,17 +16,20 @@ public class RestInterface {
 
     private static final Logger logger = LoggerFactory.getLogger(RestInterface.class);
 
-    private final FlightDAO flightDAO;
+    private final FlightHistoricalDAO historicalDAO;
+    private final FlightPredictionsDAO predictionsDAO;
     private final WeatherDAO weatherDAO;
     private final MapDataService mapDataService;
     private final AirportCodeTranslator translator;
 
-    public RestInterface(FlightDAO flightDAO, WeatherDAO weatherDAO,
-                         MapDataService mapDataService, AirportCodeTranslator translator) {
-        this.flightDAO      = flightDAO;
-        this.weatherDAO     = weatherDAO;
-        this.mapDataService = mapDataService;
-        this.translator     = translator;
+    public RestInterface(FlightHistoricalDAO historicalDAO, FlightPredictionsDAO predictionsDAO,
+                         WeatherDAO weatherDAO, MapDataService mapDataService,
+                         AirportCodeTranslator translator) {
+        this.historicalDAO   = historicalDAO;
+        this.predictionsDAO  = predictionsDAO;
+        this.weatherDAO      = weatherDAO;
+        this.mapDataService  = mapDataService;
+        this.translator      = translator;
     }
 
     private static String resolveWebPath(String subDir) {
@@ -60,7 +64,7 @@ public class RestInterface {
         }).start(8080);
 
         dashboardApp.get("/api/flight-features", ctx ->
-                ctx.json(flightDAO.getAllFlightFeatures()));
+                ctx.json(historicalDAO.getAllFlightFeatures()));
 
         dashboardApp.get("/api/weather-series", ctx -> {
             String icao = ctx.queryParamAsClass("icao", String.class).getOrDefault("LEMD");
@@ -68,17 +72,17 @@ public class RestInterface {
             ctx.json(weatherDAO.getSeries(icao, limit));
         });
 
-        dashboardApp.get("/api/data", ctx -> ctx.json(flightDAO.getReadyToEatMenu()));
+        dashboardApp.get("/api/data", ctx -> ctx.json(predictionsDAO.getReadyToEatMenu()));
         setupCommonRoutes(dashboardApp);
 
         mapApp.get("/api/data", ctx -> {
-            flightDAO.purgeExpiredPredictions();
+            predictionsDAO.purgeExpiredPredictions();
             ctx.json(mapDataService.getAirportsWithPredictions());
         });
 
         mapApp.get("/api/predictions", ctx -> {
             String origin = ctx.queryParam("origin");
-            ctx.json(flightDAO.getAllPredictions(origin));
+            ctx.json(predictionsDAO.getAllPredictions(origin));
         });
 
         setupCommonRoutes(mapApp);
