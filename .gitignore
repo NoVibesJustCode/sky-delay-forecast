@@ -46,7 +46,7 @@ openweathermap-feeder/.env
 storage/references/airports.csv
 
 ### pending_flight_links.txt ###
-storage/logs/pending_flight_links.txt
+storage/data/pending_flight_links.txt
 
 ### Weather Database ###
 storage/db/weather.db
@@ -60,7 +60,10 @@ storage/db/datamart.db
 ### EventStore ###
 eventstore/flight/flight-feeder/*.events
 eventstore/weather/weather-feeder/*.events
+eventstore/forecast/weather-feeder/*.events
 
+### Logs ###
+logs/skydelay.log
 
 ### Others ###
 user-data-dir/
