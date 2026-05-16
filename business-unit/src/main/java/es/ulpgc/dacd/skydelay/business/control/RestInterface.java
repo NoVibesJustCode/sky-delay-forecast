@@ -5,8 +5,15 @@ import es.ulpgc.dacd.skydelay.business.control.datamart.WeatherDAO;
 import es.ulpgc.dacd.skydelay.business.control.services.MapDataService;
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class RestInterface {
+
+    private static final Logger logger = LoggerFactory.getLogger(RestInterface.class);
 
     private final FlightDAO flightDAO;
     private final WeatherDAO weatherDAO;
@@ -21,14 +28,36 @@ public class RestInterface {
         this.translator     = translator;
     }
 
-    public void start() {
-        Javalin dashboardApp = Javalin.create(config ->
-                config.staticFiles.add("/public/dashboard", Location.CLASSPATH)
-        ).start(7070);
+    private static String resolveWebPath(String subDir) {
+        String[] candidates = {
+                "web/" + subDir,
+                "../web/" + subDir,
+                "../../web/" + subDir,
+        };
+        for (String candidate : candidates) {
+            if (Files.isDirectory(Path.of(candidate))) {
+                logger.info("Serving '{}' from external path: {}", subDir, Path.of(candidate).toAbsolutePath());
+                return candidate;
+            }
+        }
+        return null;
+    }
 
-        Javalin mapApp = Javalin.create(config ->
-                config.staticFiles.add("/public/map", Location.CLASSPATH)
-        ).start(8080);
+    public void start() {
+        String dashboardPath = resolveWebPath("dashboard");
+        String mapPath = resolveWebPath("map");
+
+        Javalin dashboardApp = Javalin.create(config -> {
+            if (dashboardPath != null) {
+                config.staticFiles.add(dashboardPath, Location.EXTERNAL);
+            }
+        }).start(7070);
+
+        Javalin mapApp = Javalin.create(config -> {
+            if (mapPath != null) {
+                config.staticFiles.add(mapPath, Location.EXTERNAL);
+            }
+        }).start(8080);
 
         dashboardApp.get("/api/flight-features", ctx ->
                 ctx.json(flightDAO.getAllFlightFeatures()));
@@ -47,7 +76,6 @@ public class RestInterface {
             ctx.json(mapDataService.getAirportsWithPredictions());
         });
 
-        // Full predictions list (for the predictions page) with optional origin filter
         mapApp.get("/api/predictions", ctx -> {
             String origin = ctx.queryParam("origin");
             ctx.json(flightDAO.getAllPredictions(origin));

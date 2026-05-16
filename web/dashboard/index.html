@@ -8,11 +8,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="light-mode">
 
-<!-- RADAR BG GRID -->
 <div class="bg-grid" aria-hidden="true"></div>
 <div class="bg-sweep" aria-hidden="true"></div>
 
@@ -46,19 +46,16 @@
     </div>
 </header>
 
-<!-- MAIN -->
 <main id="main-content">
 
     <!-- ═══ OVERVIEW ═══ -->
     <div id="view-overview" class="view-panel active">
-
-        <!-- ROW: OTP Bar + Feature Impact -->
         <div class="charts-row-2">
             <div class="chart-card glass span-2">
                 <div class="chart-card-header">
                     <div>
                         <div class="chart-title">On-Time Performance by Airport</div>
-                        <div class="chart-sub">% of flights departing within 15 min of schedule</div>
+                        <div class="chart-sub">% of flights departing within 15 min of schedule · sorted worst → best</div>
                     </div>
                 </div>
                 <div class="chart-wrap h360"><canvas id="chart-otp-bar"></canvas></div>
@@ -70,36 +67,22 @@
                         <div class="chart-sub">Correlation strength · captured variables</div>
                     </div>
                 </div>
-                <div class="chart-wrap h280"><canvas id="chart-feature-impact"></canvas></div>
-                <div class="pearson-explainer">
-                    <strong>Pearson r</strong> measures linear correlation between a weather variable and departure delay.
-                    Values range from −1 (inverse relationship) to +1 (direct relationship). Closer to ±1 = stronger influence.
+                <div class="chart-wrap h260"><canvas id="chart-feature-impact"></canvas></div>
+                <div class="info-box">
+                    <div class="info-box-title">What is Pearson r?</div>
+                    <div class="info-box-text">Measures linear correlation between a weather variable and departure delay. Ranges from <strong>−1</strong> (inverse) to <strong>+1</strong> (direct). Values closer to ±1 indicate a stronger influence on delays.</div>
                 </div>
             </div>
         </div>
 
-        <!-- ROW: Severity Trend + Aircraft Donut -->
         <div class="charts-row-2">
             <div class="chart-card glass span-2">
                 <div class="chart-card-header">
                     <div>
-                        <div class="chart-title">Delay Severity by Date</div>
-                        <div class="chart-sub">Stacked bar · flights bucketed by delay category per day</div>
+                        <div class="chart-title">Delay Severity by Hour of Day</div>
+                        <div class="chart-sub">Stacked area · all airports combined · flight count per delay category by hour</div>
                     </div>
                     <div class="chart-controls">
-                        <select class="inline-select" id="severity-airport-filter">
-                            <option value="">All airports</option>
-                            <option value="LEMD">MAD — Madrid</option>
-                            <option value="LEBL">BCN — Barcelona</option>
-                            <option value="LEMG">AGP — Málaga</option>
-                            <option value="GCLP">LPA — Gran Canaria</option>
-                            <option value="LEPA">PMI — Palma</option>
-                            <option value="LEAL">ALC — Alicante</option>
-                            <option value="LEVC">VLC — Valencia</option>
-                            <option value="LEBB">BIO — Bilbao</option>
-                            <option value="LEZL">SVQ — Sevilla</option>
-                            <option value="GCXO">TFN — Tenerife N.</option>
-                        </select>
                         <div class="legend-pills">
                             <span class="pill pill-safe">On Time</span>
                             <span class="pill pill-cyan">Low</span>
@@ -108,20 +91,19 @@
                         </div>
                     </div>
                 </div>
-                <div class="chart-wrap h280"><canvas id="chart-severity-trend"></canvas></div>
+                <div class="chart-wrap h280"><canvas id="chart-severity-area"></canvas></div>
             </div>
             <div class="chart-card glass">
                 <div class="chart-card-header">
                     <div>
                         <div class="chart-title">Fleet Delay Profile</div>
-                        <div class="chart-sub">Flights per aircraft model · avg delay in tooltip</div>
+                        <div class="chart-sub">Flights per aircraft model · hover for avg delay</div>
                     </div>
                 </div>
                 <div class="chart-wrap h280"><canvas id="chart-aircraft-donut"></canvas></div>
             </div>
         </div>
-
-    </div><!-- /overview -->
+    </div>
 
     <!-- ═══ AIRPORTS ═══ -->
     <div id="view-airports" class="view-panel">
@@ -139,8 +121,9 @@
                 <div class="chart-card-header">
                     <div>
                         <div class="chart-title">Delays by Hour of Day</div>
-                        <div class="chart-sub">All airports · historical average (UTC)</div>
+                        <div class="chart-sub">Average departure delay (UTC)</div>
                     </div>
+                    <select class="sd-select" id="hour-airport-filter"></select>
                 </div>
                 <div class="chart-wrap h300"><canvas id="chart-hour-bar"></canvas></div>
             </div>
@@ -151,6 +134,10 @@
                     <div>
                         <div class="chart-title">Airport × Severity Breakdown</div>
                         <div class="chart-sub">% of flights per delay category by origin airport</div>
+                    </div>
+                    <div class="hm-tabs">
+                        <button class="hm-tab active" data-hm-page="main">Main Airports</button>
+                        <button class="hm-tab" data-hm-page="all">Other Airports</button>
                     </div>
                 </div>
                 <div id="heatmap-airport-severity" class="heatmap-grid"></div>
@@ -167,18 +154,7 @@
                         <div class="chart-title">Weather Timeline</div>
                         <div class="chart-sub">Wind, visibility and temperature — recent records</div>
                     </div>
-                    <select class="inline-select" id="weather-airport-select">
-                        <option value="LEMD">MAD — Madrid Barajas</option>
-                        <option value="LEBL">BCN — Barcelona</option>
-                        <option value="LEMG">AGP — Málaga</option>
-                        <option value="GCLP">LPA — Gran Canaria</option>
-                        <option value="LEPA">PMI — Palma</option>
-                        <option value="LEAL">ALC — Alicante</option>
-                        <option value="LEVC">VLC — Valencia</option>
-                        <option value="LEBB">BIO — Bilbao</option>
-                        <option value="LEZL">SVQ — Sevilla</option>
-                        <option value="GCXO">TFN — Tenerife N.</option>
-                    </select>
+                    <select class="sd-select" id="weather-airport-select"></select>
                 </div>
                 <div class="chart-wrap h320"><canvas id="chart-weather-series"></canvas></div>
             </div>
@@ -188,7 +164,7 @@
                         <div class="chart-title">Weather vs Delay</div>
                         <div class="chart-sub">Scatter — select any weather variable</div>
                     </div>
-                    <select class="inline-select" id="weather-var-select">
+                    <select class="sd-select" id="weather-var-select">
                         <option value="wind">Wind speed</option>
                         <option value="gust">Wind gust</option>
                         <option value="temp">Temperature</option>
@@ -202,11 +178,11 @@
             <div class="chart-card glass">
                 <div class="chart-card-header">
                     <div>
-                        <div class="chart-title">Visibility → Delay Outcome</div>
-                        <div class="chart-sub">Flow from visibility range to delay severity · width = flight count</div>
+                        <div class="chart-title">Visibility × Delay Severity</div>
+                        <div class="chart-sub">Chord diagram · ribbon width = number of flights · connecting visibility ranges to delay outcomes</div>
                     </div>
                 </div>
-                <div id="sankey-visibility" class="sankey-container"></div>
+                <div id="chord-container" class="chord-wrap"></div>
             </div>
         </div>
     </div>
@@ -216,28 +192,39 @@
         <div class="filter-bar">
             <div class="filter-group">
                 <label class="filter-label">Origin Airport</label>
-                <select class="filter-select" id="filter-origin">
+                <select class="sd-select filter-wide" id="filter-origin">
                     <option value="">All</option>
-                    <option value="MAD">MAD — Madrid Barajas</option>
-                    <option value="BCN">BCN — Barcelona El Prat</option>
-                    <option value="AGP">AGP — Málaga Costa del Sol</option>
-                    <option value="LPA">LPA — Gran Canaria</option>
-                    <option value="PMI">PMI — Palma de Mallorca</option>
-                    <option value="ALC">ALC — Alicante-Elche</option>
-                    <option value="VLC">VLC — Valencia</option>
-                    <option value="BIO">BIO — Bilbao</option>
-                    <option value="SVQ">SVQ — Sevilla</option>
-                    <option value="TFN">TFN — Tenerife Norte</option>
                 </select>
             </div>
             <div class="filter-group">
                 <label class="filter-label">Status</label>
-                <select class="filter-select" id="filter-status">
+                <select class="sd-select filter-wide" id="filter-status">
                     <option value="">All</option>
                     <option>On Time</option>
                     <option>Delayed</option>
                     <option>Cancelled</option>
                 </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Date Range</label>
+                <div class="date-range-picker" id="date-range-picker">
+                    <input type="text" class="sd-select filter-wide date-input" id="date-range-input" placeholder="All dates" readonly>
+                    <div class="calendar-dropdown" id="calendar-dropdown">
+                        <div class="cal-header">
+                            <button class="cal-nav" id="cal-prev-month">‹</button>
+                            <span class="cal-month-label" id="cal-month-label"></span>
+                            <button class="cal-nav" id="cal-next-month">›</button>
+                        </div>
+                        <div class="cal-weekdays">
+                            <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+                        </div>
+                        <div class="cal-grid" id="cal-grid"></div>
+                        <div class="cal-footer">
+                            <button class="cal-clear-btn" id="cal-clear">Clear</button>
+                            <span class="cal-range-info" id="cal-range-info">Click to select range</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="chart-card glass full-width">
@@ -249,14 +236,8 @@
                 <table class="flight-table">
                     <thead>
                     <tr>
-                        <th>#</th>
-                        <th>Flight ID</th>
-                        <th>Origin</th>
-                        <th>Destination</th>
-                        <th>Aircraft</th>
-                        <th>Distance</th>
-                        <th>Dep. Delay</th>
-                        <th>Status</th>
+                        <th>#</th><th>Flight ID</th><th>Date</th><th>Origin</th><th>Destination</th>
+                        <th>Aircraft</th><th>Distance</th><th>Dep. Delay</th><th>Status</th>
                     </tr>
                     </thead>
                     <tbody id="flights-table-body"></tbody>
@@ -272,7 +253,6 @@
 
 </main>
 
-<!-- FOOTER -->
 <footer id="main-footer">
     <div class="footer-inner">
         <span class="footer-brand">SkyDelay</span>

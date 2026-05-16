@@ -86,11 +86,8 @@ public class PredictionService {
 
             LocalDate depDate = tryParseFlightDate(f.date());
             if (depDate == null) {
-                depDate = LocalDate.now(ZoneOffset.UTC);
-                LocalDateTime tentative = LocalDateTime.of(depDate, depTime);
-                if (tentative.isBefore(LocalDateTime.now(ZoneOffset.UTC).minusHours(6))) {
-                    depDate = depDate.plusDays(1);
-                }
+                // Fallback: use the scrape timestamp date instead of LocalDate.now()
+                depDate = f.ts().atZone(ZoneOffset.UTC).toLocalDate();
             }
 
             return LocalDateTime.of(depDate, depTime)
@@ -106,13 +103,23 @@ public class PredictionService {
     private static LocalDate tryParseFlightDate(String dateText) {
         if (dateText == null || dateText.isBlank()) return null;
 
-        String cleaned = dateText.replaceAll("^\\w{3},?\\s*", "").trim();
+        // Strip leading day name (e.g., "Fri, " or "Friday ")
+        String cleaned = dateText.replaceAll("^\\w{3,9},?\\s*", "").trim();
+
+        // Strip trailing time portions (e.g., "4:30 PM", "16:30 UTC", "10:00 AM EDT")
+        cleaned = cleaned.replaceAll("\\d{1,2}:\\d{2}(:\\d{2})?\\s*(AM|PM|am|pm)?\\s*\\w{0,4}$", "").trim();
+
+        // Strip trailing comma if any
+        cleaned = cleaned.replaceAll(",\\s*$", "").trim();
 
         DateTimeFormatter[] formats = {
                 DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH),
                 DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH),
+                DateTimeFormatter.ofPattern("MMM d yyyy", Locale.ENGLISH),
                 DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.ENGLISH),
+                DateTimeFormatter.ofPattern("MMMM d, yyyy", Locale.ENGLISH),
                 DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.ENGLISH),
+                DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH),
                 new DateTimeFormatterBuilder()
                         .appendPattern("d MMM")
                         .parseDefaulting(ChronoField.YEAR, Year.now().getValue())
