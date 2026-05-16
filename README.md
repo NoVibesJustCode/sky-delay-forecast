@@ -158,19 +158,32 @@ Each module must be run independently, preferably in the following order:
 > 
 > 
 > * **Analytics Dashboard:** `http://localhost:7070` (Premium enterprise control panel). When navigating to this view, use the following default credentials to log in:
->  * **Password:** `admin123`
+>   * **Password:** `admin123`
 >
 
 ---
+## System Architecture
+
+The platform is engineered combining **Event-Driven Architecture** and **Lambda Architecture** patterns. It runs independent decoupled modules via a message broker (Apache ActiveMQ) to achieve two goals simultaneously: managing immutable long-term data warehousing for machine learning re-training, and handling low-latency real-time prediction pipelines.
+
+1. **Data Producers (Feeders)**: Specialized ingestion microservices that capture environmental data from public interfaces and stream them directly into the broker.
+2. **Message Broker (Ingestion & Distribution Hub)**: Acts as an asynchronous, event-driven streaming backbone using JMS queues.
+3. **Event Store Builder (Batch Layer Ingestion)**: Consumes raw telemetry events from the broker to serialize and append them into an immutable file system historical ledger.
+4. **Business Unit (Processing & Serving Layer)**: The analytical core. It aggregates real-time streams, executes model training tasks by querying past logs, matches upcoming flight streams against weather forecasts, and exposes a unified relational data store alongside web routing endpoints.
+5. **User Interfaces (Presentation Layer)**: Web applications that call the server endpoints to paint reactive visualizations, geographic overlays, and restricted metrics.
+
+
+
 
 ## System Architecture
 
-The system is based on an **Event-Driven Architecture** consisting of independent modules that communicate through a message broker (Apache ActiveMQ). The data flow follows an Event Sourcing pattern, where every state change or new piece of information is treated as a persistent event.
+The system is based on an **Event-Driven Architecture** and **Lambda Architecture** consisting of independent modules that communicate through a message broker (Apache ActiveMQ). The data flow follows an Event Sourcing pattern, where every state change or new piece of information is treated as a persistent event.
 
 1.  **Data Producers (Feeders)**: Capture information from external sources and publish it to the broker.
 2.  **Message Broker**: Acts as an intermediary, ensuring decoupling between producers and consumers.
 3.  **Event Store Builder**: Responsible for the long-term persistence of all events generated in the system.
-4.  **Business Unit**: Consumes events, maintains an updated datamart, and exposes prediction and visualization services.
+4.  **Business Unit**: Consumes events, maintains an updated datamart and makes predictions.
+5.  **User Interfaces**: Web applications that call the server endpoints to paint reactive visualizations, geographic overlays, and restricted metrics.
 
 ### Data Flow Diagram
 ```mermaid
@@ -182,43 +195,62 @@ flowchart LR
     classDef storage fill:#d9534f,stroke:#d43f3a,color:white,stroke-width:1px
     classDef Predictor fill:#8754C9,stroke:#4C277C,color:white,stroke-width:1px
     classDef Datamart fill:#AA7E55,stroke:#110D09,color:white,stroke-width:1px
+    classDef view fill:#f472b6,stroke:#db2777,color:white,stroke-width:1px
 
-    subgraph Producers
+    subgraph Producers ["Feeders"]
         weather["OpenWeatherMap<br/>Feeder"]:::producer
-        flights["Flight-Status<br/>Feeder"]:::producer
+        flights["FlightStatus<br/>Feeder"]:::producer
     end
     
-    subgraph ActiveMQ["Broker (ActiveMQ)"]
+    subgraph ActiveMQ ["ActiveMQ Broker"]
         temp["CurrentWeather"]:::queue
         forecast["ForecastWeather"]:::queue
         f_status["FlightStatus"]:::queue
     end
     
-    subgraph Subscriber
+    subgraph BatchLayer ["Batch"]
         esBuilder["Event Store<br/>Builder"]:::subscriber
     end
     
     eventStore[("Event Store<br/>(History DB)")]:::storage
     
-    delayPredictor["Delay<br/>Predictor"]:::Predictor
-    dataMart[("Datamart<br/>(Final Stats)")]:::Datamart
+    subgraph BusinessUnit ["Business Unit"]
+        delayPredictor["Delay<br/>Predictor"]:::Predictor
+        dataMart[("Datamart<br/>(SQLite)")]:::Datamart
+    end
+
+    subgraph Presentation ["Views"]
+        mapView["Map"]:::view
+        dashboardView["Dashboard"]:::view
+    end
     
+    %% Ingestion (Links 0, 1, 2)
     weather --> temp
     weather --> forecast
     flights --> f_status
     
+    %% Batch Path (Links 3, 4, 5, 6)
     temp --> esBuilder
     forecast --> esBuilder
     f_status --> esBuilder
-    
     esBuilder --> eventStore
-    eventStore --> delayPredictor
     
+    %% Model Training (Link 7)
+    eventStore -.-> delayPredictor
+    
+    %% Real-time Inference (Links 8, 9, 10)
+    f_status -.-> delayPredictor
+    forecast -.-> delayPredictor
+    temp -.-> delayPredictor
+    
+    %% Serving & Data Flow (Links 11, 12, 13)
     delayPredictor <--> dataMart
-    
-    ActiveMQ --> delayPredictor
+    dataMart ==> mapView
+    dataMart ==> dashboardView
     
     linkStyle default stroke:#666,stroke-width:2px;
+    linkStyle 8,9,10 stroke:#8754C9,stroke-width:2.5px;
+    linkStyle 12,13 stroke:#db2777,stroke-width:2.5px;
 ```
 
 ## Project Modules
@@ -263,11 +295,8 @@ The intelligent core of the project. It integrates both processing logic and use
 -   **Datamart**: Maintains a SQLite database optimized for fast queries and model training.
 -   **Prediction**: Implements a prediction service based on the KNN algorithm that estimates flight delays given specific weather conditions.
 -   **REST Interface**: Exposes an API using Javalin for programmatic access to data and predictions.
--   **Visualization**: Includes a JavaScript application with a Dashboard and an interactive map to visualize air traffic and delay risks.
-
 
 ## Module and Class Diagram
-
 
 ```mermaid
 flowchart TD
