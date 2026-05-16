@@ -475,8 +475,11 @@
 
     function hideLoader() {
         const loader = document.getElementById('loader');
-        if (!loader) return;
-        anime({ targets: loader, opacity: [1, 0], duration: 500, easing: 'easeOutQuad', complete: () => loader.remove() });
+        if (loader) {
+            anime({ targets: loader, opacity: [1, 0], duration: 500, easing: 'easeOutQuad', complete: () => loader.remove() });
+        }
+        const loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen) loadingScreen.classList.add('hidden');
     }
 
     /* ══════════════════════════════════════════════════════════════════

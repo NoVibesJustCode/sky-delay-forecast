@@ -5,8 +5,11 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.InputStream;
 import java.net.URI;
+import javax.imageio.ImageIO;
 
 public class MainLauncher extends JFrame {
 
@@ -44,11 +47,9 @@ public class MainLauncher extends JFrame {
         root.setBorder(new EmptyBorder(0, 0, 0, 0));
         setContentPane(root);
 
-        // --- Header ---
         JPanel header = createHeader();
         root.add(header, BorderLayout.NORTH);
 
-        // --- Center: Action Cards ---
         JPanel center = new JPanel();
         center.setOpaque(false);
         center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
@@ -79,11 +80,9 @@ public class MainLauncher extends JFrame {
 
         root.add(center, BorderLayout.CENTER);
 
-        // --- Footer ---
         JPanel footer = createFooter();
         root.add(footer, BorderLayout.SOUTH);
 
-        // Drag support for undecorated window
         addDragSupport(header);
     }
 
@@ -92,12 +91,21 @@ public class MainLauncher extends JFrame {
         header.setOpaque(false);
         header.setBorder(new EmptyBorder(30, 40, 10, 40));
 
-        // Title block
         JPanel titleBlock = new JPanel();
         titleBlock.setOpaque(false);
         titleBlock.setLayout(new BoxLayout(titleBlock, BoxLayout.Y_AXIS));
 
-        JLabel logo = new JLabel("☁️  SkyDelay");
+        JLabel logoIcon = new JLabel();
+        logoIcon.setAlignmentX(Component.LEFT_ALIGNMENT);
+        try {
+            InputStream is = getClass().getClassLoader().getResourceAsStream("skydelay_logo.png");
+            if (is != null) {
+                BufferedImage img = ImageIO.read(is);
+                logoIcon.setIcon(new ImageIcon(img.getScaledInstance(48, 48, Image.SCALE_SMOOTH)));
+            }
+        } catch (Exception ignored) {}
+
+        JLabel logo = new JLabel("SkyDelay");
         logo.setFont(new Font("Segoe UI", Font.BOLD, 32));
         logo.setForeground(TEXT_PRIMARY);
         logo.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -107,11 +115,13 @@ public class MainLauncher extends JFrame {
         subtitle.setForeground(TEXT_MUTED);
         subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel version = new JLabel("v2.0 — Spanish Airport Network");
+        JLabel version = new JLabel("v1.0 — Spanish Airport Network");
         version.setFont(new Font("Segoe UI", Font.ITALIC, 11));
         version.setForeground(new Color(100, 116, 139));
         version.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        titleBlock.add(logoIcon);
+        titleBlock.add(Box.createVerticalStrut(8));
         titleBlock.add(logo);
         titleBlock.add(Box.createVerticalStrut(4));
         titleBlock.add(subtitle);
@@ -120,7 +130,6 @@ public class MainLauncher extends JFrame {
 
         header.add(titleBlock, BorderLayout.WEST);
 
-        // Close button
         JLabel closeBtn = new JLabel("✕");
         closeBtn.setFont(new Font("Segoe UI", Font.BOLD, 18));
         closeBtn.setForeground(TEXT_MUTED);
@@ -135,7 +144,6 @@ public class MainLauncher extends JFrame {
         closePanel.add(closeBtn);
         header.add(closePanel, BorderLayout.EAST);
 
-        // Status indicator
         JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         statusPanel.setOpaque(false);
         statusPanel.setBorder(new EmptyBorder(12, 0, 0, 0));

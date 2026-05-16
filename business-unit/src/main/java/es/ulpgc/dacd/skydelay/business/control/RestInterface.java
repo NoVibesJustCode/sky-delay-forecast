@@ -3,6 +3,7 @@ package es.ulpgc.dacd.skydelay.business.control;
 import es.ulpgc.dacd.skydelay.business.control.datamart.FlightHistoricalDAO;
 import es.ulpgc.dacd.skydelay.business.control.datamart.FlightPredictionsDAO;
 import es.ulpgc.dacd.skydelay.business.control.datamart.WeatherDAO;
+import es.ulpgc.dacd.skydelay.business.control.metrics.ModelEvaluationService;
 import es.ulpgc.dacd.skydelay.business.control.services.MapDataService;
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 public class RestInterface {
 
@@ -21,15 +23,17 @@ public class RestInterface {
     private final WeatherDAO weatherDAO;
     private final MapDataService mapDataService;
     private final AirportCodeTranslator translator;
+    private final ModelEvaluationService evaluationService;
 
     public RestInterface(FlightHistoricalDAO historicalDAO, FlightPredictionsDAO predictionsDAO,
                          WeatherDAO weatherDAO, MapDataService mapDataService,
-                         AirportCodeTranslator translator) {
-        this.historicalDAO   = historicalDAO;
-        this.predictionsDAO  = predictionsDAO;
-        this.weatherDAO      = weatherDAO;
-        this.mapDataService  = mapDataService;
-        this.translator      = translator;
+                         AirportCodeTranslator translator, ModelEvaluationService evaluationService) {
+        this.historicalDAO      = historicalDAO;
+        this.predictionsDAO     = predictionsDAO;
+        this.weatherDAO         = weatherDAO;
+        this.mapDataService     = mapDataService;
+        this.translator         = translator;
+        this.evaluationService  = evaluationService;
     }
 
     private static String resolveWebPath(String subDir) {
@@ -73,6 +77,13 @@ public class RestInterface {
         });
 
         dashboardApp.get("/api/data", ctx -> ctx.json(predictionsDAO.getReadyToEatMenu()));
+
+        dashboardApp.get("/api/model-evaluation", ctx -> {
+            Map<String, Object> report = evaluationService.getLatestReport();
+            if (report != null) ctx.json(report);
+            else ctx.status(204).result("No evaluation available yet.");
+        });
+
         setupCommonRoutes(dashboardApp);
 
         mapApp.get("/api/data", ctx -> {

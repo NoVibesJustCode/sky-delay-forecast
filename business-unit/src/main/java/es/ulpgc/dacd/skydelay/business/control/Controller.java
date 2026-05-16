@@ -7,6 +7,7 @@ import es.ulpgc.dacd.skydelay.business.control.datamart.DatamartManager;
 import es.ulpgc.dacd.skydelay.business.control.datamart.FlightHistoricalDAO;
 import es.ulpgc.dacd.skydelay.business.control.datamart.FlightPredictionsDAO;
 import es.ulpgc.dacd.skydelay.business.control.datamart.WeatherDAO;
+import es.ulpgc.dacd.skydelay.business.control.metrics.ModelEvaluationService;
 import es.ulpgc.dacd.skydelay.business.control.services.DataStore;
 import es.ulpgc.dacd.skydelay.business.control.services.MapDataService;
 import es.ulpgc.dacd.skydelay.business.control.services.PredictionService;
@@ -35,6 +36,7 @@ public class Controller {
 
     private PredictionService predictionService;
     private MapDataService mapDataService;
+    private ModelEvaluationService evaluationService;
 
     public Controller(String brokerUrl, String eventStorePath, String dbPath, String csvPath) {
         this.brokerUrl = brokerUrl;
@@ -64,7 +66,12 @@ public class Controller {
             runHistoricalSweep();
             predictionService.refreshModel();
 
-            new RestInterface(historicalDAO, predictionsDAO, weatherDAO, mapDataService, translator).start();
+            this.evaluationService = new ModelEvaluationService(historicalDAO, "reports");
+            evaluationService.runEvaluation();
+            evaluationService.startPeriodicEvaluation(360, 6); // Every 6 hours
+
+            new RestInterface(historicalDAO, predictionsDAO, weatherDAO, mapDataService,
+                    translator, evaluationService).start();
 
             startRealTimeIngestion();
 
@@ -74,11 +81,11 @@ public class Controller {
     }
 
     private void runHistoricalSweep() {
-        logger.info("Iniciando barrido de datos históricos (Fase de entrenamiento)...");
+        logger.info("Starting historical data sweep (Training phase)...");
         EventStoreReader reader = new EventStoreReader(eventStorePath, this.gson);
         reader.processEvents("weather", Weather.class, weatherDAO::save);
         reader.processEvents("flight",  Flight.class,  predictionService::saveHistoricalFlight);
-        logger.info("Barrido completado. Modelo Predictor listo.");
+        logger.info("Historical sweep completed. Prediction model ready.");
     }
 
     private void startRealTimeIngestion() throws JMSException {
@@ -91,14 +98,14 @@ public class Controller {
                 new BusinessEventSubscriber(connection, weatherDAO, predictionService);
         subscriber.subscribeToTopics();
 
-        logger.info("Suscripciones ActiveMQ activadas.");
+        logger.info("ActiveMQ subscriptions active.");
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 connection.close();
-                logger.info("Conexión JMS cerrada correctamente.");
+                logger.info("JMS connection closed successfully.");
             } catch (JMSException e) {
-                logger.error("Error al cerrar JMS: {}", e.getMessage());
+                logger.error("Error closing JMS connection: {}", e.getMessage());
             }
         }));
     }

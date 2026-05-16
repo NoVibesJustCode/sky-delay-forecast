@@ -42,7 +42,7 @@ public class AirportCodeTranslator {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Error cargando traductor de códigos: " + e.getMessage());
+            System.err.println("Error loading airport code translator: " + e.getMessage());
         }
     }
 
