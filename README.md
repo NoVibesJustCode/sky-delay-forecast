@@ -241,7 +241,7 @@ flowchart LR
     linkStyle 12,13 stroke:#db2777,stroke-width:2.5px;
 ```
 
-## Project Modules
+## Application Architecture
 
 ### OpenWeatherMap Feeder
 This module is responsible for weather data ingestion. It uses the OpenWeatherMap API to obtain detailed forecasts for the configured airports.
@@ -262,6 +262,43 @@ Forecast Weather event format:
 
 <!-- <img src="docs/assets/images/forecastEvents.png" style="border: 2px solid #000;"> -->
 
+```mermaid
+flowchart TD
+  node_weather_main(("Weather Main")):::toneBlue
+  node_weather_controller["Weather Controller"]:::toneBlue
+  node_airports_reader["Airports Reader"]:::toneBlue
+  node_weather_feeder_interface["«Interface» Weather Feeder"]:::toneBlue
+  node_openweathermap_feeder["OpenWeatherMap Feeder"]:::toneBlue
+  node_weather_parser["Weather Parser"]:::toneBlue
+  node_weather_store_interface["«Interface» Weather Store"]:::toneBlue
+  node_weather_sqlite[("SQLite Weather Store")]:::toneBlue
+  node_weather_amq["ActiveMQ Weather Store"]:::toneBlue
+  node_owm_api["OpenWeatherMap API"]:::toneAmber
+  node_amq["ActiveMQ Broker"]:::toneAmber
+
+  node_weather_main --> node_weather_controller
+  node_weather_controller --> node_airports_reader
+  node_weather_controller --> node_weather_feeder_interface
+  node_weather_feeder_interface --> node_openweathermap_feeder
+  node_openweathermap_feeder --> node_owm_api
+  node_openweathermap_feeder --> node_weather_parser
+  node_weather_parser --> node_weather_store_interface
+  node_weather_store_interface --> node_weather_sqlite
+  node_weather_store_interface --> node_weather_amq
+  node_weather_amq --> node_amq
+
+  click node_weather_main "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/Main.java"
+  click node_weather_controller "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/Controller.java"
+  click node_airports_reader "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/AirportsReader.java"
+  click node_openweathermap_feeder "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/OpenWeatherMapFeeder.java"
+  click node_weather_parser "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/WeatherParser.java"
+  click node_weather_sqlite "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/SqliteWeatherStore.java"
+  click node_weather_amq "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/ActiveMQWeatherStore.java"
+
+  classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
+  classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
+```
+
 ### Flight Status Feeder
 A module dedicated to obtaining real-time flight status information.
 -   **Functionality**: Performs web scraping on flight tracking platforms (Flightera) to obtain departure/arrival times and accumulated delays.
@@ -273,10 +310,79 @@ Flight event format:
 ```
 <!-- <img src="docs/assets/images/flightEvents.png" style="border: 2px solid #000;"> -->
 
+
+```mermaid
+flowchart TD
+  node_flight_main(("Flight Main")):::toneBlue
+  node_flight_controller["Flight Controller"]:::toneBlue
+  node_flight_crawler_interface["«Interface» Flight Crawler"]:::toneBlue
+  node_flightera_crawler["Flightera Crawler"]:::toneBlue
+  node_link_manager["Link Manager"]:::toneBlue
+  node_flight_scraper_interface["«Interface» Flight Scraper"]:::toneBlue
+  node_flightera_scraper["Flightera Scraper"]:::toneBlue
+  node_flight_mapper["Flight Mapper"]:::toneBlue
+  node_flight_store_interface["«Interface» Flight Store"]:::toneBlue
+  node_flight_sqlite[("SQLite Flight Store")]:::toneBlue
+  node_flight_amq["ActiveMQ Flight Store"]:::toneBlue
+  node_flight_site["External Flight Pages"]:::toneAmber
+  node_amq["ActiveMQ Broker"]:::toneAmber
+
+  node_flight_main --> node_flight_controller
+  node_flight_controller --> node_flight_crawler_interface
+  node_flight_controller --> node_link_manager
+  node_flight_crawler_interface --> node_flightera_crawler
+  node_flightera_crawler --> node_flight_site
+  node_flight_controller --> node_flight_scraper_interface
+  node_flight_scraper_interface --> node_flightera_scraper
+  node_flightera_scraper --> node_flight_mapper
+  node_flight_mapper --> node_flight_store_interface
+  node_flight_store_interface --> node_flight_sqlite
+  node_flight_store_interface --> node_flight_amq
+  node_flight_amq --> node_amq
+
+  click node_flight_main "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/Main.java"
+  click node_flight_controller "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/Controller.java"
+  click node_flight_crawler_interface "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlightCrawler.java"
+  click node_flightera_crawler "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlighteraCrawler.java"
+  click node_link_manager "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/LinkManager.java"
+  click node_flight_scraper_interface "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlightScraper.java"
+  click node_flightera_scraper "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlighteraScraper.java"
+  click node_flight_mapper "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlightMapper.java"
+  click node_flight_sqlite "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/SqliteFlightStore.java"
+  click node_flight_amq "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/ActiveMqFlightStore.java"
+
+  classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
+  classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
+```
+
 ### Event Store Builder
 This component ensures the integrity and durability of the system's historical data.
 -   **Functionality**: Subscribed to all relevant broker topics, it captures every event and stores it in a structured way within the file system (Event Store).
 -   **Structure**: Events are organized by type and date, allowing for system state reconstruction at any point in time.
+
+```mermaid
+flowchart TD
+  node_event_main(("Event Store Main")):::toneBlue
+  node_event_controller["Event Controller"]:::toneBlue
+  node_event_subscriber["Event Subscriber"]:::toneBlue
+  node_event_store_interface["«Interface» Event Store"]:::toneBlue
+  node_event_store["File Event Store"]:::toneBlue
+  node_amq["ActiveMQ Broker"]:::toneAmber
+
+  node_event_main --> node_event_controller
+  node_event_controller --> node_event_subscriber
+  node_amq --> node_event_subscriber
+  node_event_controller --> node_event_store_interface
+  node_event_store_interface --> node_event_store
+
+  click node_event_main "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/event-store-builder/src/main/java/es/ulpgc/dacd/skydelay/eventstore/Main.java"
+  click node_event_controller "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/event-store-builder/src/main/java/es/ulpgc/dacd/skydelay/eventstore/control/Controller.java"
+  click node_event_subscriber "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/event-store-builder/src/main/java/es/ulpgc/dacd/skydelay/eventstore/control/ActiveMQEventSubscriber.java"
+  click node_event_store "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/event-store-builder/src/main/java/es/ulpgc/dacd/skydelay/eventstore/control/FileEventStore.java"
+
+  classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
+  classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
+```
 
 ### Business Unit
 The intelligent core of the project. It integrates both processing logic and user interfaces.
@@ -284,173 +390,56 @@ The intelligent core of the project. It integrates both processing logic and use
 -   **Prediction**: Implements a prediction service based on the KNN algorithm that estimates flight delays given specific weather conditions.
 -   **REST Interface**: Exposes an API using Javalin for programmatic access to data and predictions.
 
-## Module and Class Diagram
-
 ```mermaid
 flowchart TD
-
-subgraph group_weather["Weather System"]
-  node_weather_main(("Weather Main"))
-  node_weather_controller["Weather Ctrl"]
-  node_airports_reader["Airports Reader"]
-  node_weather_feeder_interface["«Interface» Weather Feeder"]
-  node_openweathermap_feeder["OpenWeatherMap Feeder"]
-  node_weather_parser["Weather Parser"]
-  node_weather_store_interface["«Interface» Weather Store"]
-  node_weather_sqlite[("SQLite Weather Store")]
-  node_weather_amq["ActiveMQ Weather Store"]
+  node_business_main(("Business Main")):::toneGreen
+  node_business_controller["Business Controller"]:::toneGreen
+  node_business_subscriber["Business Event Subscriber"]:::toneGreen
+  node_datamart_manager["Datamart Manager"]:::toneGreen
+  node_flight_dao["Flight DAO"]:::toneGreen
+  node_weather_dao["Weather DAO"]:::toneGreen
+  node_datamart_db[("datamart.db")]:::toneGreen
+  node_rest_interface["REST Interface"]:::toneGreen
+  node_classifier_interface["«Interface» Classifier"]:::toneGreen
+  node_knn_classifier["KNN Classifier"]:::toneGreen
+  node_prediction_service["Prediction Service"]:::toneGreen
   
-  node_weather_feeder_interface --> node_openweathermap_feeder
-  node_weather_store_interface --> node_weather_sqlite
-  node_weather_store_interface --> node_weather_amq
-end
+  node_amq["ActiveMQ Broker"]:::toneAmber
+  node_map_view["Predictive Map View"]:::tonePurple
+  node_dashboard_view["Analytics Dashboard"]:::tonePurple
 
-subgraph group_flight["Flight System"]
-  node_flight_main(("Flight Main"))
-  node_flight_controller["Flight Ctrl"]
-  node_flight_crawler_interface["«Interface» Flight Crawler"]
-  node_flightera_crawler["Flightera Crawler"]
-  node_link_manager["Link Manager"]
-  node_flight_scraper_interface["«Interface» Flight Scraper"]
-  node_flightera_scraper["Flightera Scraper"]
-  node_flight_mapper["Flight Mapper"]
-  node_flight_store_interface["«Interface» Flight Store"]
-  node_flight_sqlite[("SQLite Flight Store")]
-  node_flight_amq["ActiveMQ Flight Store"]
-  
-  node_flight_crawler_interface --> node_flightera_crawler
-  node_flight_scraper_interface --> node_flightera_scraper
-  node_flight_store_interface --> node_flight_sqlite
-  node_flight_store_interface --> node_flight_amq
-end
-
-subgraph group_event["Event System"]
-  node_event_main(("Event Main"))
-  node_event_controller["Event Ctrl"]
-  node_event_subscriber["Event Subscriber"]
-  node_event_store_interface["«Interface» Event Store"]
-  node_event_store["File Event Store"]
-  
-  node_event_store_interface --> node_event_store
-end
-
-subgraph group_business["Business Unit"]
-  node_business_main(("Business Main"))
-  node_business_controller["Controller"]
-  node_business_subscriber["BusinessEventSubscriber"]
-  node_datamart_manager["DatamartManager"]
-  node_flight_dao["FlightDAO"]
-  node_weather_dao["WeatherDAO"]
-  node_datamart_db[("datamart.db")]
-  node_rest_interface["RestInterface"]
-  node_classifier_interface["«Interface» Classifier"]
-  node_knn_classifier["KNNClassifier"]
-  node_prediction_service["PredictionService"]
-  
-  node_classifier_interface --> node_knn_classifier
+  node_business_main --> node_business_controller
+  node_business_controller --> node_business_subscriber
+  node_business_subscriber --> node_amq
+  node_business_controller --> node_datamart_manager
   node_datamart_manager --> node_datamart_db
-end
+  node_datamart_manager --> node_flight_dao
+  node_datamart_manager --> node_weather_dao
+  node_business_controller --> node_rest_interface
+  node_business_controller --> node_classifier_interface
+  node_classifier_interface --> node_knn_classifier
+  node_business_controller --> node_prediction_service
+  node_rest_interface --> node_prediction_service
+  
+  node_map_view --> node_rest_interface
+  node_dashboard_view --> node_rest_interface
 
-subgraph group_frontend["Frontend (JavaScript Apps)"]
-  node_map_view["mapView"]
-  node_dashboard_view["dashboardView"]
-end
+  click node_business_main "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/Main.java"
+  click node_business_controller "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/Controller.java"
+  click node_business_subscriber "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/BusinessEventSubscriber.java"
+  click node_datamart_manager "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/datamart/DatamartManager.java"
+  click node_flight_dao "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/datamart/FlightDAO.java"
+  click node_weather_dao "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/datamart/WeatherDAO.java"
+  click node_rest_interface "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/RestInterface.java"
+  click node_knn_classifier "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/KNNClassifier.java"
+  click node_prediction_service "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/services/PredictionService.java"
 
-subgraph group_external["External systems"]
-  node_amq["ActiveMQ Broker"]
-  node_owm_api["OpenWeatherMap API"]
-  node_flight_site["Flight Pages"]
-end
-
-%% Weather connections
-node_weather_main --> node_weather_controller
-node_weather_controller --> node_airports_reader
-node_weather_controller --> node_weather_feeder_interface
-node_openweathermap_feeder --> node_owm_api
-node_openweathermap_feeder --> node_weather_parser
-node_weather_parser --> node_weather_store_interface
-node_weather_parser --> node_weather_store_interface
-node_weather_amq --> node_amq
-
-%% Flight connections
-node_flight_main --> node_flight_controller
-node_flight_controller --> node_flight_crawler_interface
-node_flight_controller --> node_link_manager
-node_flightera_crawler --> node_flight_site
-node_flight_controller --> node_flight_scraper_interface
-node_flightera_scraper --> node_flight_mapper
-node_flight_mapper --> node_flight_store_interface
-node_flight_mapper --> node_flight_store_interface
-node_flight_amq --> node_amq
-
-%% Event connections
-node_event_main --> node_event_controller
-node_event_controller --> node_event_subscriber
-node_event_subscriber --> node_amq
-node_event_controller --> node_event_store_interface
-
-%% Broker deliveries
-node_amq --> node_event_subscriber
-
-%% Business Unit connections
-node_business_main --> node_business_controller
-node_business_controller --> node_business_subscriber
-node_business_subscriber --> node_amq
-node_business_controller --> node_datamart_manager
-node_datamart_manager --> node_flight_dao
-node_datamart_manager --> node_weather_dao
-node_business_controller --> node_rest_interface
-node_business_controller --> node_classifier_interface
-node_business_controller --> node_prediction_service
-node_rest_interface --> node_prediction_service
-
-%% Frontend connections (obtienen datos de RestInterface)
-node_map_view --> node_rest_interface
-node_dashboard_view --> node_rest_interface
-
-%% Click links (se mantienen)
-click node_weather_main "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/Main.java"
-click node_weather_controller "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/Controller.java"
-click node_airports_reader "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/AirportsReader.java"
-click node_openweathermap_feeder "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/OpenWeatherMapFeeder.java"
-click node_weather_parser "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/WeatherParser.java"
-click node_weather_sqlite "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/SqliteWeatherStore.java"
-click node_weather_amq "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/ActiveMQWeatherStore.java"
-click node_flight_main "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/Main.java"
-click node_flight_controller "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/Controller.java"
-click node_flight_crawler_interface "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlightCrawler.java"
-click node_flightera_crawler "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlighteraCrawler.java"
-click node_link_manager "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/LinkManager.java"
-click node_flight_scraper_interface "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlightScraper.java"
-click node_flightera_scraper "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlighteraScraper.java"
-click node_flight_mapper "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlightMapper.java"
-click node_flight_sqlite "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/SqliteFlightStore.java"
-click node_flight_amq "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/ActiveMqFlightStore.java"
-click node_event_main "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/event-store-builder/src/main/java/es/ulpgc/dacd/skydelay/eventstore/Main.java"
-click node_event_controller "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/event-store-builder/src/main/java/es/ulpgc/dacd/skydelay/eventstore/control/Controller.java"
-click node_event_subscriber "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/event-store-builder/src/main/java/es/ulpgc/dacd/skydelay/eventstore/control/ActiveMQEventSubscriber.java"
-click node_event_store "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/event-store-builder/src/main/java/es/ulpgc/dacd/skydelay/eventstore/control/FileEventStore.java"
-click node_business_main "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/Main.java"
-click node_business_controller "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/Controller.java"
-click node_business_subscriber "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/BusinessEventSubscriber.java"
-click node_datamart_manager "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/datamart/DatamartManager.java"
-click node_flight_dao "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/datamart/FlightDAO.java"
-click node_weather_dao "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/datamart/WeatherDAO.java"
-click node_rest_interface "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/RestInterface.java"
-click node_knn_classifier "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/KNNClassifier.java"
-click node_prediction_service "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/services/PredictionService.java"
-
-classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
-classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
-classDef toneGreen fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
-classDef tonePurple fill:#f3e8ff,stroke:#9333ea,stroke-width:1.5px,color:#4c1d95
-
-class node_weather_main,node_weather_controller,node_airports_reader,node_weather_feeder_interface,node_openweathermap_feeder,node_weather_parser,node_weather_store_interface,node_weather_sqlite,node_weather_amq,node_flight_main,node_flight_controller,node_flight_crawler_interface,node_flightera_crawler,node_link_manager,node_flight_scraper_interface,node_flightera_scraper,node_flight_mapper,node_flight_store_interface,node_flight_sqlite,node_flight_amq,node_event_main,node_event_controller,node_event_subscriber,node_event_store_interface,node_event_store toneBlue
-class node_amq,node_owm_api,node_flight_site toneAmber
-class node_business_main,node_business_controller,node_business_subscriber,node_datamart_manager,node_flight_dao,node_weather_dao,node_datamart_db,node_rest_interface,node_classifier_interface,node_knn_classifier,node_prediction_service toneGreen
-class node_map_view,node_dashboard_view tonePurple
+  classDef toneGreen fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
+  classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
+  classDef tonePurple fill:#f3e8ff,stroke:#9333ea,stroke-width:1.5px,color:#4c1d95
 ```
 
+---
 
 ## Authors
 
