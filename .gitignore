@@ -65,6 +65,9 @@ eventstore/forecast/weather-feeder/*.events
 ### Logs ###
 logs/skydelay.log
 
+### Reports ###
+reports/*.txt
+
 ### Others ###
 user-data-dir/
 .idea/db-forest-config.xml
