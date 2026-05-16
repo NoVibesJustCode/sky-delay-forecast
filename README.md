@@ -163,6 +163,27 @@ Each module must be run independently, preferably in the following order:
 
 ---
 
+## Usage Examples
+
+Once the system is fully operational and the Business Unit is serving data, you can interact with the two specialized frontend views. These demos showcase how the real-time weather and flight streams are transformed into actionable insights.
+
+### 1. Interactive Predictive Map
+
+The map provides a geographical overview of the Spanish airspace. It visualizes airports and active flights, using a color-coded system to represent predicted delays based on live meteorological conditions.
+
+
+---
+
+### 2. Premium Analytics Dashboard
+
+Designed for administrative and operational oversight, the dashboard consolidates historical data and evaluates how weather influences flights.
+
+<video src="docs/demos/dashboard_demo.mp4" width="100%" controls>
+  Tu navegador no soporta el video.
+</video>
+
+---
+
 ## System Architecture
 
 The system is engineered combining **Event-Driven Architecture** and **Lambda Architecture** patterns. It runs independent decoupled modules via a message broker (Apache ActiveMQ) to achieve two goals simultaneously: managing immutable long-term data warehousing for machine learning re-training, and handling low-latency real-time prediction pipelines.
@@ -404,10 +425,11 @@ The intelligent core of the project. It integrates both processing logic and use
 -   **Datamart**: Maintains a SQLite database optimized for fast queries and model training.
 -   **Prediction**: Implements a prediction service based on the KNN algorithm that estimates flight delays given specific weather conditions.
 -   **REST Interface**: Exposes an API using Javalin for programmatic access to data and predictions.
- ```mermaid
+ 
+```mermaid
 flowchart TD
   %% Nodes
-  Main(("Main")):::toneGreen
+  Main(("Business Main")):::toneGreen
   Ctrl["Business Controller"]:::toneGreen
   
   In["Data Ingestion<br/>(Subscriber & Reader)"]:::toneGreen
@@ -444,130 +466,6 @@ flowchart TD
   click API "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/RestInterface.java"
 
   %% Styles
-  classDef toneGreen fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
-  classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
-  classDef tonePurple fill:#f3e8ff,stroke:#9333ea,stroke-width:1.5px,color:#4c1d95
-```
-
-```mermaid
-flowchart TD
-  %% Entry Point
-  Main(("Main / Launcher")):::toneGreen
-  Ctrl["Business Controller"]:::toneGreen
-
-  %% Ingestion Block
-  subgraph Ingestion ["Data Ingestion"]
-    direction LR
-    Sub["BusinessEventSubscriber<br/>(ActiveMQ)"]:::toneGreen
-    Reader["EventStoreReader<br/>(File System)"]:::toneGreen
-  end
-
-  %% Logic & Services
-  subgraph Logic ["Analytical Core"]
-    direction TB
-    Services["Services:<br/>- PredictionService<br/>- MapDataService"]:::toneGreen
-    Eval["Metrics & Evaluation:<br/>- ClassifierEvaluator<br/>- ModelEvalService"]:::toneGreen
-    
-    Interface["«Interface»<br/>Classifier"]:::toneGreen
-    KNN["KNNClassifier"]:::toneGreen
-    
-    Interface --> KNN
-  end
-
-  %% Persistence
-  subgraph Persistence ["Storage Layer"]
-    DM["DatamartManager"]:::toneGreen
-    DAOs["DAOs:<br/>- FlightHistorical<br/>- FlightPredictions<br/>- Weather"]:::toneGreen
-    DB[("SQLite<br/>datamart.db")]:::toneGreen
-    
-    DM --> DAOs --> DB
-  end
-
-  %% External
-  API["REST API (Javalin)"]:::toneGreen
-  UI["Frontend:<br/>Map & Dashboard"]:::tonePurple
-
-  %% Main Connections
-  Main --> Ctrl
-  Ctrl ----> Ingestion
-  Ctrl ----> Logic
-  Ctrl ----> Persistence
-  Ctrl ----> API
-  
-  %% Data Flow
-  Logic <--> Persistence
-  API --- Services
-  UI ==> API
-
-  %% Styles
-  classDef toneGreen fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
-  classDef tonePurple fill:#f3e8ff,stroke:#9333ea,stroke-width:1.5px,color:#4c1d95
-```
-
-```mermaid
-flowchart TD
-  node_business_main(("Main")):::toneGreen
-  node_business_controller["Business Controller"]:::toneGreen
-  
-  subgraph pkg_datamart ["package: datamart"]
-    node_dm_manager["Datamart Manager"]:::toneGreen
-    node_daos["DAOs (Flight / Weather)"]:::toneGreen
-  end
-
-  subgraph pkg_services ["package: services"]
-    node_services["Core Services<br/>(Prediction / MapData)"]:::toneGreen
-  end
-
-  subgraph pkg_metrics ["package: metrics"]
-    node_metrics["Evaluation & Metrics"]:::toneGreen
-  end
-
-  node_event_reader["EventStore Reader"]:::toneGreen
-  node_subscriber["Business Event Subscriber"]:::toneGreen
-  node_rest["REST Interface (Javalin)"]:::toneGreen
-  
-  node_classifier_int["«Interface» 
-  Classifier"]:::toneGreen
-  node_knn["KNN Classifier"]:::toneGreen
-  
-  node_amq["ActiveMQ Broker"]:::toneAmber
-  node_db[("datamart.db")]:::toneGreen
-
-  %% Logic Flow
-  node_business_main --> node_business_controller
-  
-  %% Orchestration
-  node_business_controller --> node_subscriber
-  node_business_controller --> node_event_reader
-  node_business_controller --> node_dm_manager
-  node_business_controller --> pkg_services
-  node_business_controller --> pkg_metrics
-  node_business_controller --> node_rest
-  
-  %% Internal dependencies
-  node_subscriber --> node_amq
-  node_dm_manager --> node_daos
-  node_daos --> node_db
-  
-  pkg_services --> node_classifier_int
-  node_classifier_int --> node_knn
-  
-  %% Frontend connection
-  subgraph Presentation ["Presentation Layer"]
-    node_map["Predictive Map"]:::tonePurple
-    node_dash["Analytics Dashboard"]:::tonePurple
-  end
-
-  node_map --> node_rest
-  node_dash --> node_rest
-
-  %% Clickable Links
-  click node_business_main "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/Main.java"
-  click node_business_controller "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/Controller.java"
-  click node_subscriber "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/BusinessEventSubscriber.java"
-  click node_rest "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/RestInterface.java"
-  click node_knn "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/KNNClassifier.java"
-
   classDef toneGreen fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
   classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
   classDef tonePurple fill:#f3e8ff,stroke:#9333ea,stroke-width:1.5px,color:#4c1d95
