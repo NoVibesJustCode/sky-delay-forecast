@@ -264,6 +264,47 @@ Forecast Weather event format:
 
 ```mermaid
 flowchart TD
+node_weather_main(("Weather Main")):::toneBlue
+node_weather_controller["Weather Controller"]:::toneBlue
+node_airports_reader["Airports Reader"]:::toneBlue
+node_weather_feeder_interface["«Interface» Weather Feeder"]:::toneBlue
+node_openweathermap_feeder["OpenWeatherMap Feeder"]:::toneBlue
+node_weather_parser["Weather Parser"]:::toneBlue
+node_weather_store_interface["«Interface» Weather Store"]:::toneBlue
+node_weather_sqlite[("SQLite Weather Store")]:::toneBlue
+node_weather_amq["ActiveMQ Weather Store"]:::toneBlue
+node_owm_api["OpenWeatherMap API"]:::toneAmber
+node_amq["ActiveMQ Broker"]:::toneAmber
+
+node_weather_main --> node_weather_controller
+
+%% Controller orchestrating both sides
+node_weather_controller --> node_airports_reader
+node_weather_controller --> node_weather_feeder_interface
+node_weather_controller --> node_weather_store_interface
+
+node_weather_feeder_interface --> node_openweathermap_feeder
+node_openweathermap_feeder --> node_owm_api
+node_openweathermap_feeder --> node_weather_parser
+
+node_weather_store_interface --> node_weather_sqlite
+node_weather_store_interface --> node_weather_amq
+node_weather_amq --> node_amq
+
+click node_weather_main "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/Main.java"
+click node_weather_controller "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/Controller.java"
+click node_airports_reader "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/AirportsReader.java"
+click node_openweathermap_feeder "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/OpenWeatherMapFeeder.java"
+click node_weather_parser "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/WeatherParser.java"
+click node_weather_sqlite "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/SqliteWeatherStore.java"
+click node_weather_amq "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/ActiveMQWeatherStore.java"
+
+classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
+classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
+```
+
+```mermaid
+flowchart TD
   node_weather_main(("Weather Main")):::toneBlue
   node_weather_controller["Weather Controller"]:::toneBlue
   node_airports_reader["Airports Reader"]:::toneBlue
