@@ -373,4 +373,4 @@ class node_map_view,node_dashboard_view tonePurple
 
 ## Authors
 
-Project developed as part of the course "Desarrollo de Aplicaciones para el Ciencia de Datos" (DACD). By Lucas Mendoza Rodríguez and Javier Ruano Hernández.
+Project developed as part of the course _Desarrollo de Aplicaciones para Ciencia de Datos (DACD)_, by [Javier Ruano Hernández](https://github.com/javierruanohdez) and [Lucas Mendoza Rodríguez.](https://github.com/Lucasmendo30)
