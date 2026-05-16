@@ -404,6 +404,105 @@ The intelligent core of the project. It integrates both processing logic and use
 -   **Datamart**: Maintains a SQLite database optimized for fast queries and model training.
 -   **Prediction**: Implements a prediction service based on the KNN algorithm that estimates flight delays given specific weather conditions.
 -   **REST Interface**: Exposes an API using Javalin for programmatic access to data and predictions.
+ ```mermaid
+flowchart TD
+  %% Nodes
+  Main(("Main")):::toneGreen
+  Ctrl["Business Controller"]:::toneGreen
+  
+  In["Data Ingestion<br/>(Subscriber & Reader)"]:::toneGreen
+  Logic["Processing Services<br/>(KNN & Map Logic)"]:::toneGreen
+  Storage["Datamart Layer<br/>(DAOs & Manager)"]:::toneGreen
+  Eval["Model Evaluation<br/>(Metrics & Testing)"]:::toneGreen
+  
+  API["REST API<br/>(Javalin)"]:::toneGreen
+  
+  %% External/Frontend
+  Broker["ActiveMQ Broker"]:::toneAmber
+  DB[("SQLite DB")]:::toneGreen
+  UI["Frontend Apps<br/>(Map & Dashboard)"]:::tonePurple
+
+  %% Connections
+  Main --> Ctrl
+  
+  %% The Controller orchestrates the 4 pillars
+  Ctrl --> In
+  Ctrl --> Logic
+  Ctrl --> Storage
+  Ctrl --> Eval
+  Ctrl --> API
+  
+  %% Data Dependencies
+  In -.-> Broker
+  Storage --> DB
+  Logic --- Eval
+  UI ==> API
+
+  %% Links for the main components
+  click Main "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/Main.java"
+  click Ctrl "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/Controller.java"
+  click API "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/RestInterface.java"
+
+  %% Styles
+  classDef toneGreen fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
+  classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
+  classDef tonePurple fill:#f3e8ff,stroke:#9333ea,stroke-width:1.5px,color:#4c1d95
+```
+
+```mermaid
+flowchart TD
+  %% Entry Point
+  Main(("Main / Launcher")):::toneGreen
+  Ctrl["Business Controller"]:::toneGreen
+
+  %% Ingestion Block
+  subgraph Ingestion ["Data Ingestion"]
+    direction LR
+    Sub["BusinessEventSubscriber<br/>(ActiveMQ)"]:::toneGreen
+    Reader["EventStoreReader<br/>(File System)"]:::toneGreen
+  end
+
+  %% Logic & Services
+  subgraph Logic ["Analytical Core"]
+    direction TB
+    Services["Services:<br/>- PredictionService<br/>- MapDataService"]:::toneGreen
+    Eval["Metrics & Evaluation:<br/>- ClassifierEvaluator<br/>- ModelEvalService"]:::toneGreen
+    
+    Interface["«Interface»<br/>Classifier"]:::toneGreen
+    KNN["KNNClassifier"]:::toneGreen
+    
+    Interface --> KNN
+  end
+
+  %% Persistence
+  subgraph Persistence ["Storage Layer"]
+    DM["DatamartManager"]:::toneGreen
+    DAOs["DAOs:<br/>- FlightHistorical<br/>- FlightPredictions<br/>- Weather"]:::toneGreen
+    DB[("SQLite<br/>datamart.db")]:::toneGreen
+    
+    DM --> DAOs --> DB
+  end
+
+  %% External
+  API["REST API (Javalin)"]:::toneGreen
+  UI["Frontend:<br/>Map & Dashboard"]:::tonePurple
+
+  %% Main Connections
+  Main --> Ctrl
+  Ctrl ----> Ingestion
+  Ctrl ----> Logic
+  Ctrl ----> Persistence
+  Ctrl ----> API
+  
+  %% Data Flow
+  Logic <--> Persistence
+  API --- Services
+  UI ==> API
+
+  %% Styles
+  classDef toneGreen fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
+  classDef tonePurple fill:#f3e8ff,stroke:#9333ea,stroke-width:1.5px,color:#4c1d95
+```
 
 ```mermaid
 flowchart TD
