@@ -267,10 +267,12 @@ flowchart TD
 node_weather_main(("Weather Main")):::toneBlue
 node_weather_controller["Weather Controller"]:::toneBlue
 node_airports_reader["Airports Reader"]:::toneBlue
-node_weather_feeder_interface["«Interface»      Weather Feeder"]:::toneBlue
+node_weather_feeder_interface["«Interface» 
+Weather Feeder"]:::toneBlue
 node_openweathermap_feeder["OpenWeatherMap Feeder"]:::toneBlue
 node_weather_parser["Weather Parser"]:::toneBlue
-node_weather_store_interface["«Interface» Weather Store"]:::toneBlue
+node_weather_store_interface["«Interface» 
+Weather Store"]:::toneBlue
 node_weather_sqlite[("SQLite Weather Store")]:::toneBlue
 node_weather_amq["ActiveMQ Weather Store"]:::toneBlue
 node_owm_api["OpenWeatherMap API"]:::toneAmber
@@ -318,16 +320,19 @@ Flight event format:
 flowchart TD
   node_flight_main(("Flight Main")):::toneBlue
   node_flight_controller["Flight Controller"]:::toneBlue
-  node_flight_crawler_interface["«Interface» Flight Crawler"]:::toneBlue
+  node_flight_crawler_interface["«Interface» 
+  Flight Crawler"]:::toneBlue
   node_flightera_crawler["Flightera Crawler"]:::toneBlue
   node_link_manager["Link Manager"]:::toneBlue
-  node_flight_scraper_interface["«Interface» Flight Scraper"]:::toneBlue
+  node_flight_scraper_interface["«Interface» 
+  Flight Scraper"]:::toneBlue
   node_flightera_scraper["Flightera Scraper"]:::toneBlue
   node_flight_mapper["Flight Mapper"]:::toneBlue
-  node_flight_store_interface["«Interface» Flight Store"]:::toneBlue
+  node_flight_store_interface["«Interface» 
+  Flight Store"]:::toneBlue
   node_flight_sqlite[("SQLite Flight Store")]:::toneBlue
   node_flight_amq["ActiveMQ Flight Store"]:::toneBlue
-  node_flight_site["External Flight Pages"]:::toneAmber
+  node_flight_site["Flightera.net"]:::toneAmber
   node_amq["ActiveMQ Broker"]:::toneAmber
 
   node_flight_main --> node_flight_controller
@@ -358,6 +363,7 @@ flowchart TD
   click node_flight_mapper "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlightMapper.java"
   click node_flight_sqlite "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/SqliteFlightStore.java"
   click node_flight_amq "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/ActiveMqFlightStore.java"
+  click node_flight_site "flightera.net"
 
   classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
   classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
@@ -370,10 +376,11 @@ This component ensures the integrity and durability of the system's historical d
 
 ```mermaid
 flowchart TD
-  node_event_main(("Event Store Main")):::toneBlue
+  node_event_main(("Event Store Builder Main")):::toneBlue
   node_event_controller["Event Controller"]:::toneBlue
   node_event_subscriber["Event Subscriber"]:::toneBlue
-  node_event_store_interface["«Interface» Event Store"]:::toneBlue
+  node_event_store_interface["«Interface» 
+  Event Store"]:::toneBlue
   node_event_store["File Event Store"]:::toneBlue
   node_amq["ActiveMQ Broker"]:::toneAmber
 
