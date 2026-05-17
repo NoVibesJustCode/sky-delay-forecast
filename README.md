@@ -530,6 +530,34 @@ Instead of using raw `System.out.println()`, the system implements standard SLF4
 
 ---
 
+## Future Improvements
+
+To transition the project from an academic prototype to a robust, production-grade platform, several scalable milestones have been identified for future development:
+
+### 1. Global Airspace Expansion
+
+The current infrastructure is focused strictly on Spanish airports and domestic traffic.
+
+* **Target:** Generalize the `AirportsReader` and feeder cron jobs to capture real-time operations across major international flight hubs worldwide.
+
+### 2. High-Capacity Predictive Models
+
+While the current decentralized structural framework fulfills all architectural guidelines, the core machine learning inference can be significantly upgraded.
+
+* **Current Baseline:** With a limited dataset of **473 total samples**, the `KNNClassifier` achieves an **Overall Accuracy of 64.90% (0.6490)**.
+* **Target:** As the `Event Store` accumulates deeper historical data, transition the `Classifier` implementation towards more robust, non-linear algorithms such as **Random Forest Ensembles** or deep **Neural Networks (MLPs)** to improve accuracy and minimize false-positive delays.
+
+### 3. Multi-Dimensional Feature Ingestion
+
+Flight delays are highly complex and rarely triggered by localized weather conditions alone.
+
+* **Target:** Expand the `FlightFeature` vector and database schema to ingest broader environmental and contextual dimensions, including:
+* **Airport & Airspace Congestion:** Live queue delays and runway capacity metrics.
+* **Temporal Anomalies:** Calendar variations, including national holidays, long weekends, and peak holiday seasons vs. standard weekdays.
+* **Historical Aircraft Turnaround:** Delay patterns chained from a plane's previous flight segments.
+
+---
+
 ## Authors
 
 Project developed as part of the course _Desarrollo de Aplicaciones para Ciencia de Datos (DACD)_, by [Javier Ruano Hernández](https://github.com/javierruanohdez) and [Lucas Mendoza Rodríguez.](https://github.com/Lucasmendo30)
