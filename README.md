@@ -313,13 +313,15 @@ node_weather_store_interface --> node_weather_sqlite
 node_weather_store_interface --> node_weather_amq
 node_weather_amq --> node_amq
 
-click node_weather_main "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/Main.java"
-click node_weather_controller "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/Controller.java"
-click node_airports_reader "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/AirportsReader.java"
-click node_openweathermap_feeder "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/OpenWeatherMapFeeder.java"
-click node_weather_parser "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/WeatherParser.java"
-click node_weather_sqlite "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/SqliteWeatherStore.java"
-click node_weather_amq "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/ActiveMQWeatherStore.java"
+click node_weather_main "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/Main.java"
+click node_weather_controller "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/Controller.java"
+click node_airports_reader "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/AirportsReader.java"
+click node_openweathermap_feeder "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/OpenWeatherMapFeeder.java"
+click node_weather_parser "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/WeatherParser.java"
+click node_weather_sqlite "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/SqliteWeatherStore.java"
+click node_weather_amq "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/ActiveMQWeatherStore.java"
+click node_weather_store_interface "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/WeatherStore.java"
+click node_weather_feeder_interface "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/WeatherFeeder.java"
 
 classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
 classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
