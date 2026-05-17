@@ -471,6 +471,65 @@ flowchart TD
 
 ---
 
+## Design Principles and Patterns Applied
+
+To ensure a maintainable, scalable, and highly decoupled system, the architecture strictly adheres to standard software engineering patterns and SOLID principles.
+
+### 1. SOLID Principles Implementation
+
+* **Single Responsibility Principle (SRP):** Every class has a single purpose. Feeders only fetch data, Parsers handle raw transformations, and DAOs deal exclusively with database operations.
+
+
+* **Open/Closed Principle (OCP):** The system uses interfaces to allow extensions without modifying existing code. For example, changing the ML algorithm only requires a new implementation of the `Classifier` interface.
+
+
+* **Dependency Inversion Principle (DIP):** High-level controllers communicate with external infrastructures purely through abstractions (e.g., `WeatherStore`, `FlightStore`, `EventStore`, `FlightScraper`).
+
+#### Code Example: Polymorphism & OCP via Interfaces
+
+```java
+public interface Classifier {
+    String predict(double feature1, double feature2, double feature3, double feature4);
+    double normalize(double value, double min, double max);
+}
+
+
+public class KNNClassifier implements Classifier {
+    @Override
+    public String predict(double temp, double wind, double gust, double vis) {
+        // KNN classification logic here
+        return neighbors;
+    }
+
+    @Override
+    public double normalize(double val, double min, double max) {
+        if (max == min) return 0.0;
+        return Math.max(0.0, Math.min(1.0, (val - min) / (max - min)));
+    }
+}
+```
+
+---
+
+### 2. Architectural & Behavioral Patterns
+
+#### Data Access Object (DAO) Pattern
+
+Isolates the business logic from low-level database changes by encapsulating SQL operations inside specialized components (`FlightHistoricalDAO`, `FlightPredictionsDAO`, `WeatherDAO`).
+
+* **Decoupling:** `DatamartManager` uses these DAOs to interface with SQLite, meaning analytical components never execute raw SQL directly.
+
+---
+
+### 3. Production-Ready Logging Practices
+
+Instead of using raw `System.out.println()`, the system implements standard SLF4J/Logback logging wrappers across all modules.
+
+* **Traceability:** Distinct log levels (`INFO`, `WARN`, `ERROR`) map application states cleanly.
+* **File Persistence Best Practice:** In production, logs are dynamically routed to standard console outputs and written into persistent files (`logs/skydelay.log`). This enables asynchronous auditing, error tracing, and post-mortem analysis without degrading live CPU performance.
+
+---
+
 ## Authors
 
 Project developed as part of the course _Desarrollo de Aplicaciones para Ciencia de Datos (DACD)_, by [Javier Ruano Hernández](https://github.com/javierruanohdez) and [Lucas Mendoza Rodríguez.](https://github.com/Lucasmendo30)
