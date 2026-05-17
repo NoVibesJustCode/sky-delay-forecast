@@ -169,8 +169,9 @@ Once the system is fully operational and the Business Unit is serving data, you 
 
 ### 1. Interactive Predictive Map
 
-The map provides a geographical overview of the Spanish airspace. It visualizes airports and active flights, using a color-coded system to represent predicted delays based on live meteorological conditions.
+The map provides a geographical overview of the Spanish airspace, visualizing airports and active flights through a dynamic, color-coded system.Airports are color-coded based on their current delay performance, utilizing the metric $1 - **\text{OTP}$ (On-Time Performance)** to reflect the exact magnitude of ongoing departures from the schedule. In addition to this real-time status, the map integrates live meteorological conditions to display predictive insights, forecasting whether upcoming flights are likely to experience delays or proceed on schedule.
 
+https://github.com/user-attachments/assets/d59a9e4f-389e-4dba-9a52-2b396abb5b5c
 
 ---
 
