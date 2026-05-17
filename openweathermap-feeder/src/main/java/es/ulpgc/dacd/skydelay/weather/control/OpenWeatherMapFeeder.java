@@ -25,7 +25,7 @@ public class OpenWeatherMapFeeder implements WeatherFeeder {
     private static final String FORECAST_WEATHER_URL = "https://api.openweathermap.org/data/2.5/forecast";
 
     public OpenWeatherMapFeeder(WeatherParser parser) {
-        this.apiKey = Dotenv.load().get("WEATHER_API_KEY");
+        this.apiKey = Dotenv.load().get("OPENWEATHERMAP_API_KEY");
         this.client = HttpClient.newHttpClient();
         this.parser = parser;
     }
