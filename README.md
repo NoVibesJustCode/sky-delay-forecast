@@ -469,7 +469,7 @@ flowchart TD
   click Main "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/Main.java"
   click Ctrl "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/Controller.java"
   click API "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/RestInterface.java"
-  click UI "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/web"
+  click UI "https://github.com/novibesjustcode/sky-delay-forecast/tree/main/web"
   click Storage "https://github.com/novibesjustcode/sky-delay-forecast/tree/main/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/datamart"
   click Eval "https://github.com/novibesjustcode/sky-delay-forecast/tree/main/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/metrics"
 
