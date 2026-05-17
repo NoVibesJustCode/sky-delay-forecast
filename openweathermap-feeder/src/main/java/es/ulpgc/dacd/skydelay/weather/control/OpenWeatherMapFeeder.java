@@ -14,12 +14,15 @@ import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.stream.StreamSupport;
 
 public class OpenWeatherMapFeeder implements WeatherFeeder {
     private final String apiKey;
     private final HttpClient client;
     private final WeatherParser parser;
+    private static final Logger logger = LoggerFactory.getLogger(OpenWeatherMapFeeder.class);
 
     private static final String CURRENT_WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather";
     private static final String FORECAST_WEATHER_URL = "https://api.openweathermap.org/data/2.5/forecast";
@@ -33,13 +36,12 @@ public class OpenWeatherMapFeeder implements WeatherFeeder {
     @Override
     public List<Object> fetch(Airport airport) {
         List<Object> results = new ArrayList<>();
-        try {
+        logger.info("Starting weather data fetch for airport: {} ({})", airport.icao(), airport.name());        try {
             results.add(fetchCurrentWeather(airport));
             results.addAll(fetchForecasts(airport));
-
-            return results;
+            logger.info("Successfully fetched weather data for airport: {}", airport.icao());            return results;
         } catch (Exception e) {
-            System.err.println("Failed to process airport " + airport.icao() + ": " + e.getMessage());
+            logger.error("Failed to process airport {}", airport.icao(), e);
             return null;
         }
     }

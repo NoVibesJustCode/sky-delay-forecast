@@ -51,6 +51,7 @@ public class Controller {
 
     public void execute() {
         try {
+            logger.info("Connecting to datamart at: {}", dbPath);
             DatamartManager datamartManager = new DatamartManager(dbPath);
             datamartManager.initializeDatabase();
 
@@ -64,28 +65,45 @@ public class Controller {
             this.predictionService = new PredictionService(historicalDAO, predictionsDAO, weatherDAO, translator);
 
             runHistoricalSweep();
+            logger.info("Refreshing prediction machine learning model...");
+
             predictionService.refreshModel();
 
+            logger.info("Starting Model Evaluation Service...");
             this.evaluationService = new ModelEvaluationService(historicalDAO, "reports");
             evaluationService.runEvaluation();
-            evaluationService.startPeriodicEvaluation(360, 6); // Every 6 hours
+            evaluationService.startPeriodicEvaluation(360, 6);
 
+            logger.info("Starting REST Interface...");
             new RestInterface(historicalDAO, predictionsDAO, weatherDAO, mapDataService,
                     translator, evaluationService).start();
 
             startRealTimeIngestion();
 
         } catch (Exception e) {
-            logger.error("Error starting Controller: {}", e.getMessage(), e);
+            logger.error("CRITICAL: Error starting Controller core services: {}", e.getMessage(), e);
         }
     }
 
     private void runHistoricalSweep() {
-        logger.info("Starting historical data sweep (Training phase)...");
-        EventStoreReader reader = new EventStoreReader(eventStorePath, this.gson);
-        reader.processEvents("weather", Weather.class, weatherDAO::save);
-        reader.processEvents("flight",  Flight.class,  predictionService::saveHistoricalFlight);
-        logger.info("Historical sweep completed. Prediction model ready.");
+        logger.info("Starting historical data sweep (Training phase) from path: {}", eventStorePath);
+        long startTime = System.currentTimeMillis();
+
+        try {
+            EventStoreReader reader = new EventStoreReader(eventStorePath, this.gson);
+
+            logger.info("Processing 'weather' events...");
+            reader.processEvents("weather", Weather.class, weatherDAO::save);
+
+            logger.info("Processing 'flight' events...");
+            reader.processEvents("flight",  Flight.class,  predictionService::saveHistoricalFlight);
+
+            long duration = System.currentTimeMillis() - startTime;
+            logger.info("Historical sweep completed successfully in {} ms. Prediction model is ready.", duration);
+
+        } catch (Exception e) {
+            logger.warn("Historical sweep encountered issues. Model may be incomplete or uninitialized: {}", e.getMessage(), e);
+        }
     }
 
     private void startRealTimeIngestion() throws JMSException {
