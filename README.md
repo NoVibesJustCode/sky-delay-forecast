@@ -157,7 +157,7 @@ Each module must be run independently, preferably in the following order:
 > * **Predictive Map & Flight Table:** `http://localhost:8080` (Main interface containing the interactive geographic map and the live flight-delay lookup table).
 > 
 > 
-> * **Analytics Dashboard:** `http://localhost:7070` (Premium enterprise control panel). When navigating to this view, use the following default credentials to log in:
+> * **Analytics Dashboard:** `http://localhost:9090` (Premium enterprise control panel). When navigating to this view, use the following default credentials to log in:
 >   * **Password:** `admin123`
 >
 
@@ -554,7 +554,7 @@ The current infrastructure is focused strictly on Spanish airports and domestic 
 
 While the current decentralized structural framework fulfills all architectural guidelines, the core machine learning inference can be significantly upgraded.
 
-* **Current Baseline:** With a limited dataset of **473 total samples**, the `KNNClassifier` achieves an **Overall Accuracy of 64.90% (0.6490)**.
+* **Current Baseline:** With a limited dataset of **491 total samples**, the `KNNClassifier` achieves an **Overall Accuracy of 67.82% (0.6782)**.
 * **Target:** As the `Event Store` accumulates deeper historical data, transition the `Classifier` implementation towards more robust, non-linear algorithms such as **Random Forest Ensembles** or deep **Neural Networks (MLPs)** to improve accuracy and minimize false-positive delays.
 
 ### 3. Multi-Dimensional Feature Ingestion

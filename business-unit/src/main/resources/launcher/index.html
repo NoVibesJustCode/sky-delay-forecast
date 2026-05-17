@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyDelay — Mission Control</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="/assets/logo.png">
+</head>
+<body>
+
+<!-- ╔════════════════════════════════════════════════════════════════════════╗
+     ║                       BACKGROUND LAYERS                                ║
+     ╚════════════════════════════════════════════════════════════════════════╝ -->
+<div class="bg-stage" aria-hidden="true">
+    <div class="bg-gradient"></div>
+    <div class="bg-grid"></div>
+    <div class="bg-glow bg-glow-cyan"></div>
+    <div class="bg-glow bg-glow-violet"></div>
+    <div class="bg-stars" id="bg-stars"></div>
+    <div class="bg-scan"></div>
+
+    <!-- Radar sweep at far right -->
+    <div class="radar">
+        <div class="radar-ring"></div>
+        <div class="radar-ring radar-ring-2"></div>
+        <div class="radar-ring radar-ring-3"></div>
+        <div class="radar-sweep"></div>
+        <div class="radar-dot radar-dot-1"></div>
+        <div class="radar-dot radar-dot-2"></div>
+        <div class="radar-dot radar-dot-3"></div>
+        <div class="radar-dot radar-dot-4"></div>
+    </div>
+
+    <!-- Flying plane silhouette -->
+    <div class="plane-trail">
+        <svg class="plane-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <path d="M62 32L42 26V14L38 12V26L24 22V14L20 12V22L4 32L20 38V46L24 48V38L38 42V54L42 56V42L62 32Z"
+                  fill="currentColor"/>
+        </svg>
+        <span class="plane-trail-tail"></span>
+    </div>
+</div>
+
+<!-- ╔════════════════════════════════════════════════════════════════════════╗
+     ║                            TOP BAR                                     ║
+     ╚════════════════════════════════════════════════════════════════════════╝ -->
+<header class="top-bar">
+    <div class="brand">
+        <img src="/assets/logo.png" alt="SkyDelay" class="brand-logo" onerror="this.style.display='none'">
+        <div class="brand-text">
+            <div class="brand-name">SKYDELAY</div>
+            <div class="brand-sub">FLIGHT INTELLIGENCE · v2.0.0</div>
+        </div>
+    </div>
+
+    <div class="top-meta">
+        <div class="meta-block">
+            <span class="meta-label">UTC</span>
+            <span class="meta-val mono" id="utc-clock">--:--:--</span>
+        </div>
+        <div class="meta-block">
+            <span class="meta-label">UPTIME</span>
+            <span class="meta-val mono" id="uptime-clock">00:00:00</span>
+        </div>
+        <div class="meta-block status-chip" id="global-status">
+            <span class="status-dot"></span>
+            <span class="status-text mono">ALL SYSTEMS NOMINAL</span>
+        </div>
+    </div>
+</header>
+
+<!-- ╔════════════════════════════════════════════════════════════════════════╗
+     ║                          HERO + ACTIONS                                ║
+     ╚════════════════════════════════════════════════════════════════════════╝ -->
+<main class="stage">
+
+    <section class="hero">
+        <div class="hero-eyebrow">
+            <span class="eyebrow-dot"></span>
+            <span class="mono">SPANISH AIRPORT NETWORK · LIVE</span>
+            <span class="eyebrow-dot"></span>
+        </div>
+        <h1 class="hero-title">
+            <span class="hero-title-line-1">SkyDelay</span>
+            <span class="hero-title-line-2">Mission&nbsp;Control</span>
+        </h1>
+        <p class="hero-tagline">
+            Real-time predictions, historical intelligence and weather correlation
+            across the Spanish airport network — orchestrated from a single console.
+        </p>
+        <div class="hero-stats" id="hero-stats">
+            <div class="stat">
+                <div class="stat-val mono" id="stat-airports">—</div>
+                <div class="stat-lab">Airports</div>
+            </div>
+            <div class="stat-sep"></div>
+            <div class="stat">
+                <div class="stat-val mono" id="stat-flights">—</div>
+                <div class="stat-lab">Historic flights</div>
+            </div>
+            <div class="stat-sep"></div>
+            <div class="stat">
+                <div class="stat-val mono" id="stat-predictions">—</div>
+                <div class="stat-lab">Live predictions</div>
+            </div>
+            <div class="stat-sep"></div>
+            <div class="stat">
+                <div class="stat-val mono" id="stat-weather">—</div>
+                <div class="stat-lab">Weather records</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="action-grid">
+
+        <!-- ── CARD 1 · MAP ────────────────────────────────────────────────── -->
+        <a class="action-card card-map" href="http://localhost:8080" target="_blank" rel="noopener" data-port="8080">
+            <div class="card-glow"></div>
+            <div class="card-corner card-corner-tl"></div>
+            <div class="card-corner card-corner-tr"></div>
+            <div class="card-corner card-corner-bl"></div>
+            <div class="card-corner card-corner-br"></div>
+
+            <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+                    <line x1="8" y1="2" x2="8" y2="18"/>
+                    <line x1="16" y1="6" x2="16" y2="22"/>
+                </svg>
+            </div>
+
+            <div class="card-tag mono">MODULE · 01</div>
+            <div class="card-title">Public Flight Map</div>
+            <div class="card-desc">Interactive Leaflet map with predicted delay index, live weather pins and per-airport flight tables.</div>
+
+            <div class="card-meta">
+                <div class="card-port mono">:8080</div>
+                <div class="card-health" id="health-8080">
+                    <span class="card-health-dot"></span>
+                    <span class="card-health-text mono">CHECKING…</span>
+                </div>
+            </div>
+
+            <div class="card-launch">
+                <span class="mono">LAUNCH</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                </svg>
+            </div>
+        </a>
+
+        <!-- ── CARD 2 · DASHBOARD (licensed — password protected) ──────────── -->
+        <a class="action-card card-dash" href="http://localhost:9090" target="_blank" rel="noopener"
+           data-port="9090" data-requires-auth="true" id="card-dash">
+            <div class="card-glow"></div>
+            <div class="card-corner card-corner-tl"></div>
+            <div class="card-corner card-corner-tr"></div>
+            <div class="card-corner card-corner-bl"></div>
+            <div class="card-corner card-corner-br"></div>
+
+            <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="9"/>
+                    <rect x="14" y="3" width="7" height="5"/>
+                    <rect x="14" y="12" width="7" height="9"/>
+                    <rect x="3" y="16" width="7" height="5"/>
+                </svg>
+            </div>
+
+            <div class="card-lock" title="Licensed — requires access key">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+            </div>
+
+            <div class="card-tag mono">MODULE · 02 · LICENSED</div>
+            <div class="card-title">Business Dashboard</div>
+            <div class="card-desc">Analytics, heatmaps, weather correlation and model evaluation across the historical flight corpus.</div>
+
+            <div class="card-meta">
+                <div class="card-port mono">:9090</div>
+                <div class="card-health" id="health-9090">
+                    <span class="card-health-dot"></span>
+                    <span class="card-health-text mono">CHECKING…</span>
+                </div>
+            </div>
+
+            <div class="card-launch">
+                <span class="mono">UNLOCK</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                </svg>
+            </div>
+        </a>
+
+        <!-- ── CARD 3 · USER GUIDE ─────────────────────────────────────────── -->
+        <a class="action-card card-docs" href="/docs/user_guide.pdf" target="_blank" rel="noopener" data-port="docs">
+            <div class="card-glow"></div>
+            <div class="card-corner card-corner-tl"></div>
+            <div class="card-corner card-corner-tr"></div>
+            <div class="card-corner card-corner-bl"></div>
+            <div class="card-corner card-corner-br"></div>
+
+            <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+            </div>
+
+            <div class="card-tag mono">MODULE · 03</div>
+            <div class="card-title">User Guide</div>
+            <div class="card-desc">Comprehensive PDF documentation — architecture, data pipeline, prediction model and operator manual.</div>
+
+            <div class="card-meta">
+                <div class="card-port mono">PDF</div>
+                <div class="card-health" id="health-docs">
+                    <span class="card-health-dot"></span>
+                    <span class="card-health-text mono">CHECKING…</span>
+                </div>
+            </div>
+
+            <div class="card-launch">
+                <span class="mono">OPEN</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                </svg>
+            </div>
+        </a>
+
+    </section>
+
+    <!-- ── SYSTEM STATUS PANEL ─────────────────────────────────────────────── -->
+    <section class="status-panel">
+        <div class="status-panel-head">
+            <div class="panel-title">
+                <span class="panel-bullet"></span>
+                <span class="mono">SYSTEM STATUS</span>
+            </div>
+            <div class="panel-refresh mono" id="last-refresh">last check —</div>
+        </div>
+
+        <div class="status-grid">
+            <div class="status-row" data-key="map">
+                <span class="status-row-dot"></span>
+                <span class="status-row-name">Map Service</span>
+                <span class="status-row-meta mono">localhost:8080</span>
+                <span class="status-row-state mono">—</span>
+            </div>
+            <div class="status-row" data-key="dash">
+                <span class="status-row-dot"></span>
+                <span class="status-row-name">Dashboard Service</span>
+                <span class="status-row-meta mono">localhost:9090</span>
+                <span class="status-row-state mono">—</span>
+            </div>
+            <div class="status-row" data-key="launcher">
+                <span class="status-row-dot status-row-dot-ok"></span>
+                <span class="status-row-name">Launcher</span>
+                <span class="status-row-meta mono">localhost:7070</span>
+                <span class="status-row-state mono ok">ONLINE</span>
+            </div>
+            <div class="status-row" data-key="model">
+                <span class="status-row-dot"></span>
+                <span class="status-row-name">Prediction Model (KNN)</span>
+                <span class="status-row-meta mono">in-memory</span>
+                <span class="status-row-state mono">—</span>
+            </div>
+            <div class="status-row" data-key="datamart">
+                <span class="status-row-dot"></span>
+                <span class="status-row-name">Datamart (SQLite)</span>
+                <span class="status-row-meta mono">local file</span>
+                <span class="status-row-state mono">—</span>
+            </div>
+            <div class="status-row" data-key="ingest">
+                <span class="status-row-dot"></span>
+                <span class="status-row-name">ActiveMQ Ingestion</span>
+                <span class="status-row-meta mono">streaming</span>
+                <span class="status-row-state mono">—</span>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- ╔════════════════════════════════════════════════════════════════════════╗
+     ║                            FOOTER                                      ║
+     ╚════════════════════════════════════════════════════════════════════════╝ -->
+<footer class="bottom-bar">
+    <div class="foot-credits">
+        <span class="mono">DACD</span>
+        <span class="foot-dot"></span>
+        <span class="mono">ULPGC</span>
+        <span class="foot-dot"></span>
+        <span class="mono">2025—2026</span>
+        <span class="foot-dot"></span>
+        <span class="mono">NoVibesJustCode</span>
+    </div>
+
+    <div class="foot-actions">
+        <button class="foot-btn" id="btn-refresh">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"/>
+                <polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+            <span class="mono">REFRESH</span>
+        </button>
+
+        <button class="foot-btn foot-btn-danger" id="btn-shutdown">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+                <line x1="12" y1="2" x2="12" y2="12"/>
+            </svg>
+            <span class="mono">SHUTDOWN</span>
+        </button>
+    </div>
+</footer>
+
+<!-- Password gate overlay (Business Dashboard) -->
+<div class="modal-back" id="auth-modal">
+    <div class="modal modal-auth">
+        <div class="modal-icon modal-icon-info">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+        </div>
+        <div class="modal-title">Business License Required</div>
+        <div class="modal-text">
+            The Business Dashboard is a licensed module.
+            Enter your access key to continue.
+        </div>
+
+        <form class="auth-form" id="auth-form" autocomplete="off">
+            <div class="auth-field">
+                <label class="auth-label mono" for="auth-input">ACCESS KEY</label>
+                <input class="auth-input mono" id="auth-input" type="password"
+                       placeholder="•••••••••" autocomplete="off" spellcheck="false">
+                <div class="auth-error mono" id="auth-error"></div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="modal-btn modal-btn-secondary" id="btn-cancel-auth">Cancel</button>
+                <button type="submit" class="modal-btn modal-btn-info" id="btn-confirm-auth">
+                    <span class="mono">UNLOCK DASHBOARD</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Shutdown confirmation overlay -->
+<div class="modal-back" id="shutdown-modal">
+    <div class="modal">
+        <div class="modal-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+                <line x1="12" y1="2" x2="12" y2="12"/>
+            </svg>
+        </div>
+        <div class="modal-title">Shutdown SkyDelay?</div>
+        <div class="modal-text">
+            This will terminate all running services — the map, the dashboard and the real-time
+            ingestion pipeline. Active connections will be closed gracefully.
+        </div>
+        <div class="modal-actions">
+            <button class="modal-btn modal-btn-secondary" id="btn-cancel-shutdown">Cancel</button>
+            <button class="modal-btn modal-btn-danger" id="btn-confirm-shutdown">
+                <span class="mono">CONFIRM SHUTDOWN</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
