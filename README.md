@@ -368,6 +368,7 @@ flowchart TD
   
   node_flight_scraper_interface --> node_flightera_scraper
   node_flightera_scraper --> node_flight_mapper
+  node_flightera_scraper --> node_flight_site
   
   node_flight_store_interface --> node_flight_sqlite
   node_flight_store_interface --> node_flight_amq
@@ -382,8 +383,8 @@ flowchart TD
   click node_flightera_scraper "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlighteraScraper.java"
   click node_flight_mapper "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlightMapper.java"
   click node_flight_sqlite "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/SqliteFlightStore.java"
-  click node_flight_amq "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/ActiveMqFlightStore.java"
-  click node_flight_site "flightera.net"
+  click node_flight_amq "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/ActiveMqFlightStore.java" _blank
+  click node_flight_site "https://www.flightera.net" _blank
 
   classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
   classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
