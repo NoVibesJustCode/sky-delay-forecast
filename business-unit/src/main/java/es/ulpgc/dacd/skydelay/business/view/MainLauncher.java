@@ -73,7 +73,7 @@ public class MainLauncher extends JFrame {
         center.add(createActionCard(
                 "📄  User Guide",
                 "Open the PDF documentation",
-                "docs/user_guide.pdf",
+                "docs/user-guide/user_guide.pdf",
                 WARNING, false
         ));
 
