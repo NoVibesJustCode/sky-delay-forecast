@@ -4,13 +4,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializer;
 import es.ulpgc.dacd.skydelay.weather.model.Weather;
-
 import java.time.Instant;
-
 import com.google.gson.Gson;
 import es.ulpgc.dacd.skydelay.weather.model.WeatherForecast;
 import org.apache.activemq.ActiveMQConnectionFactory;
-
 import jakarta.jms.*;
 import jakarta.jms.Connection;
 import org.slf4j.Logger;

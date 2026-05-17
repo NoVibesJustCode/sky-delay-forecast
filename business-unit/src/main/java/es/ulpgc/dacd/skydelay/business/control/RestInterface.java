@@ -9,7 +9,6 @@ import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.awt.Desktop;
 import java.io.IOException;
 import java.net.URI;
@@ -58,7 +57,6 @@ public class RestInterface {
         String dashboardPath = resolveWebPath("dashboard");
         String mapPath = resolveWebPath("map");
 
-        // ── Business Dashboard (analytics, charts, model evaluation) ──────────
         Javalin dashboardApp = Javalin.create(config -> {
             config.bundledPlugins.enableCors(cors -> cors.addRule(it -> it.anyHost()));
             if (dashboardPath != null) {
@@ -66,7 +64,6 @@ public class RestInterface {
             }
         }).start(9090);
 
-        // ── Public Flight Map (Leaflet + predicted delay index) ──────────────
         Javalin mapApp = Javalin.create(config -> {
             config.bundledPlugins.enableCors(cors -> cors.addRule(it -> it.anyHost()));
             if (mapPath != null) {
@@ -74,7 +71,6 @@ public class RestInterface {
             }
         }).start(8080);
 
-        // ── Mission Control Launcher (cinematic entry point) ─────────────────
         Javalin launcherApp = Javalin.create(config -> {
             config.bundledPlugins.enableCors(cors -> cors.addRule(it -> it.anyHost()));
             config.staticFiles.add(staticFiles -> {
@@ -89,7 +85,6 @@ public class RestInterface {
         launcherApp.get("/assets/logo.png",             ctx -> serveLogo(ctx, "skydelay_logo.png"));
         launcherApp.get("/assets/logo_transparent.png", ctx -> serveLogo(ctx, "skydelay_logo_transparent.png"));
 
-        // Graceful shutdown endpoint (kills the JVM)
         launcherApp.post("/api/shutdown", ctx -> {
             logger.info("Shutdown requested via launcher.");
             ctx.json(Map.of("status", "shutting-down"));

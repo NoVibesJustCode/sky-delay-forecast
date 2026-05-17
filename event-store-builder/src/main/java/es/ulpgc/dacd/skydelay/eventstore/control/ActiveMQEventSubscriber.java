@@ -5,7 +5,6 @@ import com.google.gson.JsonParser;
 import jakarta.jms.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.function.BiConsumer;
 
 public class ActiveMQEventSubscriber {

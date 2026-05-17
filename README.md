@@ -167,7 +167,18 @@ Each module must be run independently, preferably in the following order:
 
 Once the system is fully operational and the Business Unit is serving data, you can interact with the two specialized frontend views. These demos showcase how the real-time weather and flight streams are transformed into actionable insights.
 
-### 1. Interactive Predictive Map
+### 1. Application Launcher
+
+The central entry point of the platform. This GUI provides direct access to all components of the application, alongside real-time system status metrics.
+
+![SkyDelayForecast Launcher](docs/assets/images/graphical_user_interface.png)
+
+From this unified launcher, users can seamlessly navigate to three main resources:
+* **Interactive Map:** Opens the live, color-coded predictive flight tracking workspace.
+* **Analytics Dashboard:** Grants access to the premium enterprise statistical control panel.
+* **PDF User Guide:** Opens a brief system documentation for end-users.
+
+### 2. Interactive Predictive Map
 
 The map provides a geographical overview of the Spanish airspace, visualizing airports and active flights through a dynamic, color-coded system.Airports are color-coded based on their current delay performance, utilizing the metric $1 - \text{OTP}$ (On-Time Performance) to reflect the exact magnitude of ongoing departures from the schedule. In addition to this real-time status, the map integrates live meteorological conditions to display predictive insights, forecasting whether upcoming flights are likely to experience delays or proceed on schedule.
 
@@ -175,7 +186,7 @@ https://github.com/user-attachments/assets/d59a9e4f-389e-4dba-9a52-2b396abb5b5c
 
 ---
 
-### 2. Premium Analytics Dashboard
+### 3. Premium Analytics Dashboard
 
 Designed for administrative and operational oversight, the dashboard consolidates historical data and evaluates how weather influences flights.
 

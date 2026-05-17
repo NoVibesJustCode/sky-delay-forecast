@@ -39,10 +39,6 @@ public class BusinessEventSubscriber {
         subscribe("flight",   this::processFlight);
     }
 
-    // -------------------------------------------------------------------------
-    // Suscripción genérica
-    // -------------------------------------------------------------------------
-
     private void subscribe(String topicName, MessageListener listener) {
         try {
             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -54,10 +50,6 @@ public class BusinessEventSubscriber {
             logger.error("Error subscribing to {}: {}", topicName, e.getMessage());
         }
     }
-
-    // -------------------------------------------------------------------------
-    // Handlers de mensajes
-    // -------------------------------------------------------------------------
 
     private void processWeather(Message message) {
         if (message instanceof TextMessage textMessage) {
@@ -107,10 +99,6 @@ public class BusinessEventSubscriber {
             }
         }
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     private boolean isHistorical(Flight f) {
         String status = f.status().toUpperCase();

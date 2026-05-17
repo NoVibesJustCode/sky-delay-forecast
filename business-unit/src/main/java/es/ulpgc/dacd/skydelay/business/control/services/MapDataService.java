@@ -48,7 +48,6 @@ public class MapDataService {
         return result;
     }
 
-
     private static String deriveWorstSeverity(List<Map<String, String>> predictions) {
         int worst = 0;
         for (Map<String, String> p : predictions) {
@@ -68,5 +67,4 @@ public class MapDataService {
             default -> "none";
         };
     }
-
 }

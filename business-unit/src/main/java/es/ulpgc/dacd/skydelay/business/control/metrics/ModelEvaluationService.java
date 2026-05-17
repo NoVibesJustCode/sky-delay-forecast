@@ -2,7 +2,6 @@ package es.ulpgc.dacd.skydelay.business.control.metrics;
 
 import es.ulpgc.dacd.skydelay.business.control.KNNClassifier;
 import es.ulpgc.dacd.skydelay.business.control.datamart.FlightHistoricalDAO;
-import es.ulpgc.dacd.skydelay.business.control.datamart.WeatherDAO;
 import es.ulpgc.dacd.skydelay.business.model.FlightFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
