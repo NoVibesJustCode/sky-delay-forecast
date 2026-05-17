@@ -100,7 +100,7 @@ To correctly run the system, the following is required:
    ```ini
     # --- Security & Credentials ---
     # Get your key at https://openweathermap.org/api
-    OPENWEATHER_API_KEY=your_api_key_here
+    OPENWEATHERMAP_API_KEY=your_api_key_here
     
     # --- Browser Configuration (Local Paths) ---
     # Windows example: C:/Program Files/Google/Chrome/Application/chrome.exe
@@ -169,7 +169,7 @@ Once the system is fully operational and the Business Unit is serving data, you 
 
 ### 1. Interactive Predictive Map
 
-The map provides a geographical overview of the Spanish airspace, visualizing airports and active flights through a dynamic, color-coded system.Airports are color-coded based on their current delay performance, utilizing the metric **$1 - \text{OTP}$ (On-Time Performance)** to reflect the exact magnitude of ongoing departures from the schedule. In addition to this real-time status, the map integrates live meteorological conditions to display predictive insights, forecasting whether upcoming flights are likely to experience delays or proceed on schedule.
+The map provides a geographical overview of the Spanish airspace, visualizing airports and active flights through a dynamic, color-coded system.Airports are color-coded based on their current delay performance, utilizing the metric $1 - \text{OTP}$ (On-Time Performance) to reflect the exact magnitude of ongoing departures from the schedule. In addition to this real-time status, the map integrates live meteorological conditions to display predictive insights, forecasting whether upcoming flights are likely to experience delays or proceed on schedule.
 
 https://github.com/user-attachments/assets/d59a9e4f-389e-4dba-9a52-2b396abb5b5c
 

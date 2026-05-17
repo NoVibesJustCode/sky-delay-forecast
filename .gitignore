@@ -42,12 +42,6 @@ build/
 openweathermap-feeder/.env
 .env
 
-### airports.csv ###
-storage/references/airports.csv
-
-### pending_flight_links.txt ###
-storage/data/pending_flight_links.txt
-
 ### Weather Database ###
 storage/db/weather.db
 
