@@ -374,17 +374,18 @@ flowchart TD
   node_flight_store_interface --> node_flight_amq
   node_flight_amq --> node_amq
 
-  click node_flight_main "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/Main.java"
-  click node_flight_controller "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/Controller.java"
-  click node_flight_crawler_interface "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlightCrawler.java"
-  click node_flightera_crawler "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlighteraCrawler.java"
-  click node_link_manager "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/LinkManager.java"
-  click node_flight_scraper_interface "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlightScraper.java"
-  click node_flightera_scraper "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlighteraScraper.java"
-  click node_flight_mapper "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlightMapper.java"
-  click node_flight_sqlite "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/SqliteFlightStore.java"
-  click node_flight_amq "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/ActiveMqFlightStore.java" _blank
-  click node_flight_site "https://www.flightera.net" "Flightera" _blank
+  click node_flight_main "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/Main.java"
+  click node_flight_controller "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/Controller.java"
+  click node_flight_crawler_interface "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlightCrawler.java"
+  click node_flightera_crawler "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlighteraCrawler.java"
+  click node_link_manager "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/LinkManager.java"
+  click node_flight_scraper_interface "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlightScraper.java"
+  click node_flightera_scraper "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlighteraScraper.java"
+  click node_flight_store_interface "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlightStore.java"
+  click node_flight_mapper "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlightMapper.java"
+  click node_flight_sqlite "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/SqliteFlightStore.java"
+  click node_flight_amq "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/ActiveMqFlightStore.java"
+  click node_flight_site "https://www.flightera.net"
 
   classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
   classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
