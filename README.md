@@ -414,10 +414,11 @@ flowchart TD
   node_event_controller --> node_event_store_interface
   node_event_store_interface --> node_event_store
 
-  click node_event_main "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/event-store-builder/src/main/java/es/ulpgc/dacd/skydelay/eventstore/Main.java"
-  click node_event_controller "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/event-store-builder/src/main/java/es/ulpgc/dacd/skydelay/eventstore/control/Controller.java"
-  click node_event_subscriber "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/event-store-builder/src/main/java/es/ulpgc/dacd/skydelay/eventstore/control/ActiveMQEventSubscriber.java"
-  click node_event_store "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/event-store-builder/src/main/java/es/ulpgc/dacd/skydelay/eventstore/control/FileEventStore.java"
+  click node_event_main "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/event-store-builder/src/main/java/es/ulpgc/dacd/skydelay/eventstore/Main.java"
+  click node_event_controller "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/event-store-builder/src/main/java/es/ulpgc/dacd/skydelay/eventstore/control/Controller.java"
+  click node_event_subscriber "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/event-store-builder/src/main/java/es/ulpgc/dacd/skydelay/eventstore/control/ActiveMQEventSubscriber.java"
+  click node_event_store "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/event-store-builder/src/main/java/es/ulpgc/dacd/skydelay/eventstore/control/FileEventStore.java"
+  click node_event_store_interface "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/event-store-builder/src/main/java/es/ulpgc/dacd/skydelay/eventstore/control/EventStore.java"
 
   classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
   classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
