@@ -384,7 +384,7 @@ flowchart TD
   click node_flight_mapper "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/FlightMapper.java"
   click node_flight_sqlite "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/SqliteFlightStore.java"
   click node_flight_amq "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/flight-status-feeder/src/main/java/es/ulpgc/dacd/skydelay/flights/control/ActiveMqFlightStore.java" _blank
-  click node_flight_site "https://www.flightera.net" _blank
+  click node_flight_site "https://www.flightera.net" "Flightera" _blank
 
   classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
   classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
