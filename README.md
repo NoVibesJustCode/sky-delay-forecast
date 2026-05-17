@@ -322,6 +322,7 @@ click node_weather_sqlite "https://github.com/novibesjustcode/sky-delay-forecast
 click node_weather_amq "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/ActiveMQWeatherStore.java"
 click node_weather_store_interface "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/WeatherStore.java"
 click node_weather_feeder_interface "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/openweathermap-feeder/src/main/java/es/ulpgc/dacd/skydelay/weather/control/WeatherFeeder.java"
+click node_owm_api "https://openweathermap.org/api"
 
 classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
 classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
@@ -465,9 +466,12 @@ flowchart TD
   UI ==> API
 
   %% Links for the main components
-  click Main "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/Main.java"
-  click Ctrl "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/Controller.java"
-  click API "https://github.com/novibesjustcode/sky-delay-forecast/blob/dev/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/RestInterface.java"
+  click Main "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/Main.java"
+  click Ctrl "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/Controller.java"
+  click API "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/RestInterface.java"
+  click UI "https://github.com/novibesjustcode/sky-delay-forecast/blob/main/web"
+  click Storage "https://github.com/novibesjustcode/sky-delay-forecast/tree/main/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/datamart"
+  click Eval "https://github.com/novibesjustcode/sky-delay-forecast/tree/main/business-unit/src/main/java/es/ulpgc/dacd/skydelay/business/control/metrics"
 
   %% Styles
   classDef toneGreen fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
