@@ -1,0 +1,30 @@
+icao,iata,name,city,lat,lon,alt
+LEMD,MAD,Adolfo Suárez Madrid-Barajas,Madrid,40.47,-3.56,1998
+LEBL,BCN,Josep Tarradellas Barcelona-El Prat,Barcelona,41.30,2.08,13
+LEPA,PMI,Palma de Mallorca,Mallorca,39.55,2.73,27
+LEMG,AGP,Málaga-Costa del Sol,Málaga,36.67,-4.49,52
+LEAL,ALC,Alicante-Elche,Alicante,38.28,-0.56,142
+LEVC,VLC,Valencia,Valencia,39.49,-0.48,240
+LEZL,SVQ,Sevilla,Sevilla,37.42,-5.89,112
+GCLP,LPA,Gran Canaria,Las Palmas,27.93,-15.39,78
+GCXO,TFN,Tenerife Norte-Los Rodeos,La Laguna (TF),28.48,-16.34,2077
+GCTS,TFS,Tenerife Sur-Reina Sofía,Granadilla (TF),28.04,-16.57,209
+GCFV,FUE,Fuerteventura,Puerto del Rosario,28.45,-13.86,82
+GCRR,ACE,Lanzarote,Arrecife,28.95,-13.61,46
+GCLA,SPC,La Palma,Sta. Cruz de la Palma,28.63,-17.76,107
+GCHI,VDE,El Hierro,Valverde,27.81,-17.89,105
+LEBB,BIO,Bilbao,Bilbao,43.30,-2.91,138
+LEST,SCQ,Santiago-Rosalía de Castro,Santiago,42.90,-8.41,1213
+LECO,LCG,A Coruña,A Coruña,43.30,-8.38,323
+LEVX,VGO,Vigo-Peinador,Vigo,42.23,-8.63,850
+LEAS,OVD,Asturias,Avilés,43.56,-6.03,416
+LEXJ,SDR,Seve Ballesteros-Santander,Santander,43.43,-3.82,16
+LEVT,VIT,Vitoria,Vitoria,42.88,-2.72,1682
+LEIB,IBZ,Ibiza,Ibiza,38.87,1.37,24
+LEMH,MAH,Menorca,Mahón,39.86,4.22,302
+LEGE,GRO,Girona-Costa Brava,Girona,41.90,2.76,469
+LEGR,GRX,Federico García Lorca,Granada,37.19,-3.78,1860
+LEAM,LEI,Almería,Almería,36.84,-2.37,70
+LEBZ,BJZ,Aeropuerto de Badajoz,Badajoz,38.8913,-6.8213,185
+LEJR,XRY,Jerez,Jerez de la Frontera,36.74,-6.06,93
+GEML,MLN,Melilla,Melilla,35.27,-2.96,157

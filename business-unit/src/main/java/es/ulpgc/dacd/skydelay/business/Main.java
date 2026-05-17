@@ -1,6 +1,9 @@
 package es.ulpgc.dacd.skydelay.business;
 
 import es.ulpgc.dacd.skydelay.business.control.Controller;
+import es.ulpgc.dacd.skydelay.business.view.MainLauncher;
+
+import javax.swing.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -11,7 +14,10 @@ public class Main {
 
         Controller controller = new Controller(args[0], args[1], args[2], args[3]);
         controller.execute();
-        System.out.println("\n Dashboard at: http://localhost:7070");
-        System.out.println("\n Map at: http://localhost:8080");
+
+        SwingUtilities.invokeLater(() -> {
+            MainLauncher gui = new MainLauncher();
+            gui.setVisible(true);
+        });
     }
 }

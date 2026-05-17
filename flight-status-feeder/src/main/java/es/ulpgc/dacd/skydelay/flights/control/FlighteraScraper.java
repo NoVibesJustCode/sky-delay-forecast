@@ -72,9 +72,12 @@ public class FlighteraScraper implements FlightScraper {
 
     private Flight scrapFlight(String flightURL, Page page) {
         page.navigate(flightURL);
-        handleCookies(page);
 
         page.waitForSelector("h1[itemprop='flightNumber']");
+
+        String dateFromPage = page.locator("[itemprop='departureTime']").first().innerText().trim();
+        String dateFromUrl = extractDateFromUrl(flightURL);
+        String flightDate = (dateFromUrl != null) ? dateFromUrl : dateFromPage;
 
         return new Flight(
                 Instant.now(),
@@ -82,9 +85,9 @@ public class FlighteraScraper implements FlightScraper {
                 page.locator("h1[itemprop='flightNumber']").innerText().trim(),
                 page.locator("[itemprop='departureAirport'] [itemprop='iataCode']").innerText().trim(),
                 page.locator("[itemprop='arrivalAirport'] [itemprop='iataCode']").innerText().trim(),
-                page.locator("[itemprop='departureTime']").first().innerText().trim(),
-                FlightMapper.extractTimeUTC(page.locator("#depTimeLiveHB + div").innerText()),
-                FlightMapper.extractTimeUTC(page.locator("#arrTimeLiveHB + div").innerText()),
+                flightDate,
+                FlightMapper.extractTimeUTC(extractUTCBlock(page, "#depTimeLiveHB")),
+                FlightMapper.extractTimeUTC(extractUTCBlock(page, "#arrTimeLiveHB")),
                 page.locator("#liveStatusInd").innerText().trim(),
                 FlightMapper.parseDelay(page.locator("#depDelOuterHB").count() > 0 ? page.locator("#depDelOuterHB").innerText() : "0"),
                 FlightMapper.parseDelay(page.locator("#arrDelOuterHB").count() > 0 ? page.locator("#arrDelOuterHB").innerText() : "0"),
@@ -93,18 +96,28 @@ public class FlighteraScraper implements FlightScraper {
         );
     }
 
-    private static void handleCookies(Page page) {
-        try {
-            FrameLocator cookieFrame = page.frameLocator("iframe[id^='sp_message_iframe']");
-            Locator btn = cookieFrame.locator("button[title='Rechazar todo']");
-            if (btn.isVisible()) {
-                btn.click();
-                page.waitForCondition(() -> !btn.isVisible());
-            }
-        } catch (Exception ignored) {
-            Locator fallback = page.locator("button:has-text('Rechazar todo')").first();
-            if (fallback.isVisible()) fallback.click();
-        }
+    private static String extractUTCBlock(Page page, String anchorId) {
+        String js = """
+            (() => {
+                const anchor = document.querySelector('%s');
+                if (!anchor) return '';
+                const parent = anchor.closest('div') || anchor.parentElement;
+                if (!parent) return '';
+                const lines = parent.innerText.split('\\n');
+                for (const line of lines) {
+                    if (line.includes('UTC')) return line.trim();
+                }
+                const sibling = anchor.nextElementSibling;
+                return sibling ? sibling.innerText : '';
+            })()
+            """.formatted(anchorId);
+        return page.evaluate(js).toString();
+    }
+
+    private static String extractDateFromUrl(String url) {
+        java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("(\\d{4}-\\d{2}-\\d{2})$").matcher(url);
+        return m.find() ? m.group(1) : null;
     }
 
     private void deleteUserDataDir(String path) {

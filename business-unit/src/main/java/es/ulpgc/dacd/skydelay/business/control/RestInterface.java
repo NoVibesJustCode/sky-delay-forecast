@@ -1,37 +1,75 @@
 package es.ulpgc.dacd.skydelay.business.control;
 
-import es.ulpgc.dacd.skydelay.business.control.datamart.FlightDAO;
+import es.ulpgc.dacd.skydelay.business.control.datamart.FlightHistoricalDAO;
+import es.ulpgc.dacd.skydelay.business.control.datamart.FlightPredictionsDAO;
 import es.ulpgc.dacd.skydelay.business.control.datamart.WeatherDAO;
+import es.ulpgc.dacd.skydelay.business.control.metrics.ModelEvaluationService;
 import es.ulpgc.dacd.skydelay.business.control.services.MapDataService;
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Map;
 
 public class RestInterface {
 
-    private final FlightDAO flightDAO;
+    private static final Logger logger = LoggerFactory.getLogger(RestInterface.class);
+
+    private final FlightHistoricalDAO historicalDAO;
+    private final FlightPredictionsDAO predictionsDAO;
     private final WeatherDAO weatherDAO;
     private final MapDataService mapDataService;
     private final AirportCodeTranslator translator;
+    private final ModelEvaluationService evaluationService;
 
-    public RestInterface(FlightDAO flightDAO, WeatherDAO weatherDAO,
-                         MapDataService mapDataService, AirportCodeTranslator translator) {
-        this.flightDAO      = flightDAO;
-        this.weatherDAO     = weatherDAO;
-        this.mapDataService = mapDataService;
-        this.translator     = translator;
+    public RestInterface(FlightHistoricalDAO historicalDAO, FlightPredictionsDAO predictionsDAO,
+                         WeatherDAO weatherDAO, MapDataService mapDataService,
+                         AirportCodeTranslator translator, ModelEvaluationService evaluationService) {
+        this.historicalDAO      = historicalDAO;
+        this.predictionsDAO     = predictionsDAO;
+        this.weatherDAO         = weatherDAO;
+        this.mapDataService     = mapDataService;
+        this.translator         = translator;
+        this.evaluationService  = evaluationService;
+    }
+
+    private static String resolveWebPath(String subDir) {
+        String[] candidates = {
+                "web/" + subDir,
+                "../web/" + subDir,
+                "../../web/" + subDir,
+        };
+        for (String candidate : candidates) {
+            if (Files.isDirectory(Path.of(candidate))) {
+                logger.info("Serving '{}' from external path: {}", subDir, Path.of(candidate).toAbsolutePath());
+                return candidate;
+            }
+        }
+        return null;
     }
 
     public void start() {
-        Javalin dashboardApp = Javalin.create(config ->
-                config.staticFiles.add("/public/dashboard", Location.CLASSPATH)
-        ).start(7070);
+        String dashboardPath = resolveWebPath("dashboard");
+        String mapPath = resolveWebPath("map");
 
-        Javalin mapApp = Javalin.create(config ->
-                config.staticFiles.add("/public/map", Location.CLASSPATH)
-        ).start(8080);
+        Javalin dashboardApp = Javalin.create(config -> {
+            if (dashboardPath != null) {
+                config.staticFiles.add(dashboardPath, Location.EXTERNAL);
+            }
+        }).start(7070);
+
+        Javalin mapApp = Javalin.create(config -> {
+            if (mapPath != null) {
+                config.staticFiles.add(mapPath, Location.EXTERNAL);
+            }
+        }).start(8080);
 
         dashboardApp.get("/api/flight-features", ctx ->
-                ctx.json(flightDAO.getAllFlightFeatures()));
+                ctx.json(historicalDAO.getAllFlightFeatures()));
 
         dashboardApp.get("/api/weather-series", ctx -> {
             String icao = ctx.queryParamAsClass("icao", String.class).getOrDefault("LEMD");
@@ -39,10 +77,26 @@ public class RestInterface {
             ctx.json(weatherDAO.getSeries(icao, limit));
         });
 
-        dashboardApp.get("/api/data", ctx -> ctx.json(flightDAO.getReadyToEatMenu()));
+        dashboardApp.get("/api/data", ctx -> ctx.json(predictionsDAO.getReadyToEatMenu()));
+
+        dashboardApp.get("/api/model-evaluation", ctx -> {
+            Map<String, Object> report = evaluationService.getLatestReport();
+            if (report != null) ctx.json(report);
+            else ctx.status(204).result("No evaluation available yet.");
+        });
+
         setupCommonRoutes(dashboardApp);
 
-        mapApp.get("/api/data", ctx -> ctx.json(mapDataService.getAirportsWithCurrentDelays()));
+        mapApp.get("/api/data", ctx -> {
+            predictionsDAO.purgeExpiredPredictions();
+            ctx.json(mapDataService.getAirportsWithPredictions());
+        });
+
+        mapApp.get("/api/predictions", ctx -> {
+            String origin = ctx.queryParam("origin");
+            ctx.json(predictionsDAO.getAllPredictions(origin));
+        });
+
         setupCommonRoutes(mapApp);
     }
 
@@ -54,5 +108,28 @@ public class RestInterface {
             int limit = ctx.queryParamAsClass("limit", Integer.class).getOrDefault(500);
             ctx.json(weatherDAO.getAllWeatherRecords(limit));
         });
+
+        // Serve logos from the single source: docs/assets/
+        app.get("/assets/logo.png", ctx -> serveLogo(ctx, "skydelay_logo.png"));
+        app.get("/assets/logo_transparent.png", ctx -> serveLogo(ctx, "skydelay_logo_transparent.png"));
+    }
+
+    private void serveLogo(io.javalin.http.Context ctx, String filename) throws IOException {
+        Path logo = resolveAssetPath(filename);
+        if (logo != null && Files.exists(logo)) {
+            ctx.contentType("image/png");
+            ctx.result(Files.newInputStream(logo));
+        } else {
+            ctx.status(404).result("Logo not found");
+        }
+    }
+
+    private static Path resolveAssetPath(String filename) {
+        String[] prefixes = { "docs/assets/", "../docs/assets/", "../../docs/assets/" };
+        for (String prefix : prefixes) {
+            Path p = Path.of(prefix + filename);
+            if (Files.exists(p)) return p;
+        }
+        return null;
     }
 }

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyDelay — Flight Delay Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="light-mode">
+
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-sweep" aria-hidden="true"></div>
+
+<!-- HEADER -->
+<header id="main-header">
+    <div class="header-inner">
+        <div class="brand">
+            <div class="brand-icon">
+                <img src="/assets/logo.png" alt="SkyDelay" width="36" height="36" style="border-radius:6px">
+            </div>
+            <div>
+                <div class="brand-name">SkyDelay</div>
+                <div class="brand-sub">Flight Delay Intelligence</div>
+            </div>
+        </div>
+        <nav class="main-nav">
+            <button class="nav-btn active" data-view="overview">Overview</button>
+            <button class="nav-btn" data-view="airports">Airports</button>
+            <button class="nav-btn" data-view="weather">Weather</button>
+            <button class="nav-btn" data-view="flights">Flights</button>
+        </nav>
+        <div class="header-status">
+            <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark mode">🌙</button>
+            <div class="live-dot"></div>
+            <span class="mono" id="live-time">--:--:--</span>
+            <div class="status-chip" id="data-status">LIVE DATA</div>
+        </div>
+    </div>
+</header>
+
+<main id="main-content">
+
+    <!-- ═══ OVERVIEW ═══ -->
+    <div id="view-overview" class="view-panel active">
+        <div class="charts-row-2">
+            <div class="chart-card glass span-2">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-title">On-Time Performance by Airport</div>
+                        <div class="chart-sub">% of flights departing within 15 min of schedule · sorted worst → best</div>
+                    </div>
+                </div>
+                <div class="chart-wrap h360"><canvas id="chart-otp-bar"></canvas></div>
+            </div>
+            <div class="chart-card glass">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-title">Feature Impact on Delay</div>
+                        <div class="chart-sub">Correlation strength · captured variables</div>
+                    </div>
+                </div>
+                <div class="chart-wrap h260"><canvas id="chart-feature-impact"></canvas></div>
+                <div class="info-box">
+                    <div class="info-box-title">What is Pearson r?</div>
+                    <div class="info-box-text">Measures linear correlation between a weather variable and departure delay. Ranges from <strong>−1</strong> (inverse) to <strong>+1</strong> (direct). Values closer to ±1 indicate a stronger influence on delays.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-row-2">
+            <div class="chart-card glass span-2">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-title">Delay Severity by Hour of Day</div>
+                        <div class="chart-sub">Stacked area · all airports combined · flight count per delay category by hour</div>
+                    </div>
+                    <div class="chart-controls">
+                        <div class="legend-pills">
+                            <span class="pill pill-safe">On Time</span>
+                            <span class="pill pill-cyan">Low</span>
+                            <span class="pill pill-warn">Moderate</span>
+                            <span class="pill pill-red">Severe</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-wrap h280"><canvas id="chart-severity-area"></canvas></div>
+            </div>
+            <div class="chart-card glass">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-title">Fleet Delay Profile</div>
+                        <div class="chart-sub">Flights per aircraft model · hover for avg delay</div>
+                    </div>
+                </div>
+                <div class="chart-wrap h280"><canvas id="chart-aircraft-donut"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ AIRPORTS ═══ -->
+    <div id="view-airports" class="view-panel">
+        <div class="charts-row-2">
+            <div class="chart-card glass span-2">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-title">Airport Performance Map</div>
+                        <div class="chart-sub">Bubble size = avg delay · Y = on-time % · X = flight volume</div>
+                    </div>
+                </div>
+                <div class="chart-wrap h380"><canvas id="chart-airport-bubble"></canvas></div>
+            </div>
+            <div class="chart-card glass">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-title">Delays by Hour of Day</div>
+                        <div class="chart-sub">Average departure delay (UTC)</div>
+                    </div>
+                    <select class="sd-select" id="hour-airport-filter"></select>
+                </div>
+                <div class="chart-wrap h300"><canvas id="chart-hour-bar"></canvas></div>
+            </div>
+        </div>
+        <div class="charts-row-1">
+            <div class="chart-card glass">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-title">Airport × Severity Breakdown</div>
+                        <div class="chart-sub">% of flights per delay category by origin airport</div>
+                    </div>
+                    <div class="hm-tabs">
+                        <button class="hm-tab active" data-hm-page="main">Main Airports</button>
+                        <button class="hm-tab" data-hm-page="all">Other Airports</button>
+                    </div>
+                </div>
+                <div id="heatmap-airport-severity" class="heatmap-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ WEATHER ═══ -->
+    <div id="view-weather" class="view-panel">
+        <div class="charts-row-2">
+            <div class="chart-card glass span-2">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-title">Weather Timeline</div>
+                        <div class="chart-sub">Wind, visibility and temperature — recent records</div>
+                    </div>
+                    <select class="sd-select" id="weather-airport-select"></select>
+                </div>
+                <div class="chart-wrap h320"><canvas id="chart-weather-series"></canvas></div>
+            </div>
+            <div class="chart-card glass">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-title">Weather vs Delay</div>
+                        <div class="chart-sub">Scatter — select any weather variable</div>
+                    </div>
+                    <select class="sd-select" id="weather-var-select">
+                        <option value="wind">Wind speed</option>
+                        <option value="gust">Wind gust</option>
+                        <option value="temp">Temperature</option>
+                        <option value="vis">Visibility</option>
+                    </select>
+                </div>
+                <div class="chart-wrap h280"><canvas id="chart-weather-scatter"></canvas></div>
+            </div>
+        </div>
+        <div class="charts-row-1">
+            <div class="chart-card glass">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-title">Visibility × Delay Severity</div>
+                        <div class="chart-sub">Chord diagram · ribbon width = number of flights · connecting visibility ranges to delay outcomes</div>
+                    </div>
+                </div>
+                <div id="chord-container" class="chord-wrap"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ FLIGHTS ═══ -->
+    <div id="view-flights" class="view-panel">
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label class="filter-label">Origin Airport</label>
+                <select class="sd-select filter-wide" id="filter-origin">
+                    <option value="">All</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Status</label>
+                <select class="sd-select filter-wide" id="filter-status">
+                    <option value="">All</option>
+                    <option>On Time</option>
+                    <option>Delayed</option>
+                    <option>Cancelled</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Date Range</label>
+                <div class="date-range-picker" id="date-range-picker">
+                    <input type="text" class="sd-select filter-wide date-input" id="date-range-input" placeholder="All dates" readonly>
+                    <div class="calendar-dropdown" id="calendar-dropdown">
+                        <div class="cal-header">
+                            <button class="cal-nav" id="cal-prev-month">‹</button>
+                            <span class="cal-month-label" id="cal-month-label"></span>
+                            <button class="cal-nav" id="cal-next-month">›</button>
+                        </div>
+                        <div class="cal-weekdays">
+                            <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+                        </div>
+                        <div class="cal-grid" id="cal-grid"></div>
+                        <div class="cal-footer">
+                            <button class="cal-clear-btn" id="cal-clear">Clear</button>
+                            <span class="cal-range-info" id="cal-range-info">Click to select range</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="chart-card glass full-width">
+            <div class="chart-card-header">
+                <div class="chart-title">Historical Flight Log</div>
+                <div class="chart-sub mono" id="flights-count">— flights loaded</div>
+            </div>
+            <div class="flight-table-wrap">
+                <table class="flight-table">
+                    <thead>
+                    <tr>
+                        <th>#</th><th>Flight ID</th><th>Date</th><th>Origin</th><th>Destination</th>
+                        <th>Aircraft</th><th>Distance</th><th>Dep. Delay</th><th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody id="flights-table-body"></tbody>
+                </table>
+            </div>
+            <div class="pagination-row">
+                <button class="page-btn" id="btn-prev">← Previous</button>
+                <span class="mono" id="page-info">1 / 1</span>
+                <button class="page-btn" id="btn-next">Next →</button>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<footer id="main-footer">
+    <div class="footer-inner">
+        <span class="footer-brand">SkyDelay</span>
+        <span class="footer-sep">·</span>
+        <span>Flight Delay Intelligence · Historical Data Dashboard</span>
+        <span class="footer-sep">·</span>
+        <span class="mono" id="footer-ts"></span>
+    </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

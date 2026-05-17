@@ -13,9 +13,11 @@ public class MapDataService {
         this.translator = translator;
     }
 
-    public List<Map<String, Object>> getAirportsWithCurrentDelays() {
+    public List<Map<String, Object>> getAirportsWithPredictions() {
         List<Map<String, Object>> result = new ArrayList<>();
         Collection<AirportData> airports = translator.getAirports();
+
+        Map<String, Double> delayRates = dataStore.fetchDelayRates(10);
 
         for (AirportData airport : airports) {
             Map<String, Object> airportMap = new LinkedHashMap<>();
@@ -25,21 +27,46 @@ public class MapDataService {
             airportMap.put("lat",  airport.lat());
             airportMap.put("lng",  airport.lon());
 
-            double avgDelay = dataStore.getAverageDelayForAirport(airport.icao(), 10);
-            airportMap.put("delay", avgDelay);
+            List<Map<String, String>> predictions = dataStore.fetchRecentPredictions(airport.icao(), 5);
+            airportMap.put("predictions", predictions);
 
-            airportMap.put("recentFlights", dataStore.fetchRichHistoricalFlights(airport.icao(), 12));
+            double delayRate = delayRates.getOrDefault(airport.icao(), 0.0);
+            airportMap.put("delayRate", delayRate);
+
+            String latestUpdate = predictions.stream()
+                    .map(p -> p.getOrDefault("lastUpdated", ""))
+                    .filter(s -> !s.isEmpty())
+                    .max(String::compareTo)
+                    .orElse(null);
+            airportMap.put("latestPredictionAt", latestUpdate);
+
+            String worstSeverity = deriveWorstSeverity(predictions);
+            airportMap.put("severity", worstSeverity);
 
             result.add(airportMap);
         }
         return result;
     }
 
-    public List<Map<String, String>> getHistoricalFlightsForAirport(String icao) {
-        return dataStore.fetchHistoricalFlights(icao, 5);
+
+    private static String deriveWorstSeverity(List<Map<String, String>> predictions) {
+        int worst = 0;
+        for (Map<String, String> p : predictions) {
+            String cat = p.getOrDefault("prediction", "none").toLowerCase();
+            int level = switch (cat) {
+                case "severe"   -> 3;
+                case "moderate" -> 2;
+                case "low"      -> 1;
+                default         -> 0;
+            };
+            if (level > worst) worst = level;
+        }
+        return switch (worst) {
+            case 3  -> "severe";
+            case 2  -> "moderate";
+            case 1  -> "low";
+            default -> "none";
+        };
     }
 
-    public List<Map<String, Object>> getAirportWeatherHistory(String icao, int limit) {
-        return dataStore.fetchWeatherSeries(icao, limit);
-    }
 }

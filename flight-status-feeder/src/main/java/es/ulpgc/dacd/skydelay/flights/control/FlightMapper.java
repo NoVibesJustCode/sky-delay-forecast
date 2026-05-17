@@ -19,9 +19,10 @@ public class FlightMapper {
 
     public static String extractTimeUTC(String text) {
         if (text == null) return "N/A";
-        Pattern pattern = Pattern.compile("(\\d{2}:\\d{2})");
-        Matcher matcher = pattern.matcher(text);
-        return matcher.find() ? matcher.group(1) : "N/A";
+        Matcher utcMatcher = Pattern.compile("(\\d{2}:\\d{2})\\s*UTC").matcher(text);
+        if (utcMatcher.find()) return utcMatcher.group(1);
+        Matcher fallback = Pattern.compile("(\\d{2}:\\d{2})").matcher(text);
+        return fallback.find() ? fallback.group(1) : "N/A";
     }
 
     public static String cleanAircraft(String text) {

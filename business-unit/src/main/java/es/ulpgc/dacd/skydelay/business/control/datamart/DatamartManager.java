@@ -46,6 +46,35 @@ public class DatamartManager {
                 );
             """);
 
+            try { stmt.execute("ALTER TABLE flight_features ADD COLUMN scheduled_departure TEXT"); }
+            catch (SQLException ignored) {}
+            try { stmt.execute("ALTER TABLE flight_features ADD COLUMN aircraft_model TEXT"); }
+            catch (SQLException ignored) {}
+
+            // Backfill missing scheduled_departure from flight_predictions
+            stmt.execute("""
+                UPDATE flight_features SET scheduled_departure = (
+                    SELECT scheduled_time FROM flight_predictions
+                    WHERE flight_predictions.flight_id = flight_features.flight_id
+                ) WHERE scheduled_departure IS NULL
+            """);
+
+            // Fix flights where scheduled_departure has today's date
+            // (caused by fallback to LocalDate.now() when date parsing failed)
+            // Re-derive from flight_predictions.last_updated which is the scrape timestamp
+            stmt.execute("""
+                UPDATE flight_features SET scheduled_departure = (
+                    SELECT last_updated FROM flight_predictions
+                    WHERE flight_predictions.flight_id = flight_features.flight_id
+                ) WHERE scheduled_departure IS NOT NULL
+                  AND date(scheduled_departure) = date('now')
+                  AND EXISTS (
+                      SELECT 1 FROM flight_predictions
+                      WHERE flight_predictions.flight_id = flight_features.flight_id
+                        AND date(last_updated) <> date('now')
+                  )
+            """);
+
             logger.info("Datamart schema initialized successfully.");
         } catch (SQLException e) {
             logger.error("DB Initialization error: {}", e.getMessage());

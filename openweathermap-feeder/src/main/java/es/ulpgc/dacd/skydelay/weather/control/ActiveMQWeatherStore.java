@@ -62,11 +62,13 @@ public class ActiveMQWeatherStore implements WeatherStore {
         }
     }
 
+    @Override
     public void close() {
         try {
             if (producer != null) producer.close();
             if (session != null) session.close();
             if (connection != null) connection.close();
+            System.out.println("ActiveMQ connection closed safely.");
         } catch (JMSException e) {
             System.err.println("Error closing JMS connection: " + e.getMessage());
         }

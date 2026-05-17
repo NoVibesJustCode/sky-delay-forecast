@@ -39,14 +39,13 @@ build/
 .DS_Store
 
 ### WEATHER_API_KEY ###
-openweathermap-feeder/.env
 .env
 
 ### airports.csv ###
 storage/references/airports.csv
 
 ### pending_flight_links.txt ###
-storage/logs/pending_flight_links.txt
+storage/data/pending_flight_links.txt
 
 ### Weather Database ###
 storage/db/weather.db
@@ -61,6 +60,12 @@ storage/db/datamart.db
 eventstore/flight/flight-feeder/*.events
 eventstore/weather/weather-feeder/*.events
 eventstore/forecast/weather-feeder/*.events
+
+### Logs ###
+logs/skydelay.log
+
+### Reports ###
+reports/*.txt
 
 ### Others ###
 user-data-dir/

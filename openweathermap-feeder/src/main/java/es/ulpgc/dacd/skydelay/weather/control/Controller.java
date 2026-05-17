@@ -19,7 +19,7 @@ public class Controller {
     }
 
     public void start() {
-        Timer timer = new Timer("Weather-Timer");
+        Timer timer = new Timer("Weather-System-Timer");
 
         long delay = 0;
         long period = 60 * 60 * 1000L;
