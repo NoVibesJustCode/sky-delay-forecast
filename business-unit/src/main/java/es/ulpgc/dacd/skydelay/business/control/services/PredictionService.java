@@ -64,6 +64,17 @@ public class PredictionService {
         String destIcao = translator.toIcao(f.destination());
         String scheduledDeparture = buildScheduledDeparture(f);
 
+        try {
+            Instant scheduledInstant = Instant.parse(scheduledDeparture);
+            if (scheduledInstant.isBefore(Instant.now().minus(Duration.ofHours(1)))) {
+                logger.warn("Skipping prediction for {}: scheduled time {} is in the past.",
+                        f.flightId(), scheduledDeparture);
+                return;
+            }
+        } catch (DateTimeParseException e) {
+            logger.warn("Could not validate scheduled time '{}' for {}.", scheduledDeparture, f.flightId());
+        }
+
         predictionsDAO.savePrediction(
                 f.flightId(),
                 originIcao,
@@ -105,19 +116,25 @@ public class PredictionService {
     private static LocalDate tryParseFlightDate(String dateText) {
         if (dateText == null || dateText.isBlank()) return null;
 
-        String cleaned = dateText.replaceAll("^\\w{3,9},?\\s*", "").trim();
+        try {
+            return LocalDate.parse(dateText.trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.ENGLISH));
+        } catch (DateTimeParseException ignored) { }
+
+        String cleaned = dateText.replaceAll("^[a-zA-Z]{3,9},?\\s*", "").trim();
 
         cleaned = cleaned.replaceAll("\\d{1,2}:\\d{2}(:\\d{2})?\\s*(AM|PM|am|pm)?\\s*\\w{0,4}$", "").trim();
 
         cleaned = cleaned.replaceAll(",\\s*$", "").trim();
 
+        cleaned = cleaned.replaceAll("^(\\d{1,2})\\.\\s*", "$1 ").trim();
+
         DateTimeFormatter[] formats = {
+                DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.ENGLISH),
                 DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH),
                 DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH),
                 DateTimeFormatter.ofPattern("MMM d yyyy", Locale.ENGLISH),
                 DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.ENGLISH),
                 DateTimeFormatter.ofPattern("MMMM d, yyyy", Locale.ENGLISH),
-                DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.ENGLISH),
                 DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH),
                 new DateTimeFormatterBuilder()
                         .appendPattern("d MMM")
