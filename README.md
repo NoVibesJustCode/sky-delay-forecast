@@ -22,13 +22,34 @@
 
 The main objective of the project is to provide an analytical tool that relates weather conditions with the punctuality performance of airlines. Through the use of web scraping techniques and external API consumption, the system collects data that is subsequently normalized and stored for analysis. The central Business Unit uses this data to train and execute a classifier based on the K-Nearest Neighbors (KNN) algorithm, offering a visual interface for querying predictions and statistics.
 
+### Project Structure
+
+```text
+sky-delay-forecast/
+├── .idea/                      # IntelliJ IDEA project configuration files
+├── business-unit/              # Core business logic, data processing, Datamart management, REST API, and GUI backend
+├── docs/                       # Project documentation, user guides, media (logos, screenshots), and demo videos
+├── event-store-builder/        # Event subscriber: persists raw incoming events into the local Event Store
+├── flight-status-feeder/       # Feeder: scrapes and streams real-time flight data to the broker
+├── openweathermap-feeder/     # Feeder: fetches and streams real-time weather and forecasts to the broker
+├── samples/                    # Real data samples from the Event Store and Datamart
+├── storage/                    # Centralized local data storage
+│   ├── data/                   # Dynamic files (e.g., pending flight links)
+│   └── references/             # Reference files templates (e.g., airports.csv)
+├── web/                        # Web dashboard interface and map visualization
+├── .env.example                # Template for environment variables and API keys
+├── .gitattributes              # Git configuration for language statistics and attributes
+├── .gitignore                  # Specifies intentionally untracked files to ignore
+├── pom.xml                     # Root Maven configuration for managing multi-module dependencies
+└── README.md                   # Project overview and execution manual
+```
+
 ### Value Proposition & User Features
 
 The platform delivers tailored visual tools divided into public access and premium enterprise tiers:
 
 * **Public Flight Map & Search Table:** Accessible to all users, this unified interface features an interactive geographic map where airports are pinned and evaluated using a visual 1-OTP (On-Time Performance) range, integrated alongside a searchable table to quickly check whether a specific flight is prone to or undergoing a delay.
 * **Advanced Analytics Dashboard (Subscription Only):** Designed specifically for aeronautical companies, sector stakeholders and hardcore aviation enthusiasts. This interactive control panel delivers deep insights from historical data, featuring multi-metric charts, airport-specific OTP breakdowns, Pearson correlation analysis for weather conditions, heatmaps, and pattern detection.
-
 
 ---
 
@@ -118,47 +139,72 @@ To correctly run the system, the following is required:
 
 ## Module Execution
 
-Each module must be run independently, preferably in the following order:
+The project follows an event-driven architecture where each module operates independently. Instead of building and running `.jar` files manually, **it is highly recommended to run the modules directly from IntelliJ IDEA**.
 
-1.  **Start the Broker**: Ensure your message broker (e.g., ActiveMQ) is active and reachable.
+### ActiveMQ
+Before launching the modules, ensure your message broker (**Apache ActiveMQ**) is active and running.
+* *Default broker URL:* `tcp://localhost:61616`
 
-    _Default broker URL: `tcp://localhost:61616`_
+---
 
+### Step-by-Step Execution in IntelliJ IDEA
 
-2.  **Event Store Builder**:
-    Subscribes to the broker to persist incoming events in a structured local directory.
-    ```bash
-    java -jar <path_to_event_store_builder_jar> <broker_url> <path_to_event_store_dir>
+#### 1. Navigate to the Project Root
+Make sure you have cloned the repository and opened the root directory (`sky-delay-forecast`) in IntelliJ IDEA.
+
+#### 2. Locate the Main Classes
+You can find the `Main` class for each module by navigating through the project tree (`src/main/java/...`) or by using the **Search Everywhere** shortcut:
+* **All Platforms (Windows/Linux/macOS):** Press `Shift` twice.
+* *Type `Main` or the specific module name to open the file instantly.*
+
+#### 3. Configure and Run Each Module
+For each module, right-click the `Main` file and select **Modify Run Configuration...** (or *Edit Configurations...*). In the **Program arguments** field, paste the required arguments separated by spaces with their values in the exact order shown below:
+
+##### Event Store Builder
+Subscribes to the broker to persist incoming events into a structured local directory.
+* **Program Arguments:**
+    ```bash 
+    <broker_url> <path_to_event_store_dir>
     ```
 
-3.  **OpenWeatherMap Feeder**:
-    Requires the broker URL, the targeted topic names (`weather` and `forecast`) and an external file containing airport information (IATA/IACO codes, locations, etc.). 
+##### OpenWeatherMap Feeder
+Requires the broker URL, the targeted topic names (`weather` and `forecast`) and an external file containing airport information (IATA/ICAO codes, locations, etc.).
 
-    _You can find a template for the required format in `storage/references/airports.csv`._
+_You can find a template for the required format in `storage/references/airports.csv`._
 
-    ```bash
-    java -jar <path_to_openweathermap_feeder_jar> <broker_url> <topic_name1> <topic_name2> <path_to_airports_data_csv> 
+* **Program Arguments:**
+    ```bash 
+    <broker_url> <topic_name1> <topic_name2> <path_to_airports_data_csv> 
     ```
 
-4.  **Flight Status Feeder**:
-    Requires the broker URL, the topic name (`flight`) and the path to the file that stores the flight links generated by the crawler for later scraping (_e.g., ```storage/data/pending_flight_links.txt```_).
+##### Flight Status Feeder
+Requires the broker URL, the topic name (`flight`) and the path to the file that stores the flight links generated by the crawler for later scraping (_e.g., ```storage/data/pending_flight_links.txt```_).
+
+* **Program Arguments:**
     ```bash
-    java -jar <path_to_flight_status_feeder_jar> <broker_url> <topic_name> <path_to_pending_links_txt>
+    <broker_url> <topic_name> <path_to_pending_links_txt>
     ```
 
-5.  **Business Unit**:
-    Requires the broker URL, the Event Store directory path (_e.g., ```eventstore/```_), the SQLite database path (_e.g., ```storage/db/datamart.db```_) and the airport data file (_e.g., ```storage/references/airports.csv```_).
+##### Business Unit
+Requires the broker URL, the Event Store directory path (_e.g., ```eventstore/```_), the SQLite database path (_e.g., ```storage/db/datamart.db```_) and the airport data file (_e.g., ```storage/references/airports.csv```_).
+
+* **Program Arguments:**
     ```bash
-    java -jar <path_to_business_unit_jar> <broker_url> <path_to_event_store_dir> <path_to_datamart_db> <path_to_airports_data_csv> 
+    <broker_url> <path_to_event_store_dir> <path_to_datamart_db> <path_to_airports_data_csv> 
     ```
+---
+
+Once the arguments are configured, click the green **Run (Play)** button for each module. They will run concurrently in independent terminal tabs within IntelliJ.
+
+---
 
 > After starting the Business Unit, you can access the platform's visual suite through the main GUI. From there, you can navigate to either the public tools or the subscription-based analytics panel:
 >
 > * **Predictive Map & Flight Table:** `http://localhost:8080` (Main interface containing the interactive geographic map and the live flight-delay lookup table).
-> 
-> 
+>
+>
 > * **Analytics Dashboard:** `http://localhost:9090` (Premium enterprise control panel). When navigating to this view, use the following default credentials to log in:
->   * **Password:** `admin123`
+    >   * **Password:** `admin123`
 >
 
 ---
