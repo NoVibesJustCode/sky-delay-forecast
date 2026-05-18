@@ -31,7 +31,7 @@ sky-delay-forecast/
 ├── docs/                       # Project documentation, user guides, media (logos, screenshots), and demo videos
 ├── event-store-builder/        # Event subscriber: persists raw incoming events into the local Event Store
 ├── flight-status-feeder/       # Feeder: scrapes and streams real-time flight data to the broker
-├── openweathermap-feeder/     # Feeder: fetches and streams real-time weather and forecasts to the broker
+├── openweathermap-feeder/      # Feeder: fetches and streams real-time weather and forecasts to the broker
 ├── samples/                    # Real data samples from the Event Store and Datamart
 ├── storage/                    # Centralized local data storage
 │   ├── data/                   # Dynamic files (e.g., pending flight links)
@@ -40,8 +40,9 @@ sky-delay-forecast/
 ├── .env.example                # Template for environment variables and API keys
 ├── .gitattributes              # Git configuration for language statistics and attributes
 ├── .gitignore                  # Specifies intentionally untracked files to ignore
-├── pom.xml                     # Root Maven configuration for managing multi-module dependencies
-└── README.md                   # Project overview and execution manual
+├── LICENSE                     # Open-source project license (GNU GPLv3)
+├── README.md                   # Project overview and execution manual 
+└── pom.xml                     # Root Maven configuration for managing multi-module dependencies
 ```
 
 ### Value Proposition & User Features
@@ -66,7 +67,7 @@ To ensure the accuracy of our forecasts, we have selected sources that balance a
 
 ### Datamart Schema
 
-The information is organized into a **SQLite Datamart** structured into three main tables to optimize both model training and dashboard visualization:
+The information is organized into a **SQLite Datamart** structured into three main tables to optimize both model training and dashboard visualization. This relational approach was preferred over flat CSV files to enable fast indexing, seamless table joins, and efficient row-level updates for incoming predictions.
 
 **1. `flight_features` (Historical Flight Data)** *Used for model training, crossing each flight instance with the weather conditions at that specific time.*
 
