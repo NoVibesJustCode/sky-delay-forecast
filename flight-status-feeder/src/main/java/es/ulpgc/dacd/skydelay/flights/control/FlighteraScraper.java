@@ -61,7 +61,7 @@ public class FlighteraScraper implements FlightScraper {
                 }
             }
 
-            linkManager.removeProcessedLinks(processed);
+            linkManager.removeProcessedLinks(processed, currentBatch);
             context.close();
         } catch (Exception e) {
             logger.error("Critical error during Playwright execution", e);
