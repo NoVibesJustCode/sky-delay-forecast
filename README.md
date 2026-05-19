@@ -60,10 +60,10 @@ To ensure the accuracy of our forecasts, we have selected sources that balance a
 
 ### Justification of Sources
 
-1. **OpenWeatherMap (API):** We selected this API over local alternatives like AEMET because it offers a more comprehensive free tier for student developers. More importantly, OpenWeatherMap allows for data retrieval via precise **geographical coordinates** (Latitude/Longitude), providing higher spatial accuracy for airport locations compared to AEMET’s locality-based (municipality) system.
+1. [**OpenWeatherMap**](https://openweathermap.org/api) **(API):** We selected this API over local alternatives like AEMET because it offers a more comprehensive free tier for student developers. More importantly, OpenWeatherMap allows for data retrieval via precise **geographical coordinates** (Latitude/Longitude), providing higher spatial accuracy for airport locations compared to AEMET’s locality-based (municipality) system.
 
 
-2. **Flightera (Web Scraping):** Unlike many commercial aviation APIs that impose severe quota limitations or high costs, scraping Flightera allows us to obtain detailed historical logs and real-time flight statuses—such as specific aircraft models and granular delay data—which are essential for feeding our KNN model without hitting restrictive paywalls.
+2. [**Flightera**](https://www.flightera.net) **(Web Scraping):** Unlike many commercial aviation APIs that impose severe quota limitations or high costs, scraping Flightera allows us to obtain detailed historical logs and real-time flight statuses—such as specific aircraft models and granular delay data—which are essential for feeding our KNN model without hitting restrictive paywalls.
 
 ### Datamart Schema
 
