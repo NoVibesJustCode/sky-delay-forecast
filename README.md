@@ -205,7 +205,7 @@ Once the arguments are configured, click the green **Run (Play)** button for eac
 >
 >
 > * **Analytics Dashboard:** `http://localhost:9090` (Premium enterprise control panel). When navigating to this view, use the following default credentials to log in:
-    >   * **Password:** `admin123`
+>   * **Password:** `admin123`
 >
 
 ---
