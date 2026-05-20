@@ -37,13 +37,12 @@ public class Controller {
                 try {
                     LinkManager linkManager = new LinkManager(linksPath);
                     linkManager.saveUniqueLinks(newLinks);
-                    System.out.println("[CRAWLER] ✅ Links in queue: " + linkManager.getPendingLinks().size());
+                    System.out.println("[CRAWLER] Links in queue: " + linkManager.getPendingLinks().size());
                 } catch (IOException e) {
-                    System.err.println("[CRAWLER] ❌ Error: " + e.getMessage());
+                    System.err.println("[CRAWLER] Error: " + e.getMessage());
                 }
             }
         }, 0, 12 * 60 * 60 * 1000L);
-
 
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override

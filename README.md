@@ -31,7 +31,7 @@ sky-delay-forecast/
 ├── docs/                       # Project documentation, user guides, media (logos, screenshots), and demo videos
 ├── event-store-builder/        # Event subscriber: persists raw incoming events into the local Event Store
 ├── flight-status-feeder/       # Feeder: scrapes and streams real-time flight data to the broker
-├── openweathermap-feeder/     # Feeder: fetches and streams real-time weather and forecasts to the broker
+├── openweathermap-feeder/      # Feeder: fetches and streams real-time weather and forecasts to the broker
 ├── samples/                    # Real data samples from the Event Store and Datamart
 ├── storage/                    # Centralized local data storage
 │   ├── data/                   # Dynamic files (e.g., pending flight links)
@@ -40,8 +40,9 @@ sky-delay-forecast/
 ├── .env.example                # Template for environment variables and API keys
 ├── .gitattributes              # Git configuration for language statistics and attributes
 ├── .gitignore                  # Specifies intentionally untracked files to ignore
-├── pom.xml                     # Root Maven configuration for managing multi-module dependencies
-└── README.md                   # Project overview and execution manual
+├── LICENSE                     # Open-source project license (GNU GPLv3)
+├── README.md                   # Project overview and execution manual 
+└── pom.xml                     # Root Maven configuration for managing multi-module dependencies
 ```
 
 ### Value Proposition & User Features
@@ -59,14 +60,14 @@ To ensure the accuracy of our forecasts, we have selected sources that balance a
 
 ### Justification of Sources
 
-1. **OpenWeatherMap (API):** We selected this API over local alternatives like AEMET because it offers a more comprehensive free tier for student developers. More importantly, OpenWeatherMap allows for data retrieval via precise **geographical coordinates** (Latitude/Longitude), providing higher spatial accuracy for airport locations compared to AEMET’s locality-based (municipality) system.
+1. [**OpenWeatherMap**](https://openweathermap.org/api) **(API):** We selected this API over local alternatives like AEMET because it offers a more comprehensive free tier for student developers. More importantly, OpenWeatherMap allows for data retrieval via precise **geographical coordinates** (Latitude/Longitude), providing higher spatial accuracy for airport locations compared to AEMET’s locality-based (municipality) system.
 
 
-2. **Flightera (Web Scraping):** Unlike many commercial aviation APIs that impose severe quota limitations or high costs, scraping Flightera allows us to obtain detailed historical logs and real-time flight statuses—such as specific aircraft models and granular delay data—which are essential for feeding our KNN model without hitting restrictive paywalls.
+2. [**Flightera**](https://www.flightera.net) **(Web Scraping):** Unlike many commercial aviation APIs that impose severe quota limitations or high costs, scraping Flightera allows us to obtain detailed historical logs and real-time flight statuses—such as specific aircraft models and granular delay data—which are essential for feeding our KNN model without hitting restrictive paywalls.
 
 ### Datamart Schema
 
-The information is organized into a **SQLite Datamart** structured into three main tables to optimize both model training and dashboard visualization:
+The information is organized into a **SQLite Datamart** structured into three main tables to optimize both model training and dashboard visualization. This relational approach was preferred over flat CSV files to enable fast indexing, seamless table joins, and efficient row-level updates for incoming predictions.
 
 **1. `flight_features` (Historical Flight Data)** *Used for model training, crossing each flight instance with the weather conditions at that specific time.*
 
@@ -116,8 +117,8 @@ To correctly run the system, the following is required:
     ```bash
     cp .env.example .env
     ```
-    Open the newly created `.env` file and replace the placeholder values with your specific configuration:
-    
+   Open the newly created `.env` file and replace the placeholder values with your specific configuration:
+
    ```ini
     # --- Security & Credentials ---
     # Get your key at https://openweathermap.org/api
@@ -133,7 +134,7 @@ To correctly run the system, the following is required:
     CHROME_USER_DATA=./user-data-dir
     ```
 
-    > ℹ️ **Browser Compatibility:** While the `.env.example` file and properties reference Chromium/Chrome defaults, you are not strictly limited to Google Chrome. You can point `CHROME_EXECUTABLE_PATH` to any modern Chromium-based binary (such as Brave, Microsoft Edge, or Chromium) installed on your system, provided it supports standard automated CLI flags and user-data separation.
+   > ℹ️ **Browser Compatibility:** While the `.env.example` file and properties reference Chromium/Chrome defaults, you are not strictly limited to Google Chrome. You can point `CHROME_EXECUTABLE_PATH` to any modern Chromium-based binary (such as Brave, Microsoft Edge, or Chromium) installed on your system, provided it supports standard automated CLI flags and user-data separation.
 
 ---
 
@@ -204,7 +205,7 @@ Once the arguments are configured, click the green **Run (Play)** button for eac
 >
 >
 > * **Analytics Dashboard:** `http://localhost:9090` (Premium enterprise control panel). When navigating to this view, use the following default credentials to log in:
-    >   * **Password:** `admin123`
+>   * **Password:** `admin123`
 >
 
 ---
@@ -487,7 +488,7 @@ The intelligent core of the project. It integrates both processing logic and use
 -   **Datamart**: Maintains a SQLite database optimized for fast queries and model training.
 -   **Prediction**: Implements a prediction service based on the KNN algorithm that estimates flight delays given specific weather conditions.
 -   **REST Interface**: Exposes an API using Javalin for programmatic access to data and predictions.
- 
+
 ```mermaid
 flowchart TD
   %% Nodes

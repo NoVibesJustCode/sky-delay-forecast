@@ -61,7 +61,7 @@ public class FlighteraScraper implements FlightScraper {
                 }
             }
 
-            linkManager.removeProcessedLinks(processed);
+            linkManager.removeProcessedLinks(processed, currentBatch);
             context.close();
         } catch (Exception e) {
             logger.error("Critical error during Playwright execution", e);
@@ -100,14 +100,10 @@ public class FlighteraScraper implements FlightScraper {
             (() => {
                 const anchor = document.querySelector('%s');
                 if (!anchor) return '';
-                const parent = anchor.closest('div') || anchor.parentElement;
-                if (!parent) return '';
-                const lines = parent.innerText.split('\\n');
-                for (const line of lines) {
-                    if (line.includes('UTC')) return line.trim();
-                }
-                const sibling = anchor.nextElementSibling;
-                return sibling ? sibling.innerText : '';
+                const block = anchor.parentElement;
+                if (!block) return '';
+                const match = block.innerText.match(/(\\d{2}:\\d{2})\\s*UTC/);
+                return match ? match[0] : '';
             })()
             """.formatted(anchorId);
         return page.evaluate(js).toString();

@@ -252,13 +252,18 @@
         return 'd-none';
     }
 
-    function fmtTime(isoStr) {
+    function airportTz(icao) {
+        return icao && icao.startsWith('GC') ? 'Atlantic/Canary' : 'Europe/Madrid';
+    }
+
+    function fmtTime(isoStr, icao) {
         if (!isoStr) return '—';
         try {
             const d = new Date(isoStr);
             if (isNaN(d.getTime())) return isoStr;
-            return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
-                + ' · ' + d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+            const tz = icao ? airportTz(icao) : 'UTC';
+            return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: tz })
+                + ' · ' + d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: tz });
         } catch { return isoStr; }
     }
 
@@ -297,7 +302,7 @@
                   <tr>
                     <td class="flight-id">${esc(p.flight || '—')}</td>
                     <td class="route-cell">→ ${esc(destCode)}</td>
-                    <td class="time-cell">${fmtTime(p.time)}</td>
+                    <td class="time-cell">${fmtTime(p.time, airport.icao)}</td>
                     <td class="delay-cat ${delayCategoryClass(catKey)}">${catLabel}</td>
                   </tr>`;
               }).join('')
@@ -572,7 +577,7 @@
                     <td class="flight-id">${esc(p.flight || '—')}</td>
                     <td>${esc(originLabel)}</td>
                     <td>${esc(destLabel)}</td>
-                    <td class="time-cell">${fmtTime(p.time)}</td>
+                    <td class="time-cell">${fmtTime(p.time, p.origin)}</td>
                     <td class="delay-cat ${delayCategoryClass(catKey)}">${catLabel}</td>
                     <td class="time-cell">${fmtTime(p.lastUpdated)}</td>
                 </tr>`;

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.LinkedHashMap;
 
 public class LinkManager {
     private final Path filePath;
@@ -27,17 +28,31 @@ public class LinkManager {
         overwrite(new ArrayList<>(allLinks));
     }
 
-    public void removeProcessedLinks(List<String> processed) throws IOException {
+    public void removeProcessedLinks(List<String> processed, List<String> attempted) throws IOException {
         List<String> current = getPendingLinks();
 
-        List<String> notRemoved = current.stream()
-                .filter(link -> !processed.contains(link))
-                .collect(Collectors.toList());
+        Set<String> processedSet = new HashSet<>(processed);
+        Set<String> toRotate = new HashSet<>(attempted);
+        toRotate.removeAll(processedSet);
 
-        if (!notRemoved.isEmpty() && !processed.isEmpty()) {
-            Collections.rotate(notRemoved, -processed.size());
+        List<String> remaining = current.stream()
+                .filter(link -> !processedSet.contains(link))
+                .toList();
+
+        LinkedHashMap<String, List<String>> byDate = new LinkedHashMap<>();
+        for (String link : remaining) {
+            byDate.computeIfAbsent(extractDate(link), k -> new ArrayList<>()).add(link);
         }
-        overwrite(notRemoved);
+
+        List<String> reordered = new ArrayList<>();
+        for (List<String> dateGroup : byDate.values()) {
+            List<String> stay = dateGroup.stream().filter(l -> !toRotate.contains(l)).toList();
+            List<String> rotate = dateGroup.stream().filter(toRotate::contains).toList();
+            reordered.addAll(stay);
+            reordered.addAll(rotate);
+        }
+
+        overwrite(reordered);
     }
 
     private String extractDate(String link) {
