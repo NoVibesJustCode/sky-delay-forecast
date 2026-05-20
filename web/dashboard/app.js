@@ -166,7 +166,11 @@
             let hour = null, dateStr = null;
             if (r.scheduledDeparture) {
                 const d = new Date(r.scheduledDeparture);
-                if (!isNaN(d.getTime())) { hour = d.getUTCHours(); dateStr = r.scheduledDeparture.slice(0, 10); }
+                if (!isNaN(d.getTime())) {
+                    const tz = r.originIcao && r.originIcao.startsWith('GC') ? 'Atlantic/Canary' : 'Europe/Madrid';
+                    hour = parseInt(d.toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: tz }), 10);
+                    dateStr = r.scheduledDeparture.slice(0, 10);
+                }
             }
 
             return {
